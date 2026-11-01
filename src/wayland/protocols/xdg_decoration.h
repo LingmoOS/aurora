@@ -6,7 +6,7 @@
 //           (WaylandXdgToplevelDecoration and the manager request table)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: Exo keeps the negotiated mode inside the protocol
+// Adapted for Lingmo: Exo keeps the negotiated mode inside the protocol
 // object and pushes a SurfaceFrameType at the shell surface; here the mode
 // belongs to wm::ShellSurface, so that the decision survives the protocol
 // object and so that nothing about frames lives in a request handler. Exo also

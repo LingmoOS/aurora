@@ -31,7 +31,7 @@ using wm::FrameArea;
 using wm::ResizeEdge;
 
 // Two presses closer together than this, on nearly the same spot, are a double
-// click. Ash uses the platform's double-click interval; Cutefish has no
+// click. Ash uses the platform's double-click interval; Lingmo has no
 // settings service yet.
 constexpr int kDoubleClickMs = 400;
 constexpr int kDoubleClickSlop = 4;
@@ -167,7 +167,7 @@ void Decoration::layout()
     const Metrics &metrics = m_theme->metrics();
     const base::Rect titleBar = titleBarRect();
 
-    // The group is right-aligned, in the order the Cutefish KWin configuration
+    // The group is right-aligned, in the order the Lingmo KWin configuration
     // lists it: minimize, maximize, close.
     int right = titleBar.right() - metrics.buttonsRightMargin;
     const int top = titleBar.top() + std::max(0, (titleBar.height() - metrics.buttonSize) / 2);
@@ -296,7 +296,7 @@ bool Decoration::onPointerButton(input::Timestamp timestamp, const base::PointF 
     if (!m_window)
         return false;
 
-    LM_DEBUG(cfInputTransitions) << "decoration target" << m_window
+    LM_DEBUG(lingmoInputTransitions) << "decoration target" << m_window
                                  << (pressed ? "press" : "release") << "caption-capture"
                                  << m_pressedButton;
     if (pressed)
@@ -312,7 +312,7 @@ bool Decoration::onTouchDown(input::Timestamp timestamp, int32_t id, const base:
 {
     if (!m_window)
         return false;
-    LM_DEBUG(cfInputTransitions) << "decoration target" << m_window << "touch down" << id;
+    LM_DEBUG(lingmoInputTransitions) << "decoration target" << m_window << "touch down" << id;
     return press(timestamp, at, id);
 }
 
@@ -392,7 +392,7 @@ bool Decoration::press(input::Timestamp timestamp, const base::PointF &location,
         m_lastTitleBarPressPoint = framePoint;
         m_hadTitleBarPress = !doubleClick;
 
-        LM_DEBUG(cfInputTransitions)
+        LM_DEBUG(lingmoInputTransitions)
                 << "decoration titlebar action" << (doubleClick ? "maximize-toggle" : "begin-move");
         if (doubleClick)
             toggleMaximize();
@@ -426,7 +426,7 @@ void Decoration::runButtonAction(CaptionButtonType type)
     // client's process.
     switch (type) {
     case CaptionButtonType::Close:
-        LM_DEBUG(cfCompositor) << "decoration: close" << m_window->title();
+        LM_DEBUG(lingmoCompositor) << "decoration: close" << m_window->title();
         m_window->requestClose();
         break;
     case CaptionButtonType::Minimize:

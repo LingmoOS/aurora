@@ -7,7 +7,7 @@
 //           libwayland-client connection rather than Exo's test client.
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 
 #include "base/geometry.h"
@@ -2137,7 +2137,7 @@ TEST_F(XdgShellProtocolTest, APopupIsConstrainedToItsParentsOutput)
     const auto logical = [](const char *name, const base::Rect &bounds, bool primary) {
         return display::LogicalDisplay {display::DisplayId(name),
                                         {display::DisplayId(name)},
-                                        std::string("Cutefish-") + name,
+                                        std::string("Lingmo-") + name,
                                         bounds,
                                         bounds.adjusted(0, 24, 0, 0),
                                         {},

@@ -127,7 +127,7 @@ namespace Core {
 // Everything the compositor process owns, in one place. Modelled on ash::Shell:
 // members are constructed in declaration order and torn down in reverse, so the
 // header's ordering is the lifetime contract. "Shell" here is Ash's sense - the
-// container for the process's subsystems - not the Cutefish shell UI, which is
+// container for the process's subsystems - not the Lingmo shell UI, which is
 // a separate process.
 class CompositorShell : private decoration::ThemeObserver, private input::SeatObserver
 {
@@ -235,7 +235,7 @@ private:
     scene::Node *m_switcherContainer = nullptr;
     // The outgoing frame of a display change covers the session, not the lock screen.
     scene::ScreenTransitionNode *m_screenTransition = nullptr;
-    // Ash's container split, flattened to Cutefish's single scene: everything
+    // Ash's container split, flattened to Lingmo's single scene: everything
     // the session owns is below "secure", the lock screen is inside it, and the
     // cursor stays above both. Membership - not a z-order comparison - is what
     // input, activation and capture ask about.

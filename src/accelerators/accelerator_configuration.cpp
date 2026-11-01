@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/ash_accelerator_configuration.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_configuration.h"
@@ -127,7 +127,7 @@ void setLookupMaps(std::span<const AcceleratorData> accelerators,
         accelerator.setKeyState(data.triggerOnPress ? Accelerator::KeyState::Pressed
                                                     : Accelerator::KeyState::Released);
         if (!acceleratorToId.insertNew(accelerator, data.action)) {
-            LM_WARNING(cfInput) << "Duplicate default accelerator" << accelerator.shortcutText();
+            LM_WARNING(lingmoInput) << "Duplicate default accelerator" << accelerator.shortcutText();
             continue;
         }
         idToAccelerator[toActionId(data.action)].push_back(accelerator);
@@ -260,7 +260,7 @@ AcceleratorConfigResult AcceleratorConfiguration::addUserAccelerator(Accelerator
     const AcceleratorConfigResult result = doAddAccelerator(id, accelerator, /*saveOverride=*/true);
     if (result == AcceleratorConfigResult::Success)
         updateAndNotifyAccelerators();
-    LM_DEBUG(cfInput) << "addAccelerator" << id << accelerator.shortcutText() << toString(result);
+    LM_DEBUG(lingmoInput) << "addAccelerator" << id << accelerator.shortcutText() << toString(result);
     return result;
 }
 
@@ -273,7 +273,7 @@ AcceleratorConfigResult AcceleratorConfiguration::removeAccelerator(AcceleratorA
         restoreDefaultOwner(m_acceleratorToId.remapForLookup(accelerator));
         updateAndNotifyAccelerators();
     }
-    LM_DEBUG(cfInput) << "removeAccelerator" << id << accelerator.shortcutText() << toString(result);
+    LM_DEBUG(lingmoInput) << "removeAccelerator" << id << accelerator.shortcutText() << toString(result);
     return result;
 }
 
@@ -285,7 +285,7 @@ AcceleratorConfiguration::replaceAccelerator(AcceleratorActionId id,
     const AcceleratorConfigResult result = doReplaceAccelerator(id, oldAccelerator, newAccelerator);
     if (result == AcceleratorConfigResult::Success)
         updateAndNotifyAccelerators();
-    LM_DEBUG(cfInput) << "replaceAccelerator" << id << oldAccelerator.shortcutText() << "->"
+    LM_DEBUG(lingmoInput) << "replaceAccelerator" << id << oldAccelerator.shortcutText() << "->"
                      << newAccelerator.shortcutText() << toString(result);
     return result;
 }
@@ -332,7 +332,7 @@ AcceleratorConfigResult AcceleratorConfiguration::restoreDefault(AcceleratorActi
     }
 
     updateAndNotifyAccelerators();
-    LM_DEBUG(cfInput) << "restoreDefault" << id << toString(result);
+    LM_DEBUG(lingmoInput) << "restoreDefault" << id << toString(result);
     return result;
 }
 
@@ -463,7 +463,7 @@ void AcceleratorConfiguration::saveOverrides()
     for (const auto &[action, list] : m_overrides)
         m_settings.setValue(group + "/" + action, sortedKeys(base::json::Value(list)).serialize());
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist shortcut overrides to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist shortcut overrides to" << m_settings.path();
 }
 
 void AcceleratorConfiguration::applyOverrides()
@@ -473,7 +473,7 @@ void AcceleratorConfiguration::applyOverrides()
     for (auto &[actionName, list] : m_overrides) {
         const auto action = acceleratorActionFromName(actionName);
         if (!action || !isValid(toActionId(*action))) {
-            LM_INFO(cfInput) << "Dropping shortcut overrides for unknown action"
+            LM_INFO(lingmoInput) << "Dropping shortcut overrides for unknown action"
                             << actionName;
             actionsToRemove.push_back(actionName);
             continue;
@@ -487,7 +487,7 @@ void AcceleratorConfiguration::applyOverrides()
         for (size_t i = 0; i < list.size();) {
             const auto modification = modificationFromJson(list[i]);
             if (!modification) {
-                LM_WARNING(cfInput) << "Malformed shortcut override for" << actionName;
+                LM_WARNING(lingmoInput) << "Malformed shortcut override for" << actionName;
                 list.erase(list.begin() + i);
                 continue;
             }
@@ -515,7 +515,7 @@ void AcceleratorConfiguration::applyOverrides()
         m_overrides.erase(action);
 
     if (!areAcceleratorsValid()) {
-        LM_WARNING(cfInput) << "Shortcut overrides are inconsistent; restoring the defaults";
+        LM_WARNING(lingmoInput) << "Shortcut overrides are inconsistent; restoring the defaults";
         restoreAllDefaults();
         return;
     }

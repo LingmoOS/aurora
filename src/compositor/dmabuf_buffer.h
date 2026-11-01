@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/buffer.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the gfx::GpuMemoryBuffer / viz::TransferableResource
+// Adapted for Lingmo: the gfx::GpuMemoryBuffer / viz::TransferableResource
 // production is replaced by an EGLImage import, and the DMA-BUF description is
 // kept whole so the same buffer can be scanned out directly.
 

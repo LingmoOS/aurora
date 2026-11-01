@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/cros_display_config.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: a credential-checked session D-Bus object fronts the
+// Adapted for Lingmo: a credential-checked session D-Bus object fronts the
 // compositor transaction controller without Ash or Mojo.
 
 #pragma once

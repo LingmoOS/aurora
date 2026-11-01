@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_dmabuf_feedback_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "wayland/protocols/dmabuf_feedback_manager.h"
@@ -82,18 +82,18 @@ ScopedFd createFormatTable(const std::vector<DmaBufFeedbackFormat>& table)
     ScopedFd fd(memfd_create("lingmo-dmabuf-format-table",
                              MFD_CLOEXEC | MFD_ALLOW_SEALING));
     if (!fd.isValid()) {
-        LM_WARNING(cfWayland) << "memfd_create failed for the dmabuf format table";
+        LM_WARNING(lingmoWayland) << "memfd_create failed for the dmabuf format table";
         return ScopedFd();
     }
 
     if (ftruncate(fd.get(), static_cast<off_t>(size)) != 0) {
-        LM_WARNING(cfWayland) << "ftruncate failed for the dmabuf format table";
+        LM_WARNING(lingmoWayland) << "ftruncate failed for the dmabuf format table";
         return ScopedFd();
     }
 
     void* data = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd.get(), 0);
     if (data == MAP_FAILED) {
-        LM_WARNING(cfWayland) << "mmap failed for the dmabuf format table";
+        LM_WARNING(lingmoWayland) << "mmap failed for the dmabuf format table";
         return ScopedFd();
     }
     std::memcpy(data, table.data(), size);
@@ -102,7 +102,7 @@ ScopedFd createFormatTable(const std::vector<DmaBufFeedbackFormat>& table)
     if (fcntl(fd.get(), F_ADD_SEALS,
               F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE)
         != 0) {
-        LM_WARNING(cfWayland) << "Failed to seal the dmabuf format table";
+        LM_WARNING(lingmoWayland) << "Failed to seal the dmabuf format table";
         return ScopedFd();
     }
 

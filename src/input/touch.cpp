@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/touch.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: see touch.h.
+// Adapted for Lingmo: see touch.h.
 
 #include "input/touch.h"
 

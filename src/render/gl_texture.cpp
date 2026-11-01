@@ -36,7 +36,7 @@ GlTexture::~GlTexture()
     if (m_context) {
         ScopedEglCurrent current(*m_context);
         if (!current.valid())
-            LM_FATAL(cfRender) << "Cannot make EGL context current for texture retirement";
+            LM_FATAL(lingmoRender) << "Cannot make EGL context current for texture retirement";
         glDeleteTextures(1, &m_name);
     } else {
         glDeleteTextures(1, &m_name);

@@ -31,7 +31,7 @@ DemoController::DemoController(WindowManager* manager, input::InputManager* inpu
     m_scriptTimer.onTimeout = [this] {
         runNextScriptStep();
     };
-    LM_INFO(cfCompositor).printf("WM demo keys: F1 maximize  F2 restore  F3 minimize  F4 unminimize all  "
+    LM_INFO(lingmoCompositor).printf("WM demo keys: F1 maximize  F2 restore  F3 minimize  F4 unminimize all  "
            "F5 fullscreen  F6 move  F7 resize  F8 transient  F9 next window");
 }
 
@@ -106,14 +106,14 @@ bool DemoController::handleShortcut(uint32_t evdevCode)
             window->setFullscreen(!window->state()->isFullscreen());
         return true;
     case KEY_F6:
-        LM_DEBUG(cfInputTransitions) << "demo F6 begin move request";
+        LM_DEBUG(lingmoInputTransitions) << "demo F6 begin move request";
         if (window) {
             m_manager->eventHandler()->beginMove(window,
                                                  m_input->pointerPosition());
         }
         return true;
     case KEY_F7:
-        LM_DEBUG(cfInputTransitions) << "demo F7 begin resize request";
+        LM_DEBUG(lingmoInputTransitions) << "demo F7 begin resize request";
         if (window) {
             m_manager->eventHandler()->beginResize(window, ResizeEdge::BottomRight,
                                                    m_input->pointerPosition());
@@ -166,12 +166,12 @@ void DemoController::toggleTransientOnActive()
 
     if (window->transientParent()) {
         window->setTransientParent(nullptr);
-        LM_INFO(cfCompositor) << "WM demo cleared the transient parent";
+        LM_INFO(lingmoCompositor) << "WM demo cleared the transient parent";
         return;
     }
     for (Window* candidate : windows) {
         if (candidate != window && window->setTransientParent(candidate)) {
-            LM_INFO(cfCompositor) << "WM demo made the active window transient for the one below";
+            LM_INFO(lingmoCompositor) << "WM demo made the active window transient for the one below";
             return;
         }
     }
@@ -181,7 +181,7 @@ void DemoController::startScript(int stepIntervalMs)
 {
     m_scriptIntervalMs = stepIntervalMs;
     buildScript();
-    LM_INFO(cfCompositor).printf("WM demo script: %zu steps, %d ms apart", m_script.size(),
+    LM_INFO(lingmoCompositor).printf("WM demo script: %zu steps, %d ms apart", m_script.size(),
            stepIntervalMs);
     // Wait for a client to map something before the first step.
     m_scriptTimer.start(std::chrono::milliseconds(m_scriptIntervalMs));
@@ -190,7 +190,7 @@ void DemoController::startScript(int stepIntervalMs)
 void DemoController::runNextScriptStep()
 {
     if (m_scriptStep >= m_script.size()) {
-        LM_INFO(cfCompositor).printf("WM demo script: finished");
+        LM_INFO(lingmoCompositor).printf("WM demo script: finished");
         return;
     }
 
@@ -220,7 +220,7 @@ void DemoController::buildScript()
 
     auto log = [this](const char* what) {
         Window* window = scriptTarget();
-        LM_INFO(cfCompositor).printf("WM demo script: %s -> windows=%zu state=%s bounds=%d,%d %dx%d", what,
+        LM_INFO(lingmoCompositor).printf("WM demo script: %s -> windows=%zu state=%s bounds=%d,%d %dx%d", what,
                m_manager->windows().size(), window ? toString(window->stateType()) : "none",
                window ? window->bounds().x() : 0, window ? window->bounds().y() : 0,
                window ? window->bounds().width() : 0, window ? window->bounds().height() : 0);
@@ -314,7 +314,7 @@ void DemoController::buildScript()
     });
     m_script.push_back([this, log] {
         activateNext();
-        LM_INFO(cfCompositor).printf("WM demo script: active window is now %p",
+        LM_INFO(lingmoCompositor).printf("WM demo script: active window is now %p",
                static_cast<void*>(m_manager->activation()->activeWindow()));
         log("activate-next");
     });
@@ -324,7 +324,7 @@ void DemoController::buildScript()
                 if (candidate != window && window->setTransientParent(candidate))
                     break;
             }
-            LM_INFO(cfCompositor).printf("WM demo script: transient parent is %p",
+            LM_INFO(lingmoCompositor).printf("WM demo script: transient parent is %p",
                    static_cast<void*>(window->transientParent()));
         }
         log("set-transient");

@@ -6,7 +6,7 @@
 //           chromium/src/ash/display/display_move_window_util.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_commands.h"
@@ -145,7 +145,7 @@ void windowSnap(const CommandContext &context, AcceleratorAction action)
     if (!window)
         return;
     // ash::BaseState::CycleSnap: snap unless already snapped to that side, in
-    // which case restore. Rotated displays are not distinguished; Cutefish
+    // which case restore. Rotated displays are not distinguished; Lingmo
     // snaps in logical coordinates.
     const wm::WindowStateType desired = action == AcceleratorAction::WindowCycleSnapLeft
             ? wm::WindowStateType::PrimarySnapped

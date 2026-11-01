@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/buffer.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "compositor/dmabuf_buffer.h"
@@ -29,7 +29,7 @@ std::unique_ptr<DmaBufBuffer> DmaBufBuffer::create(render::DmaBufDevice* device,
     // as params.failed rather than turning up as a blank window later.
     std::shared_ptr<render::Texture> texture = device->importDmaBuf(attributes);
     if (!texture) {
-        LM_WARNING(cfCompositor).printf(
+        LM_WARNING(lingmoCompositor).printf(
                 "Failed to import a %dx%d DMA-BUF, format 0x%08x modifier 0x%016llx",
                 attributes.size.width(), attributes.size.height(), attributes.format,
                 static_cast<unsigned long long>(attributes.modifier));

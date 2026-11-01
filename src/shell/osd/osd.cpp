@@ -21,7 +21,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfOsd("lingmo.shell.osd");
+static const base::LogCategory lingmoOsd("lingmo.shell.osd");
 
 // Ash's volume step, on PipeWire's scale where 1 is normal.
 static constexpr double kNormalVolume = 1.0;
@@ -100,7 +100,7 @@ bool Osd::registerService()
     object->addMethod("keyboardBrightnessDown", [this] { keyboardBrightnessDown(); });
     object->addMethod("keyboardBrightnessUp", [this] { keyboardBrightnessUp(); });
     if (!object->publish() || !bus->requestName("org.lingmo.Osd", dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfOsd) << "Cannot own org.lingmo.Osd";
+        LM_WARNING(lingmoOsd) << "Cannot own org.lingmo.Osd";
         return false;
     }
     m_service = std::move(object);

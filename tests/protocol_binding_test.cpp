@@ -7,7 +7,7 @@
 //           chromium/src/components/exo/wayland/clients/security_delegate_binding_test.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: binds the globals ProtocolGlobals registers, over
+// Adapted for Lingmo: binds the globals ProtocolGlobals registers, over
 // socketpair clients, and checks the registry filter for the restricted ones.
 
 #include <gtest/gtest.h>

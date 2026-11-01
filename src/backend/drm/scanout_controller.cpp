@@ -112,7 +112,7 @@ bool ScanoutController::setColorTransform(const render::ColorTransform &transfor
                                                    &color.gammaBlob);
         }
         if (!created) {
-            LM_WARNING(cfDrm).printf("Failed to create the colour transform blob for CRTC %u",
+            LM_WARNING(lingmoDrm).printf("Failed to create the colour transform blob for CRTC %u",
                                      m_config.crtcId);
             return false;
         }
@@ -414,7 +414,7 @@ bool ScanoutController::commit(const std::vector<PlaneContent> &planes, bool mod
             m_colorPending = pending;
             return false;
         }
-        LM_WARNING(cfDrm).printf(
+        LM_WARNING(lingmoDrm).printf(
                 "The driver refused the colour transform for CRTC %u; blending it instead",
                 m_config.crtcId);
         destroyBlobs(color);

@@ -18,7 +18,7 @@ using namespace std::chrono_literals;
 using base::dbus::ObjectPath;
 using base::dbus::Variant;
 
-static const base::LogCategory cfSecrets("lingmo.shell.secrets");
+static const base::LogCategory lingmoSecrets("lingmo.shell.secrets");
 
 static const std::string kService = "org.freedesktop.secrets";
 static const std::string kServicePath = "/org/freedesktop/secrets";
@@ -64,7 +64,7 @@ void SecretStore::call(const std::string &path, const std::string &interface, co
     base::dbus::PendingCall pending = m_bus->callAsync(message, [this, id, finished, method, done](const base::dbus::Reply &reply) {
         *finished = true;
         if (reply.isError())
-            LM_WARNING(cfSecrets) << "Secret Service:" << method << reply.error().message;
+            LM_WARNING(lingmoSecrets) << "Secret Service:" << method << reply.error().message;
         // The slot goes after the callback returns.
         base::dbus::PendingCall slot;
         if (auto it = m_pending.find(id); it != m_pending.end()) {
@@ -168,7 +168,7 @@ void SecretStore::save(const std::string &uuid, const std::string &connectionNam
              [=, this](const base::dbus::Reply &reply) {
                  const auto collection = reply.value<ObjectPath>();
                  if (!collection || collection->path == kNoPrompt) {
-                     LM_WARNING(cfSecrets) << "Secret Service has no default collection to store" << key << "in";
+                     LM_WARNING(lingmoSecrets) << "Secret Service has no default collection to store" << key << "in";
                      finish(session);
                      return;
                  }

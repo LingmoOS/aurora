@@ -22,7 +22,7 @@ using Lingmo::i18n::trn;
 
 namespace Lingmo::Shell {
 
-static const base::LogCategory cfClipboard("lingmo.shell.clipboard");
+static const base::LogCategory lingmoClipboard("lingmo.shell.clipboard");
 
 // The list shows one line; a longer title only costs layout.
 static constexpr size_t kTitleLength = 300;
@@ -207,7 +207,7 @@ bool ClipboardHistory::registerService()
     object->addMethod("toggle", [this] { toggle(); });
     if (!object->publish()
         || !m_bus->requestName("org.lingmo.ClipboardHistory", base::dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfClipboard) << "Cannot own org.lingmo.ClipboardHistory";
+        LM_WARNING(lingmoClipboard) << "Cannot own org.lingmo.ClipboardHistory";
         return false;
     }
     m_object = std::move(object);

@@ -8,7 +8,7 @@
 //               (CreateMergedGpuFenceFromFDs)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gfx::GpuFenceHandle becomes a plain owned sync_file fd
+// Adapted for Lingmo: gfx::GpuFenceHandle becomes a plain owned sync_file fd
 // and sync_merge() is issued directly, since libsync is an Android library.
 
 #ifndef LINGMO_RENDER_SYNC_FENCE_H_

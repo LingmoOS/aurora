@@ -7,7 +7,7 @@
 //           chromium/src/ui/gfx/geometry/rect.cc (AdjustToFit)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gfx::Rect becomes base::Rect.
+// Adapted for Lingmo: gfx::Rect becomes base::Rect.
 
 #include "wm/placement.h"
 

@@ -344,7 +344,7 @@ void runScriptStep(Client* client)
     switch (client->scriptStep++) {
     case 0:
         printf("script: set_title\n");
-        xdg_toplevel_set_title(client->toplevel, "Cutefish decoration demo");
+        xdg_toplevel_set_title(client->toplevel, "Lingmo decoration demo");
         break;
     case 1:
         printf("script: set_maximized\n");
@@ -448,7 +448,7 @@ int main(int argc, char** argv)
     xdg_surface_add_listener(client.xdgSurface, &surfaceListener, &client);
     client.toplevel = xdg_surface_get_toplevel(client.xdgSurface);
     xdg_toplevel_add_listener(client.toplevel, &toplevelListener, &client);
-    xdg_toplevel_set_title(client.toplevel, "Cutefish decoration demo");
+    xdg_toplevel_set_title(client.toplevel, "Lingmo decoration demo");
     xdg_toplevel_set_app_id(client.toplevel, "org.lingmo.DecorationDemo");
     xdg_toplevel_set_min_size(client.toplevel, 240, 160);
 

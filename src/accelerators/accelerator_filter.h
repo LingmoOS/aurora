@@ -6,7 +6,7 @@
 //           chromium/src/ash/accelerators/pre_target_accelerator_handler.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the pre-target handler is an input::EventSink that
+// Adapted for Lingmo: the pre-target handler is an input::EventSink that
 // sits in front of the window manager's, the way DemoController does. It also
 // stands in for the aura::Env pre-target handlers Ash gives the accelerator
 // history, the launcher state machine and the window cycle event filter.

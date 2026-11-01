@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/display.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "compositor/compositor.h"
@@ -73,7 +73,7 @@ std::shared_ptr<Buffer> Compositor::createDmaBufBuffer(render::DmaBufAttributes 
 scene::SurfaceNode *Compositor::createSurfaceNode(Surface *surface)
 {
     m_surfaces.push_back(surface);
-    LM_DEBUG(cfCompositor) << "Surface created; total" << m_surfaces.size();
+    LM_DEBUG(lingmoCompositor) << "Surface created; total" << m_surfaces.size();
 
     if (!m_surfaceContainer)
         return nullptr;
@@ -97,7 +97,7 @@ void Compositor::surfaceDestroyed(Surface *surface)
 {
     m_surfaceByNode.erase(surface->node());
     m_surfaces.erase(std::remove(m_surfaces.begin(), m_surfaces.end(), surface), m_surfaces.end());
-    LM_DEBUG(cfCompositor) << "Surface destroyed; total" << m_surfaces.size();
+    LM_DEBUG(lingmoCompositor) << "Surface destroyed; total" << m_surfaces.size();
     scheduleRepaint();
 }
 

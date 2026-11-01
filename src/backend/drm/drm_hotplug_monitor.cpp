@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/host/drm_display_host_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: one udev monitor closes the subscribe-before-query race
+// Adapted for Lingmo: one udev monitor closes the subscribe-before-query race
 // and turns a connector event burst into one bounded reprobe request.
 
 #include "backend/drm/drm_hotplug_monitor.h"

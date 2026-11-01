@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/buffer.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the gpu::/viz:: texture production machinery is gone.
+// Adapted for Lingmo: the gpu::/viz:: texture production machinery is gone.
 // What is kept is the attach/detach/release lifecycle.
 
 #ifndef LINGMO_COMPOSITOR_BUFFER_H_

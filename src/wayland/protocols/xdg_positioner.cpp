@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_positioner.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "wayland/protocols/xdg_positioner.h"

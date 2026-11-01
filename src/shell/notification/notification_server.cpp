@@ -18,7 +18,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfNotifications("lingmo.shell.notifications");
+static const base::LogCategory lingmoNotifications("lingmo.shell.notifications");
 
 static constexpr const char *kService = "org.freedesktop.Notifications";
 static constexpr const char *kPath = "/org/freedesktop/Notifications";
@@ -105,7 +105,7 @@ bool NotificationServer::registerService()
     if (m_object)
         return true;
     if (!m_bus) {
-        LM_WARNING(cfNotifications) << "Cannot serve notifications: no session bus";
+        LM_WARNING(lingmoNotifications) << "Cannot serve notifications: no session bus";
         return false;
     }
 
@@ -125,16 +125,16 @@ bool NotificationServer::registerService()
             dbus::ArgumentNames{{}, {"capabilities"}});
     object->addMethod(
             "GetServerInformation",
-            [] { return std::tuple<std::string, std::string, std::string, std::string>("Lingmo", "CutefishOS", "1.0", "1.2"); },
+            [] { return std::tuple<std::string, std::string, std::string, std::string>("Lingmo", "LingmoOS", "1.0", "1.2"); },
             dbus::ArgumentNames{{}, {"name", "vendor", "version", "spec_version"}});
     object->addSignal("ActionInvoked", "us");
     object->addSignal("NotificationClosed", "uu");
     if (!object->publish()) {
-        LM_WARNING(cfNotifications) << "Cannot export" << kPath;
+        LM_WARNING(lingmoNotifications) << "Cannot export" << kPath;
         return false;
     }
     if (!m_bus->requestName(kService, dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfNotifications) << "Cannot own" << kService << "- another notification server runs";
+        LM_WARNING(lingmoNotifications) << "Cannot own" << kService << "- another notification server runs";
         return false;
     }
     m_object = std::move(object);

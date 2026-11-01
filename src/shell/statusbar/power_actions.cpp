@@ -12,7 +12,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfPower("lingmo.shell.power");
+static const base::LogCategory lingmoPower("lingmo.shell.power");
 
 PowerActions::PowerActions(dbus::Connection *bus)
     // lingmo-core's session application exports org.lingmo.Session at
@@ -72,7 +72,7 @@ void PowerActions::callSession(const char *method)
     m_calls.track([&](std::function<void()> finished) {
         return m_session.callAsync(method, [method, finished](const dbus::Reply &reply) {
             if (reply.isError())
-                LM_WARNING(cfPower) << "Unable to request" << method << "from the session:"
+                LM_WARNING(lingmoPower) << "Unable to request" << method << "from the session:"
                                     << reply.error().message;
             finished();
         });
@@ -99,7 +99,7 @@ void PowerActions::suspend()
     m_calls.track([&](std::function<void()> finished) {
         return m_session.callAsync("suspend", [finished](const dbus::Reply &reply) {
             if (reply.isError())
-                LM_WARNING(cfPower) << "Unable to request suspend:" << reply.error().message;
+                LM_WARNING(lingmoPower) << "Unable to request suspend:" << reply.error().message;
             finished();
         });
     });
@@ -110,7 +110,7 @@ void PowerActions::lockScreen()
     m_calls.track([&](std::function<void()> finished) {
         return m_screenSaver.callAsync("Lock", [finished](const dbus::Reply &reply) {
             if (reply.isError())
-                LM_WARNING(cfPower) << "Unable to request screen lock:" << reply.error().message;
+                LM_WARNING(lingmoPower) << "Unable to request screen lock:" << reply.error().message;
             finished();
         });
     });

@@ -189,7 +189,7 @@ void PipeWireCapture::connectToDaemon()
         m_context = pw_context_new(m_loop, nullptr, 0);
     if (m_context) {
         m_core = pw_context_connect(m_context,
-                                    pw_properties_new(PW_KEY_APP_NAME, "Cutefish Privacy", PW_KEY_APP_ID,
+                                    pw_properties_new(PW_KEY_APP_NAME, "Lingmo Privacy", PW_KEY_APP_ID,
                                                       "org.lingmo.Privacy", nullptr),
                                     0);
     }

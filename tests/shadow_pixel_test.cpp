@@ -852,7 +852,7 @@ TEST_F(ShadowPixelTest, BlurClampsAtOutputEdgesAndRestoresScissorAndFramebuffer)
     EXPECT_EQ(channel(pixels(), 705, 505, 1), 255);
 }
 
-// A frameless Cutefish window is one rounded rectangle, so its shadow has to be
+// A frameless Lingmo window is one rounded rectangle, so its shadow has to be
 // cut around a rounded bottom. Cutting a square one out instead leaves the
 // bottom corners with a hard, completely unshadowed wedge between the client's
 // arc and the cut-out.

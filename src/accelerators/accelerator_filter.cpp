@@ -6,7 +6,7 @@
 //           chromium/src/ash/accelerators/pre_target_accelerator_handler.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_filter.h"
@@ -280,7 +280,7 @@ bool AcceleratorFilter::shouldProcessAcceleratorNow(const Accelerator &accelerat
     // A full screen window has a right to handle all key events including
     // the preferred ones. Ash would offer the rest to the window first and
     // process them afterwards if it declined; without a key-ack extension
-    // Cutefish has no afterwards, so everything else is processed now.
+    // Lingmo has no afterwards, so everything else is processed now.
     wm::Window *active = m_windowManager ? m_windowManager->activation()->activeWindow() : nullptr;
     const bool fullscreen = active && active->state()->isFullscreen();
     return !fullscreen;

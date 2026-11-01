@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wl_data_device_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: keeps the resource and event ordering and the fd
+// Adapted for Lingmo: keeps the resource and event ordering and the fd
 // marshalling, without the Chromium clipboard backend.
 #include "wayland/protocols/wl_data_device_manager.h"
 

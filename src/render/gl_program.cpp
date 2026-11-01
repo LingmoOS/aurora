@@ -26,7 +26,7 @@ GLuint compileShader(GLenum type, const char *source)
     if (status != GL_TRUE) {
         char log[512] = {};
         glGetShaderInfoLog(shader, sizeof(log) - 1, nullptr, log);
-        LM_CRITICAL(cfRender).printf("Shader compilation failed: %s", log);
+        LM_CRITICAL(lingmoRender).printf("Shader compilation failed: %s", log);
         glDeleteShader(shader);
         return 0;
     }
@@ -65,7 +65,7 @@ GLuint linkProgram(const char *vertexSource, const char *fragmentSource)
     if (status != GL_TRUE) {
         char log[512] = {};
         glGetProgramInfoLog(program, sizeof(log) - 1, nullptr, log);
-        LM_CRITICAL(cfRender).printf("Program link failed: %s", log);
+        LM_CRITICAL(lingmoRender).printf("Program link failed: %s", log);
         glDeleteProgram(program);
         return 0;
     }

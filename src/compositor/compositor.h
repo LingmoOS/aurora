@@ -5,11 +5,11 @@
 // Upstream: chromium/src/components/exo/display.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
-// Renamed from Display, which in Cutefish would be confused with a physical
-// output, and reduced to the factories Cutefish needs.
+// Renamed from Display, which in Lingmo would be confused with a physical
+// output, and reduced to the factories Lingmo needs.
 
 #ifndef LINGMO_COMPOSITOR_COMPOSITOR_H_
 #define LINGMO_COMPOSITOR_COMPOSITOR_H_

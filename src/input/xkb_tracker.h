@@ -5,11 +5,11 @@
 // Upstream: chromium/src/components/exo/xkb_tracker.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
 // Adaptation: Exo derives xkb modifier state from ui::EventFlags through
-// ui::XkbModifierConverter. Cutefish is the one processing the physical key
+// ui::XkbModifierConverter. Lingmo is the one processing the physical key
 // stream, so it drives xkb_state_update_key directly and lets xkbcommon own
 // latch, lock and group bookkeeping.
 

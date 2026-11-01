@@ -6,7 +6,7 @@
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
 // The release-timing cases are the valuable half; the gpu:: / viz:: resource
-// production Exo tests alongside them has no Cutefish counterpart.
+// production Exo tests alongside them has no Lingmo counterpart.
 
 #include <gtest/gtest.h>
 #include <list>

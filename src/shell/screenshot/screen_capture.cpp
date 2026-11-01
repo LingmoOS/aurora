@@ -37,7 +37,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfScreenshot("lingmo.shell.screenshot");
+static const base::LogCategory lingmoScreenshot("lingmo.shell.screenshot");
 
 // The names saves are writing, so two captures in one second pick two.
 struct ScreenCapture::SavingNames {
@@ -220,7 +220,7 @@ bool ScreenCapture::registerService()
             },
             dbus::ArgumentNames {{"output", "cursor"}, {"png"}});
     if (!object->publish() || !bus->requestName("org.lingmo.Screenshot", dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfScreenshot) << "Cannot own org.lingmo.Screenshot";
+        LM_WARNING(lingmoScreenshot) << "Cannot own org.lingmo.Screenshot";
         return false;
     }
     m_service = std::move(object);

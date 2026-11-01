@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wl_shm.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: base::UnsafeSharedMemoryRegion and viz formats give way
+// Adapted for Lingmo: base::UnsafeSharedMemoryRegion and viz formats give way
 // to an mmapped fd and render::PixelFormat.
 
 #include "wayland/protocols/wl_shm.h"
@@ -71,7 +71,7 @@ void shm_pool_create_buffer(wl_client* client, wl_resource* resource, uint32_t i
                                              return candidate.shmFormat == format;
                                          });
     if (supported == std::end(kSupportedFormats)) {
-        LM_WARNING(cfWayland).printf("wl_shm_pool.create_buffer: invalid format 0x%x", format);
+        LM_WARNING(lingmoWayland).printf("wl_shm_pool.create_buffer: invalid format 0x%x", format);
         wl_resource_post_error(resource, WL_SHM_ERROR_INVALID_FORMAT, "invalid format 0x%x",
                                format);
         return;
@@ -83,7 +83,7 @@ void shm_pool_create_buffer(wl_client* client, wl_resource* resource, uint32_t i
             ->createBuffer(base::Size(width, height), offset, stride, supported->pixelFormat,
                            &error);
     if (!buffer) {
-        LM_WARNING(cfWayland).printf(
+        LM_WARNING(lingmoWayland).printf(
                 "wl_shm_pool.create_buffer: rejected %dx%d stride %d offset %d", width, height,
                 stride, offset);
         wl_resource_post_error(resource, WL_SHM_ERROR_INVALID_STRIDE,
@@ -101,7 +101,7 @@ void shm_pool_create_buffer(wl_client* client, wl_resource* resource, uint32_t i
     buffer->setReleaseCallback(
         [bufferResource] { handleBufferReleaseCallback(bufferResource); });
     buffer->setFaultCallback([bufferResource] {
-        LM_WARNING(cfWayland).printf(
+        LM_WARNING(lingmoWayland).printf(
                 "wl_shm: the file behind a pool shrank while it was being read");
         wl_resource_post_error(bufferResource, WL_SHM_ERROR_INVALID_FD,
                                "error accessing SHM buffer");

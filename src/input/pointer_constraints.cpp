@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/pointer.cc (pointer constraints)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "input/pointer_constraints.h"
@@ -76,7 +76,7 @@ bool PointerConstraints::add(PointerConstraintDelegate *delegate)
     // Can only have one constraint request per surface.
     const auto [it, inserted] = m_constraints.try_emplace(surface, delegate);
     if (!inserted) {
-        LM_DEBUG(cfInput) << "Pointer constraint not granted; one already exists.";
+        LM_DEBUG(lingmoInput) << "Pointer constraint not granted; one already exists.";
         delegate->onAlreadyConstrained();
         delegate->onDefunct();
         return false;
@@ -231,7 +231,7 @@ bool PointerConstraints::breakByUserAction()
     m_capturePermitted = false;
     if (!m_active)
         return false;
-    LM_DEBUG(cfInput) << "Pointer constraint broken by user action";
+    LM_DEBUG(lingmoInput) << "Pointer constraint broken by user action";
     update();
     return true;
 }

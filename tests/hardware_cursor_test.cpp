@@ -8,7 +8,7 @@
 //
 // The KMS cursor plane and the compositor's fallback to compositing the cursor.
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 
 #include <cmath>

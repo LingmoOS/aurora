@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/sub_surface.cc, display.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "compositor/sub_surface.h"
@@ -73,7 +73,7 @@ void SubSurface::setCommitBehavior(bool synchronized)
     m_isSynchronized = synchronized;
     // wl_subsurface.set_desync requires immediate application of an existing
     // cache if no ancestor still synchronizes us. Exo's setter alone doesn't
-    // flush it; Cutefish has no SurfaceTreeHost to trigger that application.
+    // flush it; Lingmo has no SurfaceTreeHost to trigger that application.
     if (m_surface && !isSurfaceSynchronized())
         m_surface->requestDesynchronizedCommit();
 }

@@ -6,7 +6,7 @@
 //           chromium/src/ui/ozone/platform/drm/gpu/drm_gpu_display_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: bounded backtracking preserves compatible routes and
+// Adapted for Lingmo: bounded backtracking preserves compatible routes and
 // prevents independent outputs from claiming the same CRTC or primary plane.
 
 #include "backend/drm/drm_configuration_planner.h"

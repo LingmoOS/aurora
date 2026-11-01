@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_pointer_delegate.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
 // Adaptation: the aura scroll unit and its conversion factor are gone; libinput
@@ -78,7 +78,7 @@ void WaylandPointerDelegate::onPointerEnter(compositor::Surface *surface,
     // toolkits do not expect it, so the flags are only used to seed our own
     // state.
     const auto serial = m_serialTracker->nextSerial(SerialTracker::POINTER_ENTER);
-    LM_DEBUG(cfCursorTransitions) << "enter pointer" << wl_resource_get_id(m_pointerResource)
+    LM_DEBUG(lingmoCursorTransitions) << "enter pointer" << wl_resource_get_id(m_pointerResource)
                                   << "client" << client() << "serial" << serial << "surface"
                                   << surface;
     m_enterSerial = serial;

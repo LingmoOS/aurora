@@ -87,7 +87,7 @@ bool RememberedApps::registerService()
         return true;
     auto exported = input::DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export computer control settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export computer control settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -176,7 +176,7 @@ void RememberedApps::save()
     else
         m_settings.setValue(key, base::json::Value(std::move(apps)).serialize());
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist computer control settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist computer control settings to" << m_settings.path();
     changed();
     if (m_object)
         m_object->emitSignal("changed");

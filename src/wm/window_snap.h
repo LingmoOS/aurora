@@ -9,7 +9,7 @@
 //
 // Only Ash's landscape layout is ported: left and right snap to half the work
 // area, the top maximizes. Ash's portrait orientation, where the top and the
-// bottom snap instead, has no Cutefish equivalent and is left out. The snap
+// bottom snap instead, has no Lingmo equivalent and is left out. The snap
 // ratio is always a half; Ash carries a per-window ratio for its resizable
 // split view.
 

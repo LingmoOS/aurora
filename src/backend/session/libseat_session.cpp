@@ -32,9 +32,9 @@ void logHandler(libseat_log_level level, const char* format, va_list args)
     char buffer[512];
     vsnprintf(buffer, sizeof(buffer), format, args);
     if (level == LIBSEAT_LOG_LEVEL_ERROR)
-        LM_WARNING(cfSession).printf("libseat: %s", buffer);
+        LM_WARNING(lingmoSession).printf("libseat: %s", buffer);
     else
-        LM_DEBUG(cfSession).printf("libseat: %s", buffer);
+        LM_DEBUG(lingmoSession).printf("libseat: %s", buffer);
 }
 
 // The signals main.cpp blocks for its signalfd, pending before it reads them.
@@ -79,7 +79,7 @@ std::unique_ptr<LibseatSession> LibseatSession::create()
 
     session->m_seat = libseat_open_seat(&listener, session.get());
     if (!session->m_seat) {
-        LM_CRITICAL(cfSession) << "Failed to open a seat; is seatd running or is "
+        LM_CRITICAL(lingmoSession) << "Failed to open a seat; is seatd running or is "
                                  "this a logind session?";
         return nullptr;
     }
@@ -88,11 +88,11 @@ std::unique_ptr<LibseatSession> LibseatSession::create()
     // session nobody activates; a stop must still end the wait.
     while (!session->m_active) {
         if (stopPending()) {
-            LM_INFO(cfSession) << "Stopped while waiting for the seat";
+            LM_INFO(lingmoSession) << "Stopped while waiting for the seat";
             return nullptr;
         }
         if (libseat_dispatch(session->m_seat, 100) < 0) {
-            LM_CRITICAL(cfSession) << "Failed to dispatch libseat while waiting for the seat";
+            LM_CRITICAL(lingmoSession) << "Failed to dispatch libseat while waiting for the seat";
             return nullptr;
         }
     }
@@ -102,14 +102,14 @@ std::unique_ptr<LibseatSession> LibseatSession::create()
 
     const int fd = libseat_get_fd(session->m_seat);
     if (fd < 0) {
-        LM_CRITICAL(cfSession) << "libseat provided no event fd";
+        LM_CRITICAL(lingmoSession) << "libseat provided no event fd";
         return nullptr;
     }
 
     session->m_watch = core::mainLoop()->watch(fd, EPOLLIN,
                                                [s = session.get()](uint32_t) { s->dispatch(); });
 
-    LM_INFO(cfSession) << "Seat:" << session->m_seatName;
+    LM_INFO(lingmoSession) << "Seat:" << session->m_seatName;
     return session;
 }
 
@@ -119,7 +119,7 @@ void LibseatSession::dispatch()
         return;
     // The seat connection is gone and its fd stays readable: watching it
     // further would only spin. Open devices keep working; switching does not.
-    LM_CRITICAL(cfSession) << "Lost the seat connection:" << strerror(errno);
+    LM_CRITICAL(lingmoSession) << "Lost the seat connection:" << strerror(errno);
     core::mainLoop()->unwatch(std::exchange(m_watch, 0));
 }
 
@@ -128,7 +128,7 @@ int LibseatSession::openDevice(const std::string& path, int* deviceId)
     int fd = -1;
     const int id = libseat_open_device(m_seat, path.c_str(), &fd);
     if (id < 0) {
-        LM_WARNING(cfSession) << "Failed to open device" << path << "through the seat";
+        LM_WARNING(lingmoSession) << "Failed to open device" << path << "through the seat";
         return -1;
     }
     m_deviceFds.insert_or_assign(id, fd);
@@ -142,7 +142,7 @@ void LibseatSession::closeDevice(int deviceId)
     if (deviceId < 0)
         return;
     if (libseat_close_device(m_seat, deviceId) < 0)
-        LM_WARNING(cfSession) << "Failed to close device" << deviceId;
+        LM_WARNING(lingmoSession) << "Failed to close device" << deviceId;
     // Only afterwards: with logind the id is this descriptor, which
     // libseat_close_device still stats to release the device.
     const auto entry = m_deviceFds.find(deviceId);
@@ -158,7 +158,7 @@ void LibseatSession::onEnableSeat(libseat*, void* userData)
     if (self->m_active)
         return;
     self->m_active = true;
-    LM_INFO(cfSession) << "Seat enabled";
+    LM_INFO(lingmoSession) << "Seat enabled";
     self->activeChanged(true);
 }
 
@@ -167,7 +167,7 @@ void LibseatSession::onDisableSeat(libseat* seat, void* userData)
     auto* self = static_cast<LibseatSession*>(userData);
     if (self->m_active) {
         self->m_active = false;
-        LM_INFO(cfSession) << "Seat disabled";
+        LM_INFO(lingmoSession) << "Seat disabled";
         self->activeChanged(false);
     }
     // Only acknowledge once listeners have stopped using their devices.

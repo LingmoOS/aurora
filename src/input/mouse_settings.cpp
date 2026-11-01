@@ -37,7 +37,7 @@ bool MouseSettings::registerService()
         return true;
     auto exported = DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export mouse settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export mouse settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -70,7 +70,7 @@ void MouseSettings::save(const std::string &key, T value)
 {
     m_settings.setValue(group + key, value);
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist mouse settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist mouse settings to" << m_settings.path();
     notify(settingsChanged, "settingsChanged");
 }
 

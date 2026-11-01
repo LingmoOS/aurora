@@ -13,12 +13,12 @@ void setLoggingRules(std::string_view rules)
 
 } // namespace Lingmo::Core
 
-const Lingmo::Core::LogCategory cfWayland("lingmo.wayland");
-const Lingmo::Core::LogCategory cfSession("lingmo.session");
-const Lingmo::Core::LogCategory cfDrm("lingmo.drm");
-const Lingmo::Core::LogCategory cfRender("lingmo.render");
-const Lingmo::Core::LogCategory cfScene("lingmo.scene");
-const Lingmo::Core::LogCategory cfCompositor("lingmo.compositor");
-const Lingmo::Core::LogCategory cfInput("lingmo.input");
-const Lingmo::Core::LogCategory cfInputTransitions("lingmo.input.transitions");
-const Lingmo::Core::LogCategory cfCursorTransitions("lingmo.cursor.transitions");
+const Lingmo::Core::LogCategory lingmoWayland("lingmo.wayland");
+const Lingmo::Core::LogCategory lingmoSession("lingmo.session");
+const Lingmo::Core::LogCategory lingmoDrm("lingmo.drm");
+const Lingmo::Core::LogCategory lingmoRender("lingmo.render");
+const Lingmo::Core::LogCategory lingmoScene("lingmo.scene");
+const Lingmo::Core::LogCategory lingmoCompositor("lingmo.compositor");
+const Lingmo::Core::LogCategory lingmoInput("lingmo.input");
+const Lingmo::Core::LogCategory lingmoInputTransitions("lingmo.input.transitions");
+const Lingmo::Core::LogCategory lingmoCursorTransitions("lingmo.cursor.transitions");

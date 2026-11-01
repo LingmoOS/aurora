@@ -1,6 +1,6 @@
-# Cutefish Compositor
+# Lingmo Compositor
 
-The Cutefish Wayland compositor, with window management, the desktop shell,
+The Lingmo Wayland compositor, with window management, the desktop shell,
 the lock screen and Xwayland in one process. Much of it is ported from
 Chromium's Exo and Ash.
 

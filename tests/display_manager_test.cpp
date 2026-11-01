@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/manager/display_manager_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests cover immutable applied batches and global
+// Adapted for Lingmo: tests cover immutable applied batches and global
 // logical coordinates without Ash display objects.
 
 #include <gtest/gtest.h>
@@ -46,7 +46,7 @@ display::LogicalDisplay logical(const char *name, base::Rect bounds, bool primar
 {
     return {id(name),
             {id(name)},
-            "Cutefish-" + std::string(name),
+            "Lingmo-" + std::string(name),
             bounds,
             bounds.adjusted(0, 24, 0, 0),
             {},

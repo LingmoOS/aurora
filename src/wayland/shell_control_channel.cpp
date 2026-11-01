@@ -88,14 +88,14 @@ bool ShellControlChannel::listen(const std::string &path)
     sockaddr_un address {};
     address.sun_family = AF_UNIX;
     if (path.size() >= sizeof(address.sun_path)) {
-        LM_WARNING(cfWayland) << "Control socket path is too long:" << path.c_str();
+        LM_WARNING(lingmoWayland) << "Control socket path is too long:" << path.c_str();
         return false;
     }
     std::memcpy(address.sun_path, path.data(), path.size());
 
     m_listenFd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
     if (m_listenFd < 0) {
-        LM_WARNING(cfWayland) << "Cannot create the shell control socket";
+        LM_WARNING(lingmoWayland) << "Cannot create the shell control socket";
         return false;
     }
 
@@ -104,7 +104,7 @@ bool ShellControlChannel::listen(const std::string &path)
     unlink(path.c_str());
     if (bind(m_listenFd, reinterpret_cast<sockaddr *>(&address), sizeof(address)) != 0
         || ::listen(m_listenFd, 4) != 0) {
-        LM_WARNING(cfWayland) << "Cannot listen on the shell control socket" << path.c_str();
+        LM_WARNING(lingmoWayland) << "Cannot listen on the shell control socket" << path.c_str();
         close(m_listenFd);
         m_listenFd = -1;
         return false;
@@ -114,7 +114,7 @@ bool ShellControlChannel::listen(const std::string &path)
     m_listenWatch = m_loop.watch(m_listenFd, EPOLLIN, [this](uint32_t) {
         onAcceptReady();
     });
-    LM_INFO(cfWayland) << "Shell control channel listening on" << path.c_str();
+    LM_INFO(lingmoWayland) << "Shell control channel listening on" << path.c_str();
     return true;
 }
 

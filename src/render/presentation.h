@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/gfx/presentation_feedback.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: callback ownership follows Exo.
+// Adapted for Lingmo: callback ownership follows Exo.
 #pragma once
 
 #include <algorithm>

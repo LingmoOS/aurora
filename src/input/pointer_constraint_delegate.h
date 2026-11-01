@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/pointer_constraint_delegate.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
 // Exo only locks. Confinement, the activation region and the lock's cursor

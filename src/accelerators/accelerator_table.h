@@ -6,11 +6,11 @@
 //           chromium/src/ash/accelerators/accelerator_table.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the default bindings and the action categories, with
+// Adapted for Lingmo: the default bindings and the action categories, with
 // keys as xkb keysyms. Deprecated, debug and developer accelerators are not
 // carried over.
 //
-// Cutefish has no key-ack extension, so a client can never report that it did
+// Lingmo has no key-ack extension, so a client can never report that it did
 // not consume a key: every accelerator here is handled before the focused
 // window sees it. Defaults therefore prefer Meta and the dedicated media and
 // brightness keys, which applications do not claim, over Ctrl-based

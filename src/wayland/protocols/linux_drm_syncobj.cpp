@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/buffer.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: maps Exo's release dependency lifecycle onto explicit
+// Adapted for Lingmo: maps Exo's release dependency lifecycle onto explicit
 // Wayland DRM syncobj timeline points.
 
 #include "wayland/protocols/linux_drm_syncobj.h"
@@ -74,7 +74,7 @@ public:
             return;
         m_signaled = true;
         if (m_syncobj && !m_syncobj->signal(m_point, fence)) {
-            LM_WARNING(cfWayland) << "Failed to signal a DRM syncobj release point";
+            LM_WARNING(lingmoWayland) << "Failed to signal a DRM syncobj release point";
         }
     }
 
@@ -381,7 +381,7 @@ wl_global* createLinuxDrmSyncobjGlobal(wl_display* display, int drmFd)
 
     // A device that cannot make a timeline cannot serve this protocol at all.
     if (!render::DrmSyncobj::create(drmFd)) {
-        LM_INFO(cfWayland) << "DRM syncobj timelines are unavailable; no explicit sync";
+        LM_INFO(lingmoWayland) << "DRM syncobj timelines are unavailable; no explicit sync";
         return nullptr;
     }
 

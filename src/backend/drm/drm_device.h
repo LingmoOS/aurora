@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/common/drm_wrapper.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: wraps the compositor-owned DRM descriptor behind its
+// Adapted for Lingmo: wraps the compositor-owned DRM descriptor behind its
 // small injectable ioctl interface.
 
 #ifndef LINGMO_BACKEND_DRM_DRM_DEVICE_H_

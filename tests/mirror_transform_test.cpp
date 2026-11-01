@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/root_window_transformers_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests reversible mirror input mapping across native
+// Adapted for Lingmo: tests reversible mirror input mapping across native
 // aspect ratios, letterboxing, negative origins, and output rotations.
 
 #include <gtest/gtest.h>

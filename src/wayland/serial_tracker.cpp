@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/serial_tracker.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "serial_tracker.h"
@@ -98,7 +98,7 @@ std::optional<SerialTracker::EventType> SerialTracker::eventType(uint32_t serial
         // should only reject if the serial number is in neither the upper nor
         // lower parts of the space.
         if (!((serial < m_maxEvent) || (serial >= m_minEvent))) {
-            LM_WARNING(cfWayland) << "No event type for serial" << serial
+            LM_WARNING(lingmoWayland) << "No event type for serial" << serial
                                   << "- it is in the void range";
             return std::nullopt;
         }
@@ -106,7 +106,7 @@ std::optional<SerialTracker::EventType> SerialTracker::eventType(uint32_t serial
         // Normal, non-overflowed case. Reject the serial number if it isn't in
         // the interval.
         if (!((serial < m_maxEvent) && (serial >= m_minEvent))) {
-            LM_WARNING(cfWayland) << "No event type for serial" << serial
+            LM_WARNING(lingmoWayland) << "No event type for serial" << serial
                                   << "- it is outside of the range";
             return std::nullopt;
         }

@@ -7,7 +7,7 @@
 //                BlueColorScaleFromTemperature, GreenColorScaleFromTemperature)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the compositor only animates the strength it is given
+// Adapted for Lingmo: the compositor only animates the strength it is given
 // and tints every output through KMS; the schedule and the preferences belong
 // to lingmo-services, which calls DisplayConfig1.SetNightLight.
 

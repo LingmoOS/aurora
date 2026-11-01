@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/accelerator_launcher_state_machine.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_launcher_state_machine.h"

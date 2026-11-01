@@ -6,7 +6,7 @@
 //           chromium/src/ui/ozone/platform/drm/gpu/screen_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: atomic TEST_ONLY and real commit share the exact same
+// Adapted for Lingmo: atomic TEST_ONLY and real commit share the exact same
 // property request and publish state only after both succeed.
 
 #include "backend/drm/drm_commit_coordinator.h"

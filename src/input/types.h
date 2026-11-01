@@ -6,10 +6,10 @@
 //           chromium/src/components/exo/keyboard_modifiers.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
-// Cutefish-native replacements for ui::Event / ui::EventFlags / ui::DomCode.
+// Lingmo-native replacements for ui::Event / ui::EventFlags / ui::DomCode.
 // Keys are evdev codes throughout, which is what both libinput and the Wayland
 // protocol speak, so there is no DomCode round trip to get wrong.
 
@@ -71,7 +71,7 @@ inline bool operator==(const KeyboardModifiers& lhs, const KeyboardModifiers& rh
 }
 
 // Exo tracks a set of rewritten codes per physical key because ChromeOS's IME
-// and remapping layers can turn one physical press into another code. Cutefish
+// and remapping layers can turn one physical press into another code. Lingmo
 // rewrites ahead of the seat (KeyTranslator), so each code here is already a
 // delivered code; the field keeps the release path honest about what it reports.
 struct KeyState {

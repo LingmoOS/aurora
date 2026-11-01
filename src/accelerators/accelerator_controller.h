@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/accelerator_controller_impl.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the restriction sets that have a Cutefish state
+// Adapted for Lingmo: the restriction sets that have a Lingmo state
 // behind them (blocked session, system-modal dialog, no window), the launcher
 // state machine, the repeatable actions. Tablet volume, caps lock, suspend and
 // IME state machines, the exit warning, deprecated accelerators, enterprise

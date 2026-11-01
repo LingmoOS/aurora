@@ -6,7 +6,7 @@
 //           accelerator_configuration_provider.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the mojo provider the Shortcuts app talks to becomes
+// Adapted for Lingmo: the mojo provider the Shortcuts app talks to becomes
 // a D-Bus service, org.lingmo.Shortcuts1, carrying JSON. The layout table
 // (categories, descriptions, order) lives with the Settings UI, which owns the
 // translations; this side deals in action names and keysyms only.

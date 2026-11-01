@@ -94,7 +94,7 @@ base::Rect revealStrip(const base::Rect &output, ScreenEdge edge)
 
 // The dock plus the gap between it and its edge: crossing that gap on the way
 // in or out must not toggle the dock. Upstream keeps the shelf shown while the
-// cursor is anywhere in its bounds; the gap is a Cutefish addition, since the
+// cursor is anywhere in its bounds; the gap is a Lingmo addition, since the
 // dock floats a few pixels off the edge.
 base::Rect shownRegion(const base::Rect &bounds, const base::Rect &output, ScreenEdge edge)
 {

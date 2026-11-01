@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/zwp_keyboard_shortcuts_inhibit_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the inhibitor registers with the seat, which sends the
+// Adapted for Lingmo: the inhibitor registers with the seat, which sends the
 // active and inactive events Exo never does.
 
 #include "wayland/protocols/zwp_keyboard_shortcuts_inhibit_manager.h"

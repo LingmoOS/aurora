@@ -35,11 +35,11 @@ DBusExport::~DBusExport()
 bool DBusExport::publish(const char *what)
 {
     if (!m_object.publish()) {
-        LM_WARNING(cfInput).printf("Cannot export %s", what);
+        LM_WARNING(lingmoInput).printf("Cannot export %s", what);
         return false;
     }
     if (!m_connection->requestName(m_service)) {
-        LM_WARNING(cfInput).printf("Cannot register %s: %s is taken", what, m_service.c_str());
+        LM_WARNING(lingmoInput).printf("Cannot register %s: %s is taken", what, m_service.c_str());
         return false;
     }
     m_named = true;

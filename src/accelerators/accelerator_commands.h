@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/accelerator_commands.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the commands that have a Cutefish counterpart, with
+// Adapted for Lingmo: the commands that have a Lingmo counterpart, with
 // the Shell::Get() singletons replaced by an explicit context. The launcher
 // lives in the shell process and is reached through the delegate.
 #pragma once

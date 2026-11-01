@@ -260,7 +260,7 @@ bool InputMethodSettings::registerService()
         return true;
     auto exported = DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export input method settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export input method settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -338,7 +338,7 @@ bool InputMethodSettings::setInputMethod(const std::string &id)
     m_selected = id;
     m_settings.setValue(selectionKey, id);
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist input method settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist input method settings to" << m_settings.path();
     if (changed)
         notify(inputMethodChanged, "inputMethodChanged");
     // Also sent for an unchanged selection, so selecting it again restarts a stopped method.

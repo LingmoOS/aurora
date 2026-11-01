@@ -6,7 +6,7 @@
 //           window_cycle_list.h and window_cycle_event_filter.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the three classes fold into one, and what is cycled
+// Adapted for Lingmo: the three classes fold into one, and what is cycled
 // through is applications, not windows: one entry per application, in the
 // order its windows were last used. As in Ash, stepping only moves the
 // selection; the chosen application comes forward, all of its windows

@@ -4,7 +4,7 @@
 
 // Every number and colour the server-side frame is drawn from, in one place.
 //
-// The values come from the existing Cutefish decoration rather than from a new
+// The values come from the existing Lingmo decoration rather than from a new
 // design: the KWin plugin in `kwin-plugins/plugins/decoration` (titlebar
 // height, frame radius, caption button size, spacing and hover treatment,
 // titlebar and caption colours) and FishUI's window frame (the hairline window
@@ -76,7 +76,7 @@ struct Metrics {
     // role can keep the diffuse falloff and drop the drawn edge.
     //
     // Chromium carries a dip elevation and derives blur and offset from it;
-    // Cutefish keeps fixed lobes per role and varies only their strength
+    // Lingmo keeps fixed lobes per role and varies only their strength
     // between active and inactive, so the exterior margins - and therefore the
     // window's scene bounds - do not move when a window is activated. Sigma is
     // capped at 32 by ShadowGeometry, and every extra logical pixel of sigma

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// A Cutefish counterpart to chromium/src/components/exo/wayland/surface_unittest.cc:
+// A Lingmo counterpart to chromium/src/components/exo/wayland/surface_unittest.cc:
 // a real libwayland client driving the real server over a socket.
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 

@@ -156,8 +156,8 @@ bool EglContext::initialize(EGLDisplay display, uint32_t format, int alphaSize)
     m_extensions = eglString(m_display, EGL_EXTENSIONS);
     m_eglVendor = eglString(m_display, EGL_VENDOR);
     m_eglVersion = eglString(m_display, EGL_VERSION);
-    LM_INFO(cfRender).printf("EGL vendor: %s", m_eglVendor.c_str());
-    LM_INFO(cfRender).printf("EGL version: %s", m_eglVersion.c_str());
+    LM_INFO(lingmoRender).printf("EGL vendor: %s", m_eglVendor.c_str());
+    LM_INFO(lingmoRender).printf("EGL version: %s", m_eglVersion.c_str());
     return true;
 }
 
@@ -188,8 +188,8 @@ bool EglContext::makeCurrent(EGLSurface surface)
         m_glExtensions = glString(GL_EXTENSIONS);
         m_glesRenderer = glString(GL_RENDERER);
         m_glesVersion = glString(GL_VERSION);
-        LM_INFO(cfRender).printf("GLES renderer: %s", m_glesRenderer.c_str());
-        LM_INFO(cfRender).printf("GLES version: %s", m_glesVersion.c_str());
+        LM_INFO(lingmoRender).printf("GLES renderer: %s", m_glesRenderer.c_str());
+        LM_INFO(lingmoRender).printf("GLES version: %s", m_glesVersion.c_str());
     }
     return true;
 }

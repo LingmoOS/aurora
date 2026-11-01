@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/zwp_pointer_constraints.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: confinement, set_region and set_cursor_position_hint,
+// Adapted for Lingmo: confinement, set_region and set_cursor_position_hint,
 // which Exo leaves unsupported, are implemented; Xwayland confines the pointer
 // for grabs and locks it to emulate XWarpPointer. Exo asks its security
 // delegate whether a window may lock; any client may here.

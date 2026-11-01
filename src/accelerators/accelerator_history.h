@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/accelerator_history_impl.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: fed by the accelerator filter instead of being an
+// Adapted for Lingmo: fed by the accelerator filter instead of being an
 // aura pre-target handler.
 #pragma once
 

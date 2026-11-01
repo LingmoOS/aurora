@@ -6,7 +6,7 @@
 //           desk_animation_impl.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: one DeskSwitchNode stands in for the per-root
+// Adapted for Lingmo: one DeskSwitchNode stands in for the per-root
 // animators. The starting frames are taken synchronously, so phase (1) ends
 // inside launch(); the ending frames come from the next frame each output
 // draws. Metrics, haptics, overview and split view are not carried over.

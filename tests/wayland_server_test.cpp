@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// A Cutefish stand-in for chromium/src/components/exo/wayland/test/
+// A Lingmo stand-in for chromium/src/components/exo/wayland/test/
 // wayland_server_test_base.*: a real libwayland client on its own thread,
 // driven by a Server running on the event loop of the main thread.
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a

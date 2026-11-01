@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_positioner.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gfx geometry becomes base geometry. The constraint
+// Adapted for Lingmo: gfx geometry becomes base geometry. The constraint
 // solver itself is unchanged.
 
 #ifndef LINGMO_WAYLAND_PROTOCOLS_XDG_POSITIONER_H_

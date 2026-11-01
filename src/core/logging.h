@@ -11,7 +11,7 @@
 
 namespace Lingmo::Core {
 
-// Written to with LM_DEBUG(cfInput) and friends.
+// Written to with LM_DEBUG(lingmoInput) and friends.
 using LogCategory = base::LogCategory;
 
 // Applies `rules` (base::logging::setRules syntax) to every category.
@@ -21,15 +21,15 @@ void setLoggingRules(std::string_view rules);
 
 // Startup and operational messages are on; routine window and input
 // diagnostics need a debug rule (--log-rules).
-extern const Lingmo::Core::LogCategory cfWayland;
-extern const Lingmo::Core::LogCategory cfSession;
-extern const Lingmo::Core::LogCategory cfDrm;
-extern const Lingmo::Core::LogCategory cfRender;
-extern const Lingmo::Core::LogCategory cfScene;
-extern const Lingmo::Core::LogCategory cfCompositor;
-extern const Lingmo::Core::LogCategory cfInput;
+extern const Lingmo::Core::LogCategory lingmoWayland;
+extern const Lingmo::Core::LogCategory lingmoSession;
+extern const Lingmo::Core::LogCategory lingmoDrm;
+extern const Lingmo::Core::LogCategory lingmoRender;
+extern const Lingmo::Core::LogCategory lingmoScene;
+extern const Lingmo::Core::LogCategory lingmoCompositor;
+extern const Lingmo::Core::LogCategory lingmoInput;
 // Opt-in button/capture transitions; no pointer-motion or keyboard text logging.
-extern const Lingmo::Core::LogCategory cfInputTransitions;
-extern const Lingmo::Core::LogCategory cfCursorTransitions;
+extern const Lingmo::Core::LogCategory lingmoInputTransitions;
+extern const Lingmo::Core::LogCategory lingmoCursorTransitions;
 
 #endif // LINGMO_CORE_LOGGING_H_

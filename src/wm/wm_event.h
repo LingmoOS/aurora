@@ -5,7 +5,7 @@
 // Modelled on chromium/src/ash/wm/wm_event.h (revision
 // 7acd40ddefff49c9d36144999aafdbb674dbd07a). The shape - a request object
 // handed to WindowState, which decides what actually happens - is Ash's; the
-// event set is reduced to the states Cutefish v0.1 has.
+// event set is reduced to the states Lingmo v0.1 has.
 
 #ifndef LINGMO_WM_WM_EVENT_H_
 #define LINGMO_WM_WM_EVENT_H_

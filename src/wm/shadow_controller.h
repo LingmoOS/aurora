@@ -31,7 +31,7 @@ class WindowManager;
 //
 // Upstream splits this into ShadowController and ShadowController::Impl, where
 // the Impl is a refcounted singleton observing aura::Env for every window in
-// the process. Cutefish has one WindowManager, so there is one controller and
+// the process. Lingmo has one WindowManager, so there is one controller and
 // no Impl. The observation set is the same: windows appearing and disappearing,
 // activation, show state, bounds, visibility and drags.
 //

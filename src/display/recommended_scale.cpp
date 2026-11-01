@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/manager/display_change_observer.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: external monitors get a density table of their own,
+// Adapted for Lingmo: external monitors get a density table of their own,
 // where Chromium leaves them at 1, and results are Settings' scale steps.
 
 #include "display/recommended_scale.h"

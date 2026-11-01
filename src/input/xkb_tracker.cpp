@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/xkb_tracker.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "input/xkb_tracker.h"
@@ -76,20 +76,20 @@ bool XkbTracker::updateKeyboardLayout(const std::string &name)
 bool XkbTracker::updateKeyboardLayoutInternal(const xkb_rule_names *names)
 {
     if (!m_context) {
-        LM_CRITICAL(cfInput) << "Failed to create an xkb context";
+        LM_CRITICAL(lingmoInput) << "Failed to create an xkb context";
         return false;
     }
 
     std::unique_ptr<xkb_keymap, KeymapDeleter> keymap(
             xkb_keymap_new_from_names(m_context.get(), names, XKB_KEYMAP_COMPILE_NO_FLAGS));
     if (!keymap) {
-        LM_WARNING(cfInput) << "Failed to compile the requested xkb keymap";
+        LM_WARNING(lingmoInput) << "Failed to compile the requested xkb keymap";
         return false;
     }
 
     std::unique_ptr<xkb_state, StateDeleter> state(xkb_state_new(keymap.get()));
     if (!state) {
-        LM_WARNING(cfInput) << "Failed to create an xkb state";
+        LM_WARNING(lingmoInput) << "Failed to create an xkb state";
         return false;
     }
 

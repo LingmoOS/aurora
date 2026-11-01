@@ -16,7 +16,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfStatusBar("lingmo.shell.statusbar");
+static const base::LogCategory lingmoStatusBar("lingmo.shell.statusbar");
 
 StatusBar::StatusBar(dbus::Connection *sessionBus, dbus::Connection *systemBus, TaskManager *tasks,
                      std::string settingsPath)
@@ -87,7 +87,7 @@ bool StatusBar::registerServices()
         object->addMethod("requestReboot", [this] { m_powerActions.request(PowerActions::Reboot); });
         object->addMethod("requestShutdown", [this] { m_powerActions.request(PowerActions::Shutdown); });
         if (!object->publish() || !m_bus->requestName("org.lingmo.Statusbar", dbus::Connection::DoNotQueue)) {
-            LM_WARNING(cfStatusBar) << "Cannot own org.lingmo.Statusbar";
+            LM_WARNING(lingmoStatusBar) << "Cannot own org.lingmo.Statusbar";
             return false;
         }
         m_object = std::move(object);

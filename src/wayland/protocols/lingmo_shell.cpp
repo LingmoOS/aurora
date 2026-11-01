@@ -42,10 +42,10 @@ std::optional<WindowRole> roleFromWayland(uint32_t role)
 // The user data of a lingmo_shell_surface_v1. It owns no window and no
 // surface: it holds the client's description of one surface and pushes it into
 // the window manager, which is the only thing that outlives a client restart.
-class CutefishShellSurface : public compositor::SurfaceObserver
+class LingmoShellSurface : public compositor::SurfaceObserver
 {
 public:
-    CutefishShellSurface(wm::WindowManager* manager, compositor::Surface* surface,
+    LingmoShellSurface(wm::WindowManager* manager, compositor::Surface* surface,
                          wl_resource* resource)
         : m_manager(manager)
         , m_surface(surface)
@@ -59,7 +59,7 @@ public:
         m_zonesChanged = m_manager->exclusiveZonesChanged.connect([this] { sendWorkArea(); });
     }
 
-    ~CutefishShellSurface() override
+    ~LingmoShellSurface() override
     {
         // The resource is going: nothing is sent on it any more.
         m_outputsChanged.reset();
@@ -208,7 +208,7 @@ void shellSurfaceSetRole(wl_client*, wl_resource* resource, uint32_t role)
                                "unknown role %u", role);
         return;
     }
-    getUserDataAs<CutefishShellSurface>(resource)->setRole(*parsed);
+    getUserDataAs<LingmoShellSurface>(resource)->setRole(*parsed);
 }
 
 void shellSurfaceSetFocusPolicy(wl_client*, wl_resource* resource, uint32_t policy)
@@ -226,17 +226,17 @@ void shellSurfaceSetFocusPolicy(wl_client*, wl_resource* resource, uint32_t poli
                                "unknown focus policy %u", policy);
         return;
     }
-    getUserDataAs<CutefishShellSurface>(resource)->setFocusPolicy(parsed);
+    getUserDataAs<LingmoShellSurface>(resource)->setFocusPolicy(parsed);
 }
 
 void shellSurfaceActivate(wl_client*, wl_resource* resource)
 {
-    getUserDataAs<CutefishShellSurface>(resource)->activate();
+    getUserDataAs<LingmoShellSurface>(resource)->activate();
 }
 
 void shellSurfaceSetOutput(wl_client*, wl_resource* resource, const char* name)
 {
-    auto* surface = getUserDataAs<CutefishShellSurface>(resource);
+    auto* surface = getUserDataAs<LingmoShellSurface>(resource);
     if (!surface->setOutput(base::strings::sanitizedUtf8(name))) {
         wl_resource_post_error(resource, LINGMO_SHELL_SURFACE_V1_ERROR_INVALID_OUTPUT,
                                "unknown logical output %s", name);
@@ -259,7 +259,7 @@ void shellDestroy(wl_client*, wl_resource* resource)
 void shellGetShellSurface(wl_client* client, wl_resource* resource, uint32_t id,
                           wl_resource* surfaceResource)
 {
-    auto* shell = getUserDataAs<WaylandCutefishShell>(resource);
+    auto* shell = getUserDataAs<WaylandLingmoShell>(resource);
     compositor::Surface* surface = surfaceFromResource(surfaceResource);
     if (!surface) {
         wl_resource_post_error(resource, LINGMO_SHELL_V1_ERROR_ROLE,
@@ -281,7 +281,7 @@ void shellGetShellSurface(wl_client* client, wl_resource* resource, uint32_t id,
     }
 
     auto shellSurface =
-        std::make_unique<CutefishShellSurface>(shell->windowManager(), surface, shellSurfaceResource);
+        std::make_unique<LingmoShellSurface>(shell->windowManager(), surface, shellSurfaceResource);
     // An unconfigured shell surface is already claimed, so a second
     // get_shell_surface on the same wl_surface is caught above.
     shell->windowManager()->setShellMetadata(surface, ShellWindowMetadata {});
@@ -295,7 +295,7 @@ const struct lingmo_shell_v1_interface kShellImplementation = {
 
 void bindShell(wl_client* client, void* data, uint32_t version, uint32_t id)
 {
-    auto* shell = static_cast<WaylandCutefishShell*>(data);
+    auto* shell = static_cast<WaylandLingmoShell*>(data);
 
     // Defence in depth: the global filter already hides this interface, but a
     // bind must never be served to anything but the current trusted shell.
@@ -306,7 +306,7 @@ void bindShell(wl_client* client, void* data, uint32_t version, uint32_t id)
 
     wl_resource* resource =
         wl_resource_create(client, &lingmo_shell_v1_interface,
-                           std::min(version, kCutefishShellVersion), id);
+                           std::min(version, kLingmoShellVersion), id);
     if (!resource) {
         wl_client_post_no_memory(client);
         return;
@@ -316,17 +316,17 @@ void bindShell(wl_client* client, void* data, uint32_t version, uint32_t id)
 
 } // namespace
 
-WaylandCutefishShell::WaylandCutefishShell(wm::WindowManager* windowManager,
+WaylandLingmoShell::WaylandLingmoShell(wm::WindowManager* windowManager,
                                            PrivilegedClients* privileged)
     : m_windowManager(windowManager)
     , m_privileged(privileged)
 {
 }
 
-wl_global* createLingmoShellGlobal(wl_display* display, WaylandCutefishShell* shell)
+wl_global* createLingmoShellGlobal(wl_display* display, WaylandLingmoShell* shell)
 {
     wl_global* global = wl_global_create(display, &lingmo_shell_v1_interface,
-                                         kCutefishShellVersion, shell, bindShell);
+                                         kLingmoShellVersion, shell, bindShell);
     if (!global)
         return nullptr;
     shell->privileged()->addPrivateGlobal(global);

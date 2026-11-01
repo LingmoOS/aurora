@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/surface_observer.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
 // Reduced to the one notification input needs: focus cleanup.

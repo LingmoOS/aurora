@@ -13,7 +13,7 @@ static constexpr uint32_t kDesktopWindowId = 0;
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfAppMenu("lingmo.shell.appmenu");
+static const base::LogCategory lingmoAppMenu("lingmo.shell.appmenu");
 
 static constexpr const char *kService = "com.canonical.AppMenu.Registrar";
 static constexpr const char *kPath = "/com/canonical/AppMenu/Registrar";
@@ -68,7 +68,7 @@ bool AppMenuRegistrar::registerService()
             },
             dbus::ArgumentNames{{"windowId"}, {"service", "menuObjectPath"}});
     if (!object->publish() || !m_bus->requestName(kService, base::dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfAppMenu) << "Cannot serve" << kService;
+        LM_WARNING(lingmoAppMenu) << "Cannot serve" << kService;
         return false;
     }
     m_object = std::move(object);

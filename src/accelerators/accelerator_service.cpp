@@ -6,7 +6,7 @@
 //           accelerator_configuration_provider.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_service.h"
@@ -78,7 +78,7 @@ bool AcceleratorService::registerService()
         return true;
     auto exported = input::DBusExport::create(kService, kPath, kService);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export the shortcuts service: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export the shortcuts service: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();

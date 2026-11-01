@@ -15,7 +15,7 @@ namespace Lingmo::Core {
 std::optional<CompositorOptions> CompositorOptions::parse(int argc, char **argv)
 {
     base::CommandLineParser parser;
-    parser.setApplicationDescription("Cutefish Wayland compositor");
+    parser.setApplicationDescription("Lingmo Wayland compositor");
     parser.setApplicationVersion("1.0");
     parser.addHelpOption();
     parser.addVersionOption();

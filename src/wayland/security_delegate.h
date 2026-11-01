@@ -16,7 +16,7 @@ namespace Lingmo::Wayland {
 // What a client may do beyond the ordinary protocol surface.
 //
 // Upstream: chromium/src/components/exo/security_delegate.h, narrowed to the
-// privileges Cutefish actually grants. Protocol code asks the delegate instead
+// privileges Lingmo actually grants. Protocol code asks the delegate instead
 // of carrying a policy of its own.
 class SecurityDelegate
 {

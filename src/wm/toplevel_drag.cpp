@@ -154,7 +154,7 @@ void ToplevelDrag::startMove(Window *window)
         return;
     stopMove();
     if (!m_manager->eventHandler()->beginMove(window, seat->pointerLocation())) {
-        LM_DEBUG(cfCompositor) << "toplevel drag could not move" << window;
+        LM_DEBUG(lingmoCompositor) << "toplevel drag could not move" << window;
         return;
     }
     m_moving = window;

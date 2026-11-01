@@ -6,8 +6,8 @@
 //           chromium/src/components/exo/sub_surface_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: exercises the corresponding behavior with a real
-// libwayland client and Cutefish compositor objects.
+// Adapted for Lingmo: exercises the corresponding behavior with a real
+// libwayland client and Lingmo compositor objects.
 
 #include <algorithm>
 #include <atomic>
@@ -408,7 +408,7 @@ TEST_P(OutputProtocolTest, FakeOutputMetricsAndVersionGates)
                                             (output.preferred ? WL_OUTPUT_MODE_PREFERRED : 0)),
                       metrics.flags);
             if (GetParam() >= 4) {
-                EXPECT_EQ("Cutefish-1", metrics.name);
+                EXPECT_EQ("Lingmo-1", metrics.name);
                 EXPECT_EQ("DP-7", metrics.description);
             }
             if (GetParam() >= 3)

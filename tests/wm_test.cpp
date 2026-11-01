@@ -6,7 +6,7 @@
 // (window_state_unittest.cc, window_resizer edge cases,
 // workspace_controller_unittest.cc auto placement, window_positioner_unittest.cc,
 // window_modality_controller_unittest.cc) and
-// ui/wm/core/focus_controller_unittest.cc, rewritten against the Cutefish
+// ui/wm/core/focus_controller_unittest.cc, rewritten against the Lingmo
 // abstractions. No DRM, no GL, no Wayland client.
 
 #include <algorithm>

@@ -7,7 +7,7 @@
 //           chromium/src/ui/ozone/platform/drm/gpu/drm_dumb_buffer.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: SkBitmap becomes raw premultiplied pixels and the
+// Adapted for Lingmo: SkBitmap becomes raw premultiplied pixels and the
 // dynamic Intel cursor-size table is omitted; one buffer size is allocated from
 // the device's reported maximum.
 

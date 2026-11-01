@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/root_window_transformers.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: one value object owns the global-logical/native
+// Adapted for Lingmo: one value object owns the global-logical/native
 // forward and inverse transforms without Aura root windows.
 
 #pragma once

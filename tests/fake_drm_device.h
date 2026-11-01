@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/gpu/fake_drm_device.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: a scripted DrmDeviceApi rather than a fake of the whole
+// Adapted for Lingmo: a scripted DrmDeviceApi rather than a fake of the whole
 // DRM ioctl surface. It records commits, can be told to fail a specific one,
 // and hands out synthetic handles, which is what the plane planning, the atomic
 // TEST_ONLY path and buffer lifetime need to be testable without a GPU.

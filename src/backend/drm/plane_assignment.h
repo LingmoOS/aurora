@@ -7,7 +7,7 @@
 //               (HardwareDisplayPlaneManager::IsCompatible / AssignOverlayPlanes)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: a pure function over plane descriptions rather than a
+// Adapted for Lingmo: a pure function over plane descriptions rather than a
 // method mutating in_use/owning_crtc on a shared plane list, since one output
 // on one CRTC has no plane migration to track.
 

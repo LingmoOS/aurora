@@ -61,7 +61,7 @@ std::unique_ptr<DrmCursor> DrmCursor::create(DrmDeviceApi* device, uint32_t crtc
             if (buffer.info.handle)
                 device->destroyDumbBuffer(buffer.info.handle);
         }
-        LM_INFO(cfDrm) << "No hardware cursor buffers; the cursor stays composited";
+        LM_INFO(lingmoDrm) << "No hardware cursor buffers; the cursor stays composited";
         return nullptr;
     }
 
@@ -121,7 +121,7 @@ bool DrmCursor::upload()
     }
 
     if (!m_device->setCursor(m_crtcId, buffer.info.handle, m_size, m_hotspot)) {
-        LM_INFO(cfDrm) << "The driver rejected the hardware cursor; compositing it instead";
+        LM_INFO(lingmoDrm) << "The driver rejected the hardware cursor; compositing it instead";
         m_failed = true;
         m_visible = false;
         return false;

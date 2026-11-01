@@ -4,7 +4,7 @@
 
 // Desks, modelled on chromium/src/ash/wm/desks/desks_unittest.cc,
 // desk_animation_impl_unittest.cc and wm_gesture_handler_unittest.cc,
-// rewritten against the Cutefish window manager. No DRM, no GL.
+// rewritten against the Lingmo window manager. No DRM, no GL.
 
 #include <chrono>
 #include <cstdlib>

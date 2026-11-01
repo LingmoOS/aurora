@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// The Cutefish server-side window frame.
+// The Lingmo server-side window frame.
 //
 // Architecture follows ash/frame/frame_view_ash.* : one frame object per
 // window, owning its caption buttons, its hit regions and the state it draws
@@ -10,7 +10,7 @@
 // move/resize on the existing window resizer. It does not own any geometry -
 // wm::Window does - and it knows nothing about Wayland.
 //
-// The visual language is Cutefish's own; see decoration/decoration_theme.h.
+// The visual language is Lingmo's own; see decoration/decoration_theme.h.
 
 #ifndef LINGMO_DECORATION_DECORATION_H_
 #define LINGMO_DECORATION_DECORATION_H_
@@ -116,7 +116,7 @@ private:
     DecorationNode* m_node = nullptr;
 
     // Right to left in the titlebar: close, maximize, minimize, which is the
-    // order the Cutefish KWin configuration ships (ButtonsOnRight=HIAX).
+    // order the Lingmo KWin configuration ships (ButtonsOnRight=HIAX).
     std::vector<CaptionButton> m_buttons;
     int m_hoveredButton = -1;
     int m_pressedButton = -1;

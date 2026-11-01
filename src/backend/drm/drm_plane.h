@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/gpu/hardware_display_plane.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the plane description and the format/CRTC predicates
+// Adapted for Lingmo: the plane description and the format/CRTC predicates
 // are kept free of ioctls, so plane assignment is testable; enumeration lives
 // in drm_backend.cpp.
 

@@ -20,7 +20,7 @@ using base::dbus::VariantMap;
 using networkmanager::Settings;
 namespace variants = networkmanager::variants;
 
-static const base::LogCategory cfSecrets("lingmo.shell.secrets");
+static const base::LogCategory lingmoSecrets("lingmo.shell.secrets");
 
 static const std::string kAgentPath = "/org/freedesktop/NetworkManager/SecretAgent";
 static const std::string kAgentInterface = "org.freedesktop.NetworkManager.SecretAgent";
@@ -137,7 +137,7 @@ void NetworkSecretAgent::exportAgent()
                              [this](base::dbus::MethodCall &call) { deleteSecrets(call); },
                              {{"connection", "connectionPath"}, {}});
     if (!m_agentObject->publish()) {
-        LM_WARNING(cfSecrets) << "Cannot export the NetworkManager secret agent";
+        LM_WARNING(lingmoSecrets) << "Cannot export the NetworkManager secret agent";
         m_agentObject.reset();
     }
 }
@@ -155,7 +155,7 @@ bool NetworkSecretAgent::registerService()
                               {{"devicePath", "accessPointPath", "name", "wep"}, {}});
     if (!m_promptObject->publish()
         || !m_session->requestName(kPromptService, base::dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfSecrets) << "Cannot offer" << kPromptService;
+        LM_WARNING(lingmoSecrets) << "Cannot offer" << kPromptService;
         return false;
     }
     return true;
@@ -204,7 +204,7 @@ void NetworkSecretAgent::registerAgent(int attempt)
             m_registerRetry.start(std::chrono::milliseconds(100 << attempt));
             return;
         }
-        LM_WARNING(cfSecrets) << "Cannot register the NetworkManager secret agent:" << reply.error().message;
+        LM_WARNING(lingmoSecrets) << "Cannot register the NetworkManager secret agent:" << reply.error().message;
     });
 }
 

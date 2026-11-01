@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/resolution_notification_controller.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: every user display change is a compositor-owned
+// Adapted for Lingmo: every user display change is a compositor-owned
 // preview transaction that confirms, times out, or restores prior state.
 
 #pragma once

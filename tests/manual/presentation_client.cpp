@@ -90,7 +90,7 @@ int main()
         !c.presentation) {
         std::fprintf(
             stderr,
-            "Required globals unavailable (headless Cutefish does not advertise presentation).\n");
+            "Required globals unavailable (headless Lingmo does not advertise presentation).\n");
         wl_display_disconnect(display);
         return 2;
     }

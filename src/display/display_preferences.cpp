@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/display_prefs.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: an atomic file write and stable monitor keys replace Chrome's
+// Adapted for Lingmo: an atomic file write and stable monitor keys replace Chrome's
 // preference service while preserving confirmed-only persistence.
 
 #include "display/display_preferences.h"

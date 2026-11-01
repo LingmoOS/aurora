@@ -6,7 +6,7 @@
 //           chromium/src/ash/display/root_window_transformers.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: route cached cursor pixels to every matching physical
+// Adapted for Lingmo: route cached cursor pixels to every matching physical
 // mirror sink and translate the global position for each destination.
 
 #include "cursor/output_cursor_router.h"

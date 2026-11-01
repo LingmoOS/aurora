@@ -6,7 +6,7 @@
 //           PlaceAbove, PlaceBelow, SetCommitBehavior), surface_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 
 #include <gtest/gtest.h>

@@ -6,7 +6,7 @@
 //           chromium/src/ui/ozone/platform/drm/gpu/drm_gpu_display_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: solve connector, CRTC, and primary-plane ownership as
+// Adapted for Lingmo: solve connector, CRTC, and primary-plane ownership as
 // one deterministic device-wide assignment without Chromium's GPU process.
 
 #pragma once

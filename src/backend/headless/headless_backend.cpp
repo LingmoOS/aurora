@@ -24,7 +24,7 @@ HeadlessBackend::createOutputs(compositor::Output *primary)
     primary->pixelSize = outputSize();
     primary->physicalSizeMm = base::Size(509, 286);
     primary->model = "headless";
-    primary->name = "Cutefish-1";
+    primary->name = "Lingmo-1";
     primary->refreshMilliHz = 60000;
     primary->preferred = true;
 
@@ -35,7 +35,7 @@ HeadlessBackend::createOutputs(compositor::Output *primary)
         model->physicalSizeMm = primary->physicalSizeMm;
         model->refreshMilliHz = primary->refreshMilliHz;
         model->preferred = true;
-        model->name = "Cutefish-" + std::to_string(index + 1);
+        model->name = "Lingmo-" + std::to_string(index + 1);
         model->model = "headless-" + std::to_string(index + 1);
         additional.push_back(std::move(model));
     }

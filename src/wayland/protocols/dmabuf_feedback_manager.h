@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_dmabuf_feedback_manager.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gpu::Capabilities becomes render::DmaBufDevice, the
+// Adapted for Lingmo: gpu::Capabilities becomes render::DmaBufDevice, the
 // format table lives in a sealed memfd instead of a
 // base::ReadOnlySharedMemoryRegion, and the scanout tranche comes from a
 // primary-plane format provider the shell installs rather than the display

@@ -21,7 +21,7 @@ namespace {
 
 // Off by default. Nothing logged from this category ever carries a credential:
 // the password never reaches a log stream, in any build.
-const base::LogCategory cfAuth("lingmo.auth", base::LogLevel::Warning);
+const base::LogCategory lingmoAuth("lingmo.auth", base::LogLevel::Warning);
 
 using base::strings::trimmed;
 
@@ -42,7 +42,7 @@ std::string accountIcon(const std::string &userName)
     const passwd *entry = getpwnam(userName.c_str());
     const std::string home = entry && entry->pw_dir ? entry->pw_dir : "";
     // AccountsService first, then the per-home face file: the same two places
-    // the rest of Cutefish looks, and neither needs a running service.
+    // the rest of Lingmo looks, and neither needs a running service.
     const std::string candidates[] = {
             "/var/lib/AccountsService/icons/" + userName,
             home.empty() ? std::string() : home + "/.face",
@@ -161,7 +161,7 @@ void AuthController::selectSessionFor(const std::string &userName)
 {
     if (m_sessions.empty())
         return;
-    // The user's last session, else Cutefish, else the first there is.
+    // The user's last session, else Lingmo, else the first there is.
     const std::string remembered = userName.empty() ? std::string() : lastLoginSession(userName);
     int index = -1;
     for (const std::string &id : {remembered, std::string("lingmo-wayland")}) {
@@ -232,7 +232,7 @@ void AuthController::setState(State state, const std::string &errorMessage)
         return;
     m_state = state;
     m_errorMessage = errorMessage;
-    LM_DEBUG(cfAuth) << "state" << state;
+    LM_DEBUG(lingmoAuth) << "state" << state;
     stateChanged();
 }
 

@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/base/accelerators/accelerator.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: key names come from xkbcommon rather than the
+// Adapted for Lingmo: key names come from xkbcommon rather than the
 // localized VKEY tables.
 
 #include "accelerators/accelerator.h"

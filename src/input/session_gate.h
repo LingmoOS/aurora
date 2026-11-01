@@ -9,7 +9,7 @@
 //
 // Ash asks the session controller whether the user session is blocked and, if
 // it is, confines both event targeting and activation to the lock-screen
-// containers. Cutefish keeps that shape: input and activation ask a gate, never
+// containers. Lingmo keeps that shape: input and activation ask a gate, never
 // a window role and never a z-order comparison.
 
 #ifndef LINGMO_INPUT_SESSION_GATE_H_

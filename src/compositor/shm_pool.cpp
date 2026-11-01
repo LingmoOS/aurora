@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/shared_memory.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "compositor/shm_pool.h"
@@ -71,13 +71,13 @@ ShmPool::~ShmPool()
 std::shared_ptr<ShmPool> ShmPool::create(int fd, int32_t size)
 {
     if (size <= 0) {
-        LM_WARNING(cfCompositor) << "Rejecting a shm pool of size" << size;
+        LM_WARNING(lingmoCompositor) << "Rejecting a shm pool of size" << size;
         close(fd);
         return nullptr;
     }
 
     if (!fileBacks(fd, static_cast<size_t>(size))) {
-        LM_WARNING(cfCompositor) << "Rejecting a shm pool of" << size
+        LM_WARNING(lingmoCompositor) << "Rejecting a shm pool of" << size
                                  << "bytes whose file is smaller than that";
         close(fd);
         return nullptr;
@@ -86,13 +86,13 @@ std::shared_ptr<ShmPool> ShmPool::create(int fd, int32_t size)
     // Only ever read from; the client keeps writing to the same pages.
     void *data = mmap(nullptr, static_cast<size_t>(size), PROT_READ, MAP_SHARED, fd, 0);
     if (data == MAP_FAILED) {
-        LM_WARNING(cfCompositor).printf(
+        LM_WARNING(lingmoCompositor).printf(
                 "Failed to map a shm pool of %d bytes: %s", size, strerror(errno));
         close(fd);
         return nullptr;
     }
 
-    LM_DEBUG(cfCompositor) << "Created shm pool of" << size << "bytes";
+    LM_DEBUG(lingmoCompositor) << "Created shm pool of" << size << "bytes";
     return std::shared_ptr<ShmPool>(new ShmPool(fd, data, static_cast<size_t>(size)));
 }
 
@@ -106,14 +106,14 @@ bool ShmPool::resize(int32_t newSize)
         return false;
 
     if (!fileBacks(m_fd, static_cast<size_t>(newSize))) {
-        LM_WARNING(cfCompositor) << "Refusing to grow a shm pool to" << newSize
+        LM_WARNING(lingmoCompositor) << "Refusing to grow a shm pool to" << newSize
                                  << "bytes: its file is smaller than that";
         return false;
     }
 
     void *data = mremap(m_data, m_size, static_cast<size_t>(newSize), MREMAP_MAYMOVE);
     if (data == MAP_FAILED) {
-        LM_WARNING(cfCompositor).printf(
+        LM_WARNING(lingmoCompositor).printf(
                 "Failed to grow a shm pool to %d bytes: %s", newSize, strerror(errno));
         return false;
     }
@@ -151,7 +151,7 @@ std::shared_ptr<ShmBuffer> ShmPool::createBuffer(const base::Size &size, int32_t
     if (last > static_cast<int64_t>(m_size))
         return fail(ShmBufferError::InvalidStride);
 
-    LM_DEBUG(cfCompositor).printf(
+    LM_DEBUG(lingmoCompositor).printf(
             "Created shm buffer %dx%d stride %d offset %d format %d", size.width(), size.height(),
             stride, offset, static_cast<int>(format));
 

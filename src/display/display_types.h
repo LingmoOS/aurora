@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/types/display_snapshot.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: hardware, requested, applied, and persistent-facing
+// Adapted for Lingmo: hardware, requested, applied, and persistent-facing
 // identities are separate value types with no Chromium platform graph.
 
 #pragma once

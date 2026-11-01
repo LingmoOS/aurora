@@ -113,13 +113,13 @@ bool ToplevelEventHandler::beginDrag(Window *window, ResizeEdge edge,
                                                 m_manager->workAreaFor(window), restoreBounds,
                                                 m_manager->visibleAreaFor(window));
     m_touchId = touchId;
-    LM_DEBUG(cfInputTransitions) << "drag begin target" << window << "edge" << toString(edge)
+    LM_DEBUG(lingmoInputTransitions) << "drag begin target" << window << "edge" << toString(edge)
                                 << (touchId ? "touch point" : "pointer") << touchId.value_or(-1);
     window->setDraggedInternal(true);
     window->setResizingInternal(edge != ResizeEdge::None);
     if (edge == ResizeEdge::None)
         m_snapController->begin(window, pointerPosition);
-    LM_DEBUG(cfCompositor) << "drag started:" << toString(edge) << "from"
+    LM_DEBUG(lingmoCompositor) << "drag started:" << toString(edge) << "from"
                           << window->bounds();
     if (auto *seat = m_manager->seat()) {
         if (touchId) {
@@ -157,7 +157,7 @@ bool ToplevelEventHandler::onTouchUp(int32_t id)
 {
     if (!m_resizer || m_touchId != id)
         return false;
-    LM_DEBUG(cfInputTransitions) << "drag terminating touch up target" << draggedWindow();
+    LM_DEBUG(lingmoInputTransitions) << "drag terminating touch up target" << draggedWindow();
     completeDrag(DragResult::Success);
     return true;
 }
@@ -255,7 +255,7 @@ bool ToplevelEventHandler::onPointerButtonReleased()
         return false;
     if (m_touchId)
         return true;
-    LM_DEBUG(cfInputTransitions) << "drag terminating release target" << draggedWindow();
+    LM_DEBUG(lingmoInputTransitions) << "drag terminating release target" << draggedWindow();
     completeDrag(DragResult::Success);
     return true;
 }
@@ -346,7 +346,7 @@ void ToplevelEventHandler::completeDrag(DragResult result)
     if (!m_resizer)
         return;
 
-    LM_DEBUG(cfInputTransitions) << "drag finish target" << draggedWindow() << "reason"
+    LM_DEBUG(lingmoInputTransitions) << "drag finish target" << draggedWindow() << "reason"
                                 << (result == DragResult::Success ? "release/explicit-success"
                                             : result == DragResult::Revert
                                             ? "escape/explicit-revert"
@@ -358,7 +358,7 @@ void ToplevelEventHandler::completeDrag(DragResult result)
     std::unique_ptr<WindowResizer> resizer = std::move(m_resizer);
     m_touchId.reset();
     const base::Rect initialRestoreBounds = std::exchange(m_initialRestoreBounds, base::Rect());
-    LM_DEBUG(cfInputTransitions) << "drag capture cleared";
+    LM_DEBUG(lingmoInputTransitions) << "drag capture cleared";
     const SnapType snapped = m_snapController->end();
 
     if (result != DragResult::WindowDestroyed) {

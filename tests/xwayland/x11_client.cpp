@@ -21,7 +21,7 @@ int main(int argc, char **argv)
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, XCB_CW_BACK_PIXEL,
                       values);
 
-    const char title[] = "Cutefish X11 client";
+    const char title[] = "Lingmo X11 client";
     xcb_change_property(c, XCB_PROP_MODE_REPLACE, id, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
                         sizeof(title) - 1, title);
     const char clazz[] = "x11client\0X11Client\0";

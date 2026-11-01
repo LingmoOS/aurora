@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/test/integration/buffer_checker_test.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: allocates each advertised format and modifier with GBM
+// Adapted for Lingmo: allocates each advertised format and modifier with GBM
 // and imports it through the renderer the compositor samples client buffers with.
 
 #include <GLES3/gl3.h>

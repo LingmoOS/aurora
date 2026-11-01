@@ -6,7 +6,7 @@
 //           chromium/src/components/exo/wayland/wayland_watcher.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "server.h"
@@ -34,7 +34,7 @@ void waylandLog(const char* fmt, va_list argp)
 {
     char buffer[1024];
     std::vsnprintf(buffer, sizeof(buffer), fmt, argp);
-    LM_WARNING(cfWayland).printf("libwayland: %s", buffer);
+    LM_WARNING(lingmoWayland).printf("libwayland: %s", buffer);
 }
 
 } // namespace
@@ -58,7 +58,7 @@ Server::Server()
 
     m_display.reset(wl_display_create());
     if (!m_display) {
-        LM_CRITICAL(cfWayland) << "Failed to create the Wayland display";
+        LM_CRITICAL(lingmoWayland) << "Failed to create the Wayland display";
         return;
     }
 
@@ -96,19 +96,19 @@ bool Server::addSocket(const std::string& name)
     if (name.empty()) {
         const char* socket = wl_display_add_socket_auto(m_display.get());
         if (!socket) {
-            LM_CRITICAL(cfWayland) << "Failed to create a Wayland socket";
+            LM_CRITICAL(lingmoWayland) << "Failed to create a Wayland socket";
             return false;
         }
         m_socketName = socket;
     } else {
         if (wl_display_add_socket(m_display.get(), name.c_str()) != 0) {
-            LM_CRITICAL(cfWayland) << "Failed to create the Wayland socket" << name.c_str();
+            LM_CRITICAL(lingmoWayland) << "Failed to create the Wayland socket" << name.c_str();
             return false;
         }
         m_socketName = name;
     }
 
-    LM_INFO(cfWayland) << "Listening on Wayland socket" << m_socketName.c_str();
+    LM_INFO(lingmoWayland) << "Listening on Wayland socket" << m_socketName.c_str();
     return true;
 }
 
@@ -160,7 +160,7 @@ bool Server::dispatch(std::chrono::milliseconds timeout)
 
     wl_event_loop* eventLoop = wl_display_get_event_loop(m_display.get());
     if (wl_event_loop_dispatch(eventLoop, static_cast<int>(timeout.count())) < 0) {
-        LM_WARNING(cfWayland) << "Wayland event loop dispatch failed";
+        LM_WARNING(lingmoWayland) << "Wayland event loop dispatch failed";
         return false;
     }
     return true;

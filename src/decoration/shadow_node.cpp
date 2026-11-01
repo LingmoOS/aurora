@@ -155,7 +155,7 @@ void Shadow::updateNode()
         return;
     // exo synchronizes shadow bounds with the frame that carries the matching
     // content (ShellSurfaceBase::OnSurfaceCommit allocates a new
-    // LocalSurfaceId when they change). Cutefish gets the same guarantee by
+    // LocalSurfaceId when they change). Lingmo gets the same guarantee by
     // sizing the shadow from what the window has actually presented, so it can
     // never hug an edge the client has not reached yet.
     base::Rect content = m_window->presentedBounds();

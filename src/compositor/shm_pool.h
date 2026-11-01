@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/shared_memory.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: base::UnsafeSharedMemoryRegion is replaced by a plain
+// Adapted for Lingmo: base::UnsafeSharedMemoryRegion is replaced by a plain
 // mmap of the client's fd.
 
 #ifndef LINGMO_COMPOSITOR_SHM_POOL_H_

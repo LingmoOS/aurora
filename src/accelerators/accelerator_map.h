@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/base/accelerators/accelerator_map.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the positional remap goes through the evdev code and
+// Adapted for Lingmo: the positional remap goes through the evdev code and
 // positionalUsKeysym() instead of DomCode and KeycodeConverter.
 #pragma once
 

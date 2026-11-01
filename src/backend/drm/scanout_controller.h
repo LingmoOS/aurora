@@ -11,7 +11,7 @@
 //               drm_gpu_util.cc (CreateCTMBlob CreateLutBlob)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: one CRTC, no plane migration between controllers, a
+// Adapted for Lingmo: one CRTC, no plane migration between controllers, a
 // colour pipeline holding nothing but per-channel gains, which ride the next
 // page flip instead of a blocking property commit, and the test buffers
 // upstream allocates are replaced by the composited framebuffer already in

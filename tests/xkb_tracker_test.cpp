@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Cutefish counterpart to the XkbTracker half of
+// Lingmo counterpart to the XkbTracker half of
 // chromium/src/components/exo/keyboard_unittest.cc.
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 

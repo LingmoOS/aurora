@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/base/accelerators/accelerator_manager.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: same target/priority model over the Cutefish
+// Adapted for Lingmo: same target/priority model over the Lingmo
 // Accelerator and AcceleratorMap.
 #pragma once
 

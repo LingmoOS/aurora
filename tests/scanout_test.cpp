@@ -12,7 +12,7 @@
 // DRM framebuffers, validating plane configurations with an atomic TEST_ONLY,
 // and falling back to composition whenever any of that does not hold.
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 
 #include <algorithm>

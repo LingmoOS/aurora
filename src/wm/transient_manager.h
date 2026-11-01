@@ -26,7 +26,7 @@ public:
     // cycle.
     bool setTransientParent(Window *child, Window *parent);
 
-    // Detaches `window` from its parent and orphans its children. Cutefish does
+    // Detaches `window` from its parent and orphans its children. Lingmo does
     // not destroy transient children with their parent: the client owns their
     // lifetime, and xdg-shell must not have surfaces disappear behind its back.
     void windowDestroying(Window *window);

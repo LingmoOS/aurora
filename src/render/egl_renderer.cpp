@@ -40,7 +40,7 @@ EglRenderer::~EglRenderer()
         return;
     ScopedEglCurrent current(*m_context);
     if (!current.valid())
-        LM_FATAL(cfRender) << "Cannot make EGL context current for renderer retirement";
+        LM_FATAL(lingmoRender) << "Cannot make EGL context current for renderer retirement";
     m_backdrop.reset();
     m_dropShadow.reset();
     m_pass.releaseResources();
@@ -91,7 +91,7 @@ bool EglRenderer::initPrograms(const char *fragmentOverride, const char *externa
                                                                   shaders::external_extension))
                                       .c_str());
     if (!external)
-        LM_WARNING(cfRender)
+        LM_WARNING(lingmoRender)
                 << "GL_OES_EGL_image_external is unavailable; DMA-BUF buffers cannot be composited";
     // Blur and glass are effects: a driver that cannot build them still gets a
     // desktop, drawn without them.
@@ -99,12 +99,12 @@ bool EglRenderer::initPrograms(const char *fragmentOverride, const char *externa
     if (backdrop->initialize(backdropOverride))
         m_backdrop = std::move(backdrop);
     else
-        LM_WARNING(cfRender) << "Blur and glass shaders are unavailable; drawing without them";
+        LM_WARNING(lingmoRender) << "Blur and glass shaders are unavailable; drawing without them";
     auto dropShadow = std::make_unique<DropShadow>();
     if (dropShadow->initialize())
         m_dropShadow = std::move(dropShadow);
     else
-        LM_WARNING(cfRender) << "The shadow shader is unavailable; drawing without shadows";
+        LM_WARNING(lingmoRender) << "The shadow shader is unavailable; drawing without shadows";
     m_colorProgram = std::move(color);
     m_textureProgram = std::move(texture);
     m_externalProgram = std::move(external);
@@ -174,7 +174,7 @@ void EglRenderer::releaseTarget(EglRenderTarget *target)
     if (!target || target != m_lastTarget)
         return;
     if (!makeCurrent(target))
-        LM_FATAL(cfRender) << "Cannot make EGL context current for output texture retirement";
+        LM_FATAL(lingmoRender) << "Cannot make EGL context current for output texture retirement";
     if (m_backdrop)
         m_backdrop->resetTextures();
     clearTextureCache();
@@ -405,7 +405,7 @@ const DmaBufFormats &EglRenderer::captureDmaBufFormats() const
         if (!modifiers.empty())
             m_captureFormats->emplace(format, std::move(modifiers));
     }
-    LM_INFO(cfRender).printf("Captures can render into %zu DMA-BUF formats",
+    LM_INFO(lingmoRender).printf("Captures can render into %zu DMA-BUF formats",
            m_captureFormats->size());
     return *m_captureFormats;
 }

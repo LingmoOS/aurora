@@ -17,7 +17,7 @@ namespace Lingmo::Wayland {
 
 class PrivilegedClients;
 
-constexpr uint32_t kCutefishShellVersion = 1;
+constexpr uint32_t kLingmoShellVersion = 1;
 
 // The per-display state the lingmo_shell_v1 global hands to its resources.
 //
@@ -25,12 +25,12 @@ constexpr uint32_t kCutefishShellVersion = 1;
 // manager's desktop) uses to say that an ordinary xdg surface is an output's
 // desktop. Everything it carries is adapted into wm:: concepts; no wl_resource
 // crosses into the window manager.
-class WaylandCutefishShell
+class WaylandLingmoShell
 {
 public:
-    WaylandCutefishShell(wm::WindowManager* windowManager, PrivilegedClients* privileged);
-    WaylandCutefishShell(const WaylandCutefishShell&) = delete;
-    WaylandCutefishShell& operator=(const WaylandCutefishShell&) = delete;
+    WaylandLingmoShell(wm::WindowManager* windowManager, PrivilegedClients* privileged);
+    WaylandLingmoShell(const WaylandLingmoShell&) = delete;
+    WaylandLingmoShell& operator=(const WaylandLingmoShell&) = delete;
 
     wm::WindowManager* windowManager() const { return m_windowManager; }
     PrivilegedClients* privileged() const { return m_privileged; }
@@ -42,10 +42,10 @@ private:
 
 // `shell` must outlive the global. Registering the returned global with the
 // privileged client registry is what hides the interface from ordinary clients.
-wl_global* createCutefishShellGlobal(wl_display* display, WaylandCutefishShell* shell);
+wl_global* createLingmoShellGlobal(wl_display* display, WaylandLingmoShell* shell);
 
 // Creates the lingmo_shell_v1 global for the display.
-wl_global* createLingmoShellGlobal(wl_display* display, WaylandCutefishShell* shell);
+wl_global* createLingmoShellGlobal(wl_display* display, WaylandLingmoShell* shell);
 
 } // namespace Lingmo::Wayland
 

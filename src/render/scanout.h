@@ -6,7 +6,7 @@
 //           (GbmPixmap::framebuffer(), the framebuffer cached on the buffer)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: instead of a GbmPixmap holding one DrmFramebuffer, the
+// Adapted for Lingmo: instead of a GbmPixmap holding one DrmFramebuffer, the
 // import slot is keyed by device and opaque, so nothing above the backend has
 // to know that DRM exists.
 

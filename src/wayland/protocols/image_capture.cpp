@@ -772,7 +772,7 @@ void ImageCaptureManager::renderPending(render::Renderer &renderer, const Painte
             continue;
         if (!copied) {
             if (dmabuf) {
-                LM_WARNING(cfWayland).printf(
+                LM_WARNING(lingmoWayland).printf(
                         "Capture into a DMA-BUF failed (format 0x%08x, modifier 0x%llx)",
                         dmabuf->attributes().format,
                         static_cast<unsigned long long>(dmabuf->attributes().modifier));

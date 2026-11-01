@@ -494,7 +494,7 @@ TEST(BatteryTest, ShowsOnceTheServiceComesUp)
     EXPECT_GT(changes, 0);
 }
 
-TEST(StatusBarTest, ServesOrgCutefishStatusbar)
+TEST(StatusBarTest, ServesOrgLingmoStatusbar)
 {
     test::TemporaryDirectory directory;
     directory.write("shell.conf", "[Statusbar]\nTwentyFourTime=true\n");

@@ -5,10 +5,10 @@
 // Upstream: chromium/src/components/exo/seat.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
-// Cutefish owns xkb state, client event dispatch, selection and drag capture.
+// Lingmo owns xkb state, client event dispatch, selection and drag capture.
 
 #ifndef LINGMO_INPUT_SEAT_H_
 #define LINGMO_INPUT_SEAT_H_

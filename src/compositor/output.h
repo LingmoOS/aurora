@@ -56,7 +56,7 @@ struct Output {
     OutputScale scale;
     std::shared_ptr<render::PresentationOutput> presentation =
             std::make_shared<render::PresentationOutput>();
-    std::string name = "Cutefish-1";
+    std::string name = "Lingmo-1";
     std::string description;
     Transform transform = Transform::Normal;
     double renderScale = 1.0;

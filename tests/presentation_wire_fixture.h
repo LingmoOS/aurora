@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wp_presentation.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// What is taken: the protocol lifecycle. The wire assertions are Cutefish's.
+// What is taken: the protocol lifecycle. The wire assertions are Lingmo's.
 
 #pragma once
 

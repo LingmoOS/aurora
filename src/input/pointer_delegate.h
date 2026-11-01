@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/pointer_delegate.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
 // Adaptation: gfx::PointF/Vector2dF become base::PointF, and the pinch/stylus and

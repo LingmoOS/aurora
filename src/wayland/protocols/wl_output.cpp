@@ -7,7 +7,7 @@
 //           output_metrics.cc, wayland_display_output.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 // Adaptation: each protocol state owns its metrics and retained resources
 // become inert after explicit global removal.

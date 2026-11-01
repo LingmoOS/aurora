@@ -75,7 +75,7 @@ private:
 // per application, gone again as soon as the application answers. The
 // window manager asks through setNotRespondingPrompt().
 //
-// Neither exo nor Ash handles hung clients; this is Cutefish's own design.
+// Neither exo nor Ash handles hung clients; this is Lingmo's own design.
 class NotRespondingSheets : public Component, public wm::WindowObserver
 {
 public:

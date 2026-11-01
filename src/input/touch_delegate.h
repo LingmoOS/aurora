@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/touch_delegate.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gfx::PointF becomes base::PointF. libinput reports no
+// Adapted for Lingmo: gfx::PointF becomes base::PointF. libinput reports no
 // contact size, so the shape callback is not carried over.
 
 #ifndef LINGMO_INPUT_TOUCH_DELEGATE_H_

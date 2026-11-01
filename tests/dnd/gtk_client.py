@@ -8,7 +8,7 @@ from gi.repository import Gdk, GLib, Gtk
 window = Gtk.Window(title=sys.argv[1])
 window.set_default_size(180, 120)
 area = Gtk.EventBox()
-area.add(Gtk.Label(label="Cutefish drag"))
+area.add(Gtk.Label(label="Lingmo drag"))
 window.add(area)
 targets = [Gtk.TargetEntry.new("application/x-lingmo-dnd", 0, 0)]
 actions = Gdk.DragAction.COPY | Gdk.DragAction.MOVE

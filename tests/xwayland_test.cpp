@@ -1481,7 +1481,7 @@ TEST_F(XwaylandTest, ClipboardBothDirectionsAndIncrementalTransfers)
     auto targets = intern(c, "TARGETS");
     auto utf8 = intern(c, "UTF8_STRING");
     auto incr = intern(c, "INCR");
-    auto property = intern(c, "CUTefish_TEST_SELECTION");
+    auto property = intern(c, "Lingmo_TEST_SELECTION");
     auto managerAtom = intern(c, "CLIPBOARD_MANAGER");
     auto saveTargets = intern(c, "SAVE_TARGETS");
     const std::string mime = "text/plain;charset=utf-8";
@@ -1904,10 +1904,10 @@ TEST_F(XwaylandTest, RealWindowMetadataConfigureAndClose)
     xcb_create_window(c, XCB_COPY_FROM_PARENT, id, screen->root, 20, 30, 320, 200, 0,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual,
                       XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK, values);
-    const char title[] = "Cutefish X11 test";
+    const char title[] = "Lingmo X11 test";
     xcb_change_property(c, XCB_PROP_MODE_REPLACE, id, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
                         sizeof(title) - 1, title);
-    const char clazz[] = "test\0CutefishTest\0";
+    const char clazz[] = "test\0LingmoTest\0";
     xcb_change_property(c, XCB_PROP_MODE_REPLACE, id, XCB_ATOM_WM_CLASS, XCB_ATOM_STRING, 8,
                         sizeof(clazz) - 1, clazz);
     const auto protocols = intern(c, "WM_PROTOCOLS");
@@ -3442,8 +3442,8 @@ TEST_F(XwaylandApplicationTest, Xterm)
     if (executable.empty())
         GTEST_SKIP() << "xterm unavailable; set LINGMO_XTERM to a test binary";
     exercise(executable,
-             {"-title", "Cutefish X11 terminal", "-e", "/bin/sh", "-c",
-              "printf 'Cutefish X11 rendering and input\\n'; exec cat"});
+             {"-title", "Lingmo X11 terminal", "-e", "/bin/sh", "-c",
+              "printf 'Lingmo X11 rendering and input\\n'; exec cat"});
 }
 
 class XwaylandProtocolTest : public XwaylandTest

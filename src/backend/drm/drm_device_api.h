@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/common/drm_wrapper.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: only the ioctls the compositor actually issues, and the
+// Adapted for Lingmo: only the ioctls the compositor actually issues, and the
 // atomic request is a plain property list rather than a drmModeAtomicReq, so
 // the planner and the commit path can be exercised without a DRM device.
 

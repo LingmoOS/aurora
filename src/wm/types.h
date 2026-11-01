@@ -16,10 +16,10 @@ enum class WindowType {
     Popup,
 };
 
-// The window states Cutefish supports. Ash's chromeos::WindowStateType has
+// The window states Lingmo supports. Ash's chromeos::WindowStateType has
 // floated/pip/pinned as well; those are deliberately absent. The two snapped
 // states are Ash's kPrimarySnapped / kSecondarySnapped: in the landscape layout
-// Cutefish supports they are the left and the right half of the work area.
+// Lingmo supports they are the left and the right half of the work area.
 enum class WindowStateType {
     Normal,
     PrimarySnapped,
@@ -83,7 +83,7 @@ enum class ScreenEdge {
     Right,
 };
 
-// Which edge or corner an interactive resize is anchored to. Cutefish uses its
+// Which edge or corner an interactive resize is anchored to. Lingmo uses its
 // own enum rather than Chromium's HT* hit-test constants.
 enum class ResizeEdge {
     None,

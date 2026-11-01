@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/gpu/drm_gpu_display_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: a deterministic breadth-first search bounds driver
+// Adapted for Lingmo: a deterministic breadth-first search bounds driver
 // tests and keeps internal panels fixed while MST branches shed bandwidth.
 
 #include "backend/drm/drm_mode_fallback_planner.h"

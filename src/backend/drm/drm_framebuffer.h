@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/gpu/drm_framebuffer.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: no opaque-format alias framebuffer and no modeset
+// Adapted for Lingmo: no opaque-format alias framebuffer and no modeset
 // sequence tracking, and the client DMA-BUF import upstream gets from
 // GbmPixmap is done here.
 

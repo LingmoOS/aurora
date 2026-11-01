@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/gpu/drm_gpu_display_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: cross-device commits, framebuffer transfer fallback,
+// Adapted for Lingmo: cross-device commits, framebuffer transfer fallback,
 // tiled monitor grouping, and clone eligibility are explicit testable plans.
 
 #pragma once

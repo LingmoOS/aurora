@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/gpu/drm_gpu_display_manager_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests cover partial cross-device rollback, transfer
+// Adapted for Lingmo: tests cover partial cross-device rollback, transfer
 // fallback, complete tile groups, and hardware clone capability gating.
 
 #include <gtest/gtest.h>

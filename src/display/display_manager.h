@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/manager/display_manager.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: one model owns immutable hardware snapshots
+// Adapted for Lingmo: one model owns immutable hardware snapshots
 // and applied logical display batches without Ash observers or preferences.
 
 #pragma once

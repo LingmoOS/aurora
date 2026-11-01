@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/pointer.h (pointer constraints)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: Exo keeps constraints on each client Pointer and
+// Adapted for Lingmo: Exo keeps constraints on each client Pointer and
 // captures through aura. Here every client pointer drives the one physical
 // pointer, so the constraints belong to the Seat and the InputManager applies
 // the active one to motion.

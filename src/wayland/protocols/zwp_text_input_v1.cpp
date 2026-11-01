@@ -6,7 +6,7 @@
 //           chromium/src/components/exo/text_input.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the text input is relayed to an input-method-v2 client
+// Adapted for Lingmo: the text input is relayed to an input-method-v2 client
 // instead of ui::InputMethod. zcr_extended_text_input_v1 and
 // zcr_text_input_extension_v1 are ChromeOS extensions and are not ported.
 

@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wl_compositor.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #ifndef LINGMO_WAYLAND_PROTOCOLS_WL_COMPOSITOR_H_
@@ -22,7 +22,7 @@ class Compositor;
 
 namespace Lingmo::Wayland {
 
-// wl_surface.damage_buffer. Exo stops at version 3; Cutefish needs buffer
+// wl_surface.damage_buffer. Exo stops at version 3; Lingmo needs buffer
 // damage, and does not implement wl_surface.offset, which is what version 5
 // would add.
 constexpr uint32_t kWlCompositorVersion = WL_SURFACE_DAMAGE_BUFFER_SINCE_VERSION;

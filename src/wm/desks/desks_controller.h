@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/wm/desks/desks_controller.h and desks_util.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the desks, their activation and removal, moving windows
+// Adapted for Lingmo: the desks, their activation and removal, moving windows
 // between them and the switch animations. Overview, split view, float, saved
 // desks, coral, the undo toast, per-user desks and metrics are not carried over.
 // A desk's windows are the application windows of the normal stacking layer;

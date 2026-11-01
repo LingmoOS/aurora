@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// End-to-end tests for the private Cutefish shell protocol, which is down to the
+// End-to-end tests for the private Lingmo shell protocol, which is down to the
 // desktop surface, driven through real libwayland-client connections: one
 // trusted connection created the way the session creates it, and one ordinary
 // application connection.
@@ -361,7 +361,7 @@ protected:
         auto xdgShell = std::make_unique<wayland::WaylandXdgShell>(&compositor, &windowManager,
                                                                    &seat, server.serialTracker());
         auto lingmoShell =
-                std::make_unique<wayland::WaylandCutefishShell>(&windowManager, privileged.get());
+                std::make_unique<wayland::WaylandLingmoShell>(&windowManager, privileged.get());
 
         ASSERT_TRUE(wayland::createCompositorGlobal(server.display(), &compositor));
         ASSERT_TRUE(wayland::createSubcompositorGlobal(server.display()));
@@ -713,7 +713,7 @@ TEST_F(PrivateShellProtocolTest, ADesktopOnANamedOutputHearsTheShellsReservation
     ASSERT_TRUE(displays.installHardware({"instance", "seat0", 1, {physical}}));
     const display::LogicalDisplay logical {display::DisplayId("a"),
                                            {display::DisplayId("a")},
-                                           "Cutefish-a",
+                                           "Lingmo-a",
                                            kOutput,
                                            kOutput,
                                            *compositor::OutputScale::fromNumerator(120),
@@ -725,7 +725,7 @@ TEST_F(PrivateShellProtocolTest, ADesktopOnANamedOutputHearsTheShellsReservation
     // The status bar is up before the file manager starts.
     int bar = 0;
     int dock = 0;
-    windowManager.setExclusiveZone(&bar, wm::ScreenEdge::Top, 32, "Cutefish-a");
+    windowManager.setExclusiveZone(&bar, wm::ScreenEdge::Top, 32, "Lingmo-a");
 
     run([&](Client &c) {
         ASSERT_TRUE(c.bindShell());
@@ -740,7 +740,7 @@ TEST_F(PrivateShellProtocolTest, ADesktopOnANamedOutputHearsTheShellsReservation
         desktop->shellSurface = lingmo_shell_v1_get_shell_surface(c.shell, desktop->surface);
         lingmo_shell_surface_v1_add_listener(desktop->shellSurface, &listener, &areas);
         lingmo_shell_surface_v1_set_role(desktop->shellSurface, LINGMO_SHELL_SURFACE_V1_ROLE_DESKTOP);
-        lingmo_shell_surface_v1_set_output(desktop->shellSurface, "Cutefish-a");
+        lingmo_shell_surface_v1_set_output(desktop->shellSurface, "Lingmo-a");
         c.sync();
         // The bar's strip is already left out of the first one.
         ASSERT_FALSE(areas.empty());
@@ -749,7 +749,7 @@ TEST_F(PrivateShellProtocolTest, ADesktopOnANamedOutputHearsTheShellsReservation
         c.map(desktop, kOutput.size());
 
         // The dock comes up after the desktop.
-        check([&] { windowManager.setExclusiveZone(&dock, wm::ScreenEdge::Bottom, 92, "Cutefish-a"); });
+        check([&] { windowManager.setExclusiveZone(&dock, wm::ScreenEdge::Bottom, 92, "Lingmo-a"); });
         c.sync();
         EXPECT_EQ(base::Rect(0, 32, 800, 476), areas.back());
         check([&] { windowManager.clearExclusiveZone(&dock); });

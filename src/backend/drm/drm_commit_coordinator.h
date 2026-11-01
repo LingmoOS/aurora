@@ -6,7 +6,7 @@
 //           chromium/src/ui/ozone/platform/drm/gpu/screen_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: test and commit one complete device request while the
+// Adapted for Lingmo: test and commit one complete device request while the
 // last successful request remains authoritative after either phase fails.
 
 #pragma once

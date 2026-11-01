@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/wm/desks/desk.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: a desk owns no container. Its windows keep their
+// Adapted for Lingmo: a desk owns no container. Its windows keep their
 // places in the window manager's one stacking order, and a desk that is not
 // active hides them with Window::setDeskHidden, as upstream hides its
 // containers. Metrics, saved desks, coral and per-user state are not carried

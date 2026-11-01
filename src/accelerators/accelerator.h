@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/base/accelerators/accelerator.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: ui::KeyboardCode becomes the xkb keysym at the base
+// Adapted for Lingmo: ui::KeyboardCode becomes the xkb keysym at the base
 // shift level of the current layout, ui::EventFlags becomes an xkb-derived
 // modifier mask, and ui::DomCode becomes the evdev code. Time stamps, source
 // device ids and the mouse-interruption flag are not needed.

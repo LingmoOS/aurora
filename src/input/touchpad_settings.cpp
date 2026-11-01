@@ -46,7 +46,7 @@ bool TouchpadSettings::registerService()
         return true;
     auto exported = DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export touchpad settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export touchpad settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -101,7 +101,7 @@ void TouchpadSettings::save(const std::string &key, T value)
 {
     m_settings.setValue(group + key, value);
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist touchpad settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist touchpad settings to" << m_settings.path();
     notify(settingsChanged, "settingsChanged");
 }
 

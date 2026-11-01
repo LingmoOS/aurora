@@ -33,7 +33,7 @@ namespace Lingmo::Shell {
 namespace dbus = base::dbus;
 namespace nm = networkmanager;
 
-static const base::LogCategory cfControlCenter("lingmo.shell.controlcenter");
+static const base::LogCategory lingmoControlCenter("lingmo.shell.controlcenter");
 
 // org.lingmo.Privacy: the camera and microphone switches.
 static const char kPrivacyService[] = "org.lingmo.Privacy";
@@ -413,7 +413,7 @@ private:
                     method,
                     [method = std::string(method), finished](const dbus::Reply &reply) {
                         if (reply.isError())
-                            LM_WARNING(cfControlCenter) << "Privacy " << method << " failed: "
+                            LM_WARNING(lingmoControlCenter) << "Privacy " << method << " failed: "
                                                         << reply.error().message;
                         finished();
                     },

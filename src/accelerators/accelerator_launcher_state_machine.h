@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/accelerator_launcher_state_machine.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: fed by the accelerator filter with keysyms and a
+// Adapted for Lingmo: fed by the accelerator filter with keysyms and a
 // pressed-key count instead of ui::KeyEvent and ui::InputController.
 #pragma once
 

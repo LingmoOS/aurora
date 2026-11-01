@@ -18,7 +18,7 @@ using Lingmo::test::TemporaryDirectory;
 // that can unlock a session is a backend that said the credential was correct,
 // and it can do it once.
 
-// The login screen offers every session, prefers Cutefish, and hands the choice
+// The login screen offers every session, prefers Lingmo, and hands the choice
 // to the backend with the attempt that may start it.
 TEST(AuthControllerTest, LoginStartsTheChosenSession)
 {
@@ -106,16 +106,16 @@ TEST(AuthControllerTest, EveryDesktopNameReachesTheSessionEnvironment)
     TemporaryDirectory directory;
     ASSERT_TRUE(directory.isValid());
     ASSERT_TRUE(directory.write("lingmo-wayland.desktop",
-                                "[Desktop Entry]\nName=Cutefish\nExec=/bin/true\n"
-                                "DesktopNames=CutefishDesktopSession; SecondDesktopName ;;\n"));
+                                "[Desktop Entry]\nName=Lingmo\nExec=/bin/true\n"
+                                "DesktopNames=LingmoDesktopSession; SecondDesktopName ;;\n"));
     const auto sessions = findLoginSessions({directory.path()});
     ASSERT_EQ(sessions.size(), 1u);
     const auto &environment = sessions.front().environment;
     EXPECT_NE(std::find(environment.begin(), environment.end(),
-                        "XDG_SESSION_DESKTOP=CutefishDesktopSession"),
+                        "XDG_SESSION_DESKTOP=LingmoDesktopSession"),
               environment.end());
     EXPECT_NE(std::find(environment.begin(), environment.end(),
-                        "XDG_CURRENT_DESKTOP=CutefishDesktopSession:SecondDesktopName"),
+                        "XDG_CURRENT_DESKTOP=LingmoDesktopSession:SecondDesktopName"),
               environment.end());
 }
 

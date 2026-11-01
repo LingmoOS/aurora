@@ -109,7 +109,7 @@ bool ProtocolGlobals::registerCoreGlobals()
         || !createXdgOutputManagerGlobal(display) || !createViewporterGlobal(display)
         || (m_deps.windowManager
             && !createStatusItemGlobal(display, m_deps.windowManager->statusItems()))) {
-        LM_CRITICAL(cfWayland) << "Failed to register the globals";
+        LM_CRITICAL(lingmoWayland) << "Failed to register the globals";
         return false;
     }
     return true;
@@ -254,9 +254,9 @@ bool ProtocolGlobals::registerPrivateShell()
     // Registered with the privileged filter, so an ordinary client never sees
     // it in its registry.
     m_lingmoShell =
-            std::make_unique<WaylandCutefishShell>(m_deps.windowManager, m_privileged.get());
+            std::make_unique<WaylandLingmoShell>(m_deps.windowManager, m_privileged.get());
     if (!createLingmoShellGlobal(m_deps.server->display(), m_lingmoShell.get())) {
-        LM_CRITICAL(cfWayland) << "Failed to register the private shell global";
+        LM_CRITICAL(lingmoWayland) << "Failed to register the private shell global";
         return false;
     }
     return true;

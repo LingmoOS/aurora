@@ -12,7 +12,7 @@
 
 namespace Lingmo::Shell {
 
-static const base::LogCategory cfLauncher("lingmo.shell.launcher");
+static const base::LogCategory lingmoLauncher("lingmo.shell.launcher");
 
 Launcher::Launcher(base::dbus::Connection *bus, TaskManager &tasks, ApplicationLauncher &launcher, Dock *dock,
                    std::string settingsPath)
@@ -56,7 +56,7 @@ bool Launcher::registerService()
     object->addMethod("toggle", [this] { toggle(); });
     if (!object->publish()
         || !m_bus->requestName("org.lingmo.Launcher", base::dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfLauncher) << "Cannot own org.lingmo.Launcher";
+        LM_WARNING(lingmoLauncher) << "Cannot own org.lingmo.Launcher";
         return false;
     }
     m_object = std::move(object);

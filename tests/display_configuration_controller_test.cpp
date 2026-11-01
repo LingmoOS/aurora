@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/resolution_notification_controller_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests cover full-layout preview confirmation, timeout,
+// Adapted for Lingmo: tests cover full-layout preview confirmation, timeout,
 // owner loss, and confirmed-only JSON persistence.
 
 #include <gtest/gtest.h>

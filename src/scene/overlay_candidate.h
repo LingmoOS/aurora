@@ -8,7 +8,7 @@
 //               overlay_strategy_single_on_top.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: there is no quad list and no DisplayResourceProvider,
+// Adapted for Lingmo: there is no quad list and no DisplayResourceProvider,
 // so the strategies run over the scene tree directly. gfx::Rect becomes base::Rect,
 // gfx::GpuFence becomes render::SyncFence, and everything ChromeOS-specific -
 // rounded display masks, colour spaces, temporal promotion tracking - is

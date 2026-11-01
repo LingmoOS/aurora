@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_touch_delegate.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: locations are converted to the client's units, for
+// Adapted for Lingmo: locations are converted to the client's units, for
 // Xwayland's scaled surfaces. There is no contact size to send as a shape.
 
 #ifndef LINGMO_WAYLAND_PROTOCOLS_WAYLAND_TOUCH_DELEGATE_H_

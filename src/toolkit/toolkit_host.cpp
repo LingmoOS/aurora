@@ -45,7 +45,7 @@ ui::EmbeddedGpu *currentGpu(const std::shared_ptr<render::EglContext> &context)
     if (host.failed || !host.allowed || !context)
         return nullptr;
     if (host.gpu && host.gpu->isAbandoned()) {
-        LM_WARNING(cfCompositor) << "The panels' GPU context was lost; drawing them on the CPU";
+        LM_WARNING(lingmoCompositor) << "The panels' GPU context was lost; drawing them on the CPU";
         closeBatch();
         host.gpu.reset();
         host.failed = true;
@@ -54,7 +54,7 @@ ui::EmbeddedGpu *currentGpu(const std::shared_ptr<render::EglContext> &context)
     if (!host.gpu) {
         host.gpu = ui::EmbeddedGpu::createForCurrentContext();
         if (!host.gpu) {
-            LM_WARNING(cfCompositor) << "Skia cannot draw on the renderer's context; drawing the panels on the CPU";
+            LM_WARNING(lingmoCompositor) << "Skia cannot draw on the renderer's context; drawing the panels on the CPU";
             host.failed = true;
             return nullptr;
         }

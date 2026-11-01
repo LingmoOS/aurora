@@ -4,7 +4,7 @@
 #pragma once
 
 // What the accelerator commands need from outside the compositor process.
-// Ash performs every action in-process through Shell::Get(); Cutefish's shell
+// Ash performs every action in-process through Shell::Get(); Lingmo's shell
 // UI is a separate process reached over D-Bus, and this is the seam the tests
 // replace.
 

@@ -536,7 +536,7 @@ TEST_F(ScreenshotTest, TheToolbarIsDraggedAndRemembered)
     EXPECT_NEAR(saved.y(), toolbarRect().y(), 1e-9);
 }
 
-TEST_F(ScreenshotTest, ServesOrgCutefishScreenshot)
+TEST_F(ScreenshotTest, ServesOrgLingmoScreenshot)
 {
     base::dbus::Connection *bus = base::dbus::Connection::session(core::mainLoop());
     ASSERT_NE(nullptr, bus);

@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/base/accelerators/accelerator_manager.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_manager.h"
@@ -41,7 +41,7 @@ void AcceleratorManager::unregisterAccelerator(const Accelerator &accelerator,
 {
     TargetInfo *info = m_accelerators.find(accelerator);
     if (!info) {
-        LM_WARNING(cfInput) << "Unregistering an unknown accelerator" << accelerator.shortcutText();
+        LM_WARNING(lingmoInput) << "Unregistering an unknown accelerator" << accelerator.shortcutText();
         return;
     }
     if (info->unregister(target) && !info->hasTargets())

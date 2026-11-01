@@ -6,7 +6,7 @@
 //           chromium/src/ui/ozone/platform/drm/gpu/drm_gpu_display_manager_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests cover the device-wide route planner, bounded
+// Adapted for Lingmo: tests cover the device-wide route planner, bounded
 // MST mode fallback, and atomic commit publication boundary.
 
 #include <gtest/gtest.h>

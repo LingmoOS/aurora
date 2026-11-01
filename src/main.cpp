@@ -71,15 +71,15 @@ int main(int argc, char *argv[])
             signalfd_siginfo info;
             while (read(signalFd, &info, sizeof(info)) == sizeof(info))
                 ;
-            LM_INFO(cfWayland) << "Shutting down";
+            LM_INFO(lingmoWayland) << "Shutting down";
             shell->stop();
             mainLoop.loop().quit();
         });
     } else {
-        LM_WARNING(cfWayland) << "Failed to create signalfd; Ctrl-C will not shut down cleanly";
+        LM_WARNING(lingmoWayland) << "Failed to create signalfd; Ctrl-C will not shut down cleanly";
     }
 
-    LM_INFO(cfWayland) << "lingmo-compositor started, WAYLAND_DISPLAY=" + shell->socketName();
+    LM_INFO(lingmoWayland) << "lingmo-compositor started, WAYLAND_DISPLAY=" + shell->socketName();
 
     if (!shell->notifyReady())
         return 1;

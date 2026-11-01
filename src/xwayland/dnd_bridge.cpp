@@ -397,7 +397,7 @@ void DndBridge::resolveTarget(uint64_t hover, xcb_window_t window)
                               return;
                           m_out->target = target;
                           m_out->version = std::min(version, kMaxXdndVersion);
-                          LM_DEBUG(cfWayland) << "XDND target" << m_out->window << "via" << target
+                          LM_DEBUG(lingmoWayland) << "XDND target" << m_out->window << "via" << target
                                              << "version" << m_out->version;
                           m_out->offer = drag->createOffer(false);
                           enter();
@@ -436,7 +436,7 @@ void DndBridge::enter()
     } else {
         std::copy(m_exportTypes.begin(), m_exportTypes.end(), inline_.begin());
     }
-    LM_DEBUG(cfWayland) << "XDND enter" << m_out->window << "types" << m_exportTypes.size();
+    LM_DEBUG(lingmoWayland) << "XDND enter" << m_out->window << "types" << m_exportTypes.size();
     send(m_out->window, m_out->target, "XdndEnter",
          {source, flags, inline_[0], inline_[1], inline_[2]});
     sendPosition();
@@ -505,7 +505,7 @@ void DndBridge::onDragDropped(input::DragOffer *offer)
     if (auto previous = std::move(m_dropped); previous && previous->offer)
         previous->offer->invalidate();
     m_dropped = std::move(m_out);
-    LM_DEBUG(cfWayland) << "XDND drop" << m_dropped->window;
+    LM_DEBUG(lingmoWayland) << "XDND drop" << m_dropped->window;
     send(m_dropped->window, m_dropped->target, "XdndDrop",
          {m_selection->window(), 0, m_selection->timestamp()});
     m_finishTimeout.start(kFinishTimeout);
@@ -515,7 +515,7 @@ void DndBridge::onFinished(const xcb_client_message_event_t &event)
 {
     if (!m_dropped)
         return;
-    LM_DEBUG(cfWayland) << "XDND finished" << event.data.data32[1];
+    LM_DEBUG(lingmoWayland) << "XDND finished" << event.data.data32[1];
     // Version 5 says whether the drop was taken; older targets only finish.
     completeDrop(m_dropped->version < 5 || (event.data.data32[1] & 1));
 }
@@ -556,7 +556,7 @@ void DndBridge::clearExport()
 void DndBridge::onOwnerChanged(xcb_window_t owner)
 {
     m_owner = owner && !owns(owner) ? owner : 0;
-    LM_DEBUG(cfWayland) << "XdndSelection owner" << owner;
+    LM_DEBUG(lingmoWayland) << "XdndSelection owner" << owner;
     // A source that lost its selection before the drop has nothing left to give.
     if (m_in && !m_in->dropped)
         resetIncoming();
@@ -587,7 +587,7 @@ void DndBridge::setProxyMapped(bool mapped)
     if (!m_proxy || mapped == m_proxyMapped)
         return;
     m_proxyMapped = mapped;
-    LM_DEBUG(cfWayland) << "XDND proxy" << (mapped ? "mapped" : "unmapped");
+    LM_DEBUG(lingmoWayland) << "XDND proxy" << (mapped ? "mapped" : "unmapped");
     if (mapped) {
         const base::Size size = rootSize();
         const uint32_t values[] = {0, 0, uint32_t(size.width()), uint32_t(size.height()),
@@ -608,7 +608,7 @@ void DndBridge::onEnter(const xcb_client_message_event_t &event)
     const auto *d = event.data.data32;
     const uint32_t version = d[1] >> 24;
     // Upstream discards a version it does not speak without answering.
-    LM_DEBUG(cfWayland) << "XDND source enter" << d[0] << "version" << version;
+    LM_DEBUG(lingmoWayland) << "XDND source enter" << d[0] << "version" << version;
     // Only a drag the pointer is really making: the proxy is never under the
     // pointer otherwise, but any client can name it in a message.
     auto *seat = m_manager->seat();
@@ -718,7 +718,7 @@ void DndBridge::onDrop(const xcb_client_message_event_t &event)
         return;
     m_in->dropped = true;
     m_in->time = event.data.data32[2];
-    LM_DEBUG(cfWayland) << "XDND source drop" << m_in->source << "accepted" << m_in->mime.c_str();
+    LM_DEBUG(lingmoWayland) << "XDND source drop" << m_in->source << "accepted" << m_in->mime.c_str();
     auto *drag = m_manager->seat()->drag();
     if (m_in->data && drag->isExternal() && drag->source() == m_in->data)
         drag->drop();

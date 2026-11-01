@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/ozone/platform/drm/host/drm_display_host_manager_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests the bounded hotplug debounce.
+// Adapted for Lingmo: tests the bounded hotplug debounce.
 
 #include <gtest/gtest.h>
 

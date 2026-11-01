@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/pointer_gesture_pinch_delegate.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: Exo only has pinch, from aura's gesture recognizer.
+// Adapted for Lingmo: Exo only has pinch, from aura's gesture recognizer.
 // libinput reports swipe, pinch and hold from the touchpad, with the pinch's
 // translation and rotation, so one delegate covers all three.
 

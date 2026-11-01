@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/accelerators/accelerator_history_impl.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "accelerators/accelerator_history.h"

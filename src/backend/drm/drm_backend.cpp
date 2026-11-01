@@ -147,7 +147,7 @@ bool DrmBackend::open(const std::string &devicePath)
         drmDevicePtr devices[16] = {};
         const int count = drmGetDevices2(0, devices, 16);
         if (count < 0) {
-            LM_CRITICAL(cfDrm) << "drmGetDevices2 failed";
+            LM_CRITICAL(lingmoDrm) << "drmGetDevices2 failed";
             return false;
         }
         for (int i = 0; i < count; ++i) {
@@ -158,7 +158,7 @@ bool DrmBackend::open(const std::string &devicePath)
     }
 
     if (candidates.empty()) {
-        LM_CRITICAL(cfDrm) << "No DRM devices found";
+        LM_CRITICAL(lingmoDrm) << "No DRM devices found";
         return false;
     }
 
@@ -207,32 +207,32 @@ bool DrmBackend::open(const std::string &devicePath)
     }
 
     if (m_fd < 0) {
-        LM_CRITICAL(cfDrm) << "Failed to open a usable DRM device";
+        LM_CRITICAL(lingmoDrm) << "Failed to open a usable DRM device";
         return false;
     }
 
     m_driverName = readDriverName(m_fd);
-    LM_INFO(cfDrm) << "DRM device:" << m_devicePath;
-    LM_INFO(cfDrm) << "DRM driver:" << m_driverName;
+    LM_INFO(lingmoDrm) << "DRM device:" << m_devicePath;
+    LM_INFO(lingmoDrm) << "DRM driver:" << m_driverName;
 
     if (drmSetClientCap(m_fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1) != 0) {
-        LM_CRITICAL(cfDrm) << "The driver does not support universal planes";
+        LM_CRITICAL(lingmoDrm) << "The driver does not support universal planes";
         closeDevice();
         return false;
     }
     if (drmSetClientCap(m_fd, DRM_CLIENT_CAP_ATOMIC, 1) != 0) {
-        LM_CRITICAL(cfDrm) << "The driver does not support atomic modesetting";
+        LM_CRITICAL(lingmoDrm) << "The driver does not support atomic modesetting";
         closeDevice();
         return false;
     }
-    LM_INFO(cfDrm) << "Atomic modesetting: yes";
+    LM_INFO(lingmoDrm) << "Atomic modesetting: yes";
 
     // A secondary device allocates from the rendering card's GBM device, which
     // gbmDevice() hands out; one of its own would be a driver screen never used.
     if (!m_renderBackend) {
         m_gbm = gbm_create_device(m_fd);
         if (!m_gbm) {
-            LM_CRITICAL(cfDrm) << "Failed to create a GBM device";
+            LM_CRITICAL(lingmoDrm) << "Failed to create a GBM device";
             closeDevice();
             return false;
         }
@@ -350,7 +350,7 @@ bool DrmBackend::createOutputs()
 {
     drmModeRes *resources = drmModeGetResources(m_fd);
     if (!resources) {
-        LM_CRITICAL(cfDrm) << "Failed to read DRM resources";
+        LM_CRITICAL(lingmoDrm) << "Failed to read DRM resources";
         return false;
     }
 
@@ -426,7 +426,7 @@ bool DrmBackend::createOutputs()
         const auto assignments = DrmConfigurationPlanner::assign(routeCandidates, crtcCandidates,
                                                                  m_routeAlternative);
         if (!assignments) {
-            LM_CRITICAL(cfDrm) << "No device-wide CRTC and primary-plane assignment";
+            LM_CRITICAL(lingmoDrm) << "No device-wide CRTC and primary-plane assignment";
         } else {
             m_outputs.clear();
             std::set<uint32_t> claimedPlanes;
@@ -502,13 +502,13 @@ bool DrmBackend::createOutputs()
                 }
 
                 if (refreshRate(connector.mode) <= 0.0) {
-                    LM_CRITICAL(cfDrm) << "Selected mode has invalid refresh timing";
+                    LM_CRITICAL(lingmoDrm) << "Selected mode has invalid refresh timing";
                 } else if (!missing.empty()) {
-                    LM_CRITICAL(cfDrm) << "Missing atomic properties:"
+                    LM_CRITICAL(lingmoDrm) << "Missing atomic properties:"
                                        << base::strings::join(missing, ", ");
                 } else {
-                    LM_INFO(cfDrm) << "Connector:" << connector.name;
-                    LM_INFO(cfDrm).printf("Mode: %dx%d@%.0f", connector.mode.hdisplay,
+                    LM_INFO(lingmoDrm) << "Connector:" << connector.name;
+                    LM_INFO(lingmoDrm).printf("Mode: %dx%d@%.0f", connector.mode.hdisplay,
                                           connector.mode.vdisplay, refreshRate(connector.mode));
                     m_outputs.push_back(std::make_unique<DrmOutput>(this, std::move(config)));
                 }
@@ -713,7 +713,7 @@ bool DrmBackend::refreshDevices()
         auto device = std::make_unique<DrmBackend>(m_session);
         device->m_renderBackend = this;
         if (!device->open(path) || !device->createOutputs() || !device->initRenderer()) {
-            LM_WARNING(cfDrm) << "Could not initialize secondary DRM device" << path;
+            LM_WARNING(lingmoDrm) << "Could not initialize secondary DRM device" << path;
             continue;
         }
         device->m_forwardInvalidation =
@@ -744,7 +744,7 @@ void DrmBackend::onDrmEvent()
     if (drmHandleEvent(m_fd, &context) != 0 && errno != EINTR && errno != EAGAIN) {
         // As Ozone's DrmDevice::IOWatcher does, stop watching events that cannot
         // be read, rather than spinning on an fd that stays readable.
-        LM_WARNING(cfDrm).printf("Cannot read DRM events from %s: %s", m_devicePath.c_str(),
+        LM_WARNING(lingmoDrm).printf("Cannot read DRM events from %s: %s", m_devicePath.c_str(),
                                  strerror(errno));
         stopWatching();
     }

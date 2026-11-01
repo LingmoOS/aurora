@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/extended_mouse_warp_controller.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: project relative pointer motion onto active logical
+// Adapted for Lingmo: project relative pointer motion onto active logical
 // rectangles without introducing Ash root windows.
 
 #include "input/input_manager.h"
@@ -182,7 +182,7 @@ void InputManager::updateFallbackCursor()
             - m_fallbackCursorHotspot);
     const bool visible = !m_seat->hasClientCursorRequest() && !m_seat->cursorHiddenByTouch();
     if (m_fallbackCursor->isVisible() != visible)
-        LM_DEBUG(cfCursorTransitions) << "fallback visible" << visible;
+        LM_DEBUG(lingmoCursorTransitions) << "fallback visible" << visible;
     m_fallbackCursor->setVisible(visible);
 }
 
@@ -317,7 +317,7 @@ void InputManager::onPointerButton(Timestamp timestamp, uint32_t evdevButton, bo
         m_seat->onPointerButton(timestamp, m_pointerPosition, evdevButton, pressed);
     else if (!pressed)
         m_seat->releasePointerButton(timestamp, evdevButton);
-    LM_DEBUG(cfInputTransitions) << "input code" << evdevButton << (pressed ? "press" : "release")
+    LM_DEBUG(lingmoInputTransitions) << "input code" << evdevButton << (pressed ? "press" : "release")
                                 << "position" << m_pointerPosition << "seat-before" << before
                                 << "seat-after" << m_seat->pressedButtons() << "consumer"
                                 << (consumed ? "event-sink" : "seat/client");

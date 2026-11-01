@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 // Dock auto-hide policy. Behaviour modelled on ash/shelf/shelf_layout_manager_unittest.cc,
-// rewritten against the Cutefish abstractions. No DRM, no GL, no Wayland client.
+// rewritten against the Lingmo abstractions. No DRM, no GL, no Wayland client.
 
 #include <gtest/gtest.h>
 

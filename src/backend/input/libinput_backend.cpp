@@ -202,19 +202,19 @@ bool LibinputBackend::open()
 
     m_udev = udev_new();
     if (!m_udev) {
-        LM_CRITICAL(cfInput) << "Failed to create a udev context";
+        LM_CRITICAL(lingmoInput) << "Failed to create a udev context";
         return false;
     }
 
     m_libinput = libinput_udev_create_context(&interface, this, m_udev);
     if (!m_libinput) {
-        LM_CRITICAL(cfInput) << "Failed to create a libinput context";
+        LM_CRITICAL(lingmoInput) << "Failed to create a libinput context";
         return false;
     }
 
     const std::string seatName = m_session->seatName();
     if (libinput_udev_assign_seat(m_libinput, seatName.c_str()) != 0) {
-        LM_CRITICAL(cfInput) << "Failed to assign libinput to seat" << m_session->seatName();
+        LM_CRITICAL(lingmoInput) << "Failed to assign libinput to seat" << m_session->seatName();
         return false;
     }
 
@@ -225,7 +225,7 @@ bool LibinputBackend::open()
     // device set is known before the first frame.
     dispatch();
 
-    LM_INFO(cfInput) << "libinput opened on seat" << m_session->seatName();
+    LM_INFO(lingmoInput) << "libinput opened on seat" << m_session->seatName();
     return true;
 }
 
@@ -244,7 +244,7 @@ void LibinputBackend::setActive(bool active)
 {
     if (m_active == active || !m_libinput)
         return;
-    LM_DEBUG(cfInputTransitions) << "libinput active" << active;
+    LM_DEBUG(lingmoInputTransitions) << "libinput active" << active;
     m_active = active;
     if (active) {
         libinput_resume(m_libinput);
@@ -260,7 +260,7 @@ void LibinputBackend::setActive(bool active)
 void LibinputBackend::dispatch()
 {
     if (libinput_dispatch(m_libinput) != 0) {
-        LM_WARNING(cfInput) << "libinput_dispatch failed";
+        LM_WARNING(lingmoInput) << "libinput_dispatch failed";
         return;
     }
 
@@ -335,7 +335,7 @@ void LibinputBackend::applyMouseSettings(libinput_device *device)
 {
     const auto check = [device](libinput_config_status status, const char *setting) {
         if (status != LIBINPUT_CONFIG_STATUS_SUCCESS)
-            LM_WARNING(cfInput) << "Cannot apply mouse" << setting << "to"
+            LM_WARNING(lingmoInput) << "Cannot apply mouse" << setting << "to"
                                 << libinput_device_get_name(device)
                                 << libinput_config_status_to_str(status);
     };
@@ -381,7 +381,7 @@ void LibinputBackend::applyTouchpadSettings(libinput_device *device)
 {
     const auto check = [device](libinput_config_status status, const char *setting) {
         if (status != LIBINPUT_CONFIG_STATUS_SUCCESS)
-            LM_WARNING(cfInput) << "Cannot apply touchpad" << setting << "to"
+            LM_WARNING(lingmoInput) << "Cannot apply touchpad" << setting << "to"
                                 << libinput_device_get_name(device)
                                 << libinput_config_status_to_str(status);
     };
@@ -505,7 +505,7 @@ void LibinputBackend::applyTouchscreenSettings(libinput_device *device)
             : LIBINPUT_CONFIG_SEND_EVENTS_DISABLED;
     const auto status = libinput_device_config_send_events_set_mode(device, mode);
     if (status != LIBINPUT_CONFIG_STATUS_SUCCESS)
-        LM_WARNING(cfInput) << "Cannot apply touchscreen send-events mode to"
+        LM_WARNING(lingmoInput) << "Cannot apply touchscreen send-events mode to"
                             << libinput_device_get_name(device)
                             << libinput_config_status_to_str(status);
 }
@@ -526,17 +526,17 @@ void LibinputBackend::processEvent(libinput_event *event)
         }
         addPointingDevice(libinput_event_get_device(event));
         addTouchscreen(libinput_event_get_device(event));
-        LM_DEBUG(cfInput) << "input device added:"
+        LM_DEBUG(lingmoInput) << "input device added:"
                           << libinput_device_get_name(libinput_event_get_device(event));
         break;
     case LIBINPUT_EVENT_DEVICE_REMOVED:
         m_keyboardLayouts.erase(libinput_event_get_device(event));
         removePointingDevice(libinput_event_get_device(event));
         removeTouchscreen(libinput_event_get_device(event));
-        LM_DEBUG(cfInputTransitions)
+        LM_DEBUG(lingmoInputTransitions)
                 << "libinput removed"
                 << libinput_device_get_sysname(libinput_event_get_device(event));
-        LM_DEBUG(cfInput) << "input device removed:"
+        LM_DEBUG(lingmoInput) << "input device removed:"
                           << libinput_device_get_name(libinput_event_get_device(event));
         break;
     case LIBINPUT_EVENT_KEYBOARD_KEY: {
@@ -602,7 +602,7 @@ void LibinputBackend::processEvent(libinput_event *event)
     }
     case LIBINPUT_EVENT_POINTER_BUTTON: {
         libinput_event_pointer *button = libinput_event_get_pointer_event(event);
-        LM_DEBUG(cfInputTransitions)
+        LM_DEBUG(lingmoInputTransitions)
                 << "libinput device"
                 << libinput_device_get_sysname(libinput_event_get_device(event)) << "code"
                 << libinput_event_pointer_get_button(button)

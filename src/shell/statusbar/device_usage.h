@@ -22,7 +22,7 @@ namespace Lingmo::Shell {
 
 class TaskManager;
 
-// One process using one capture device (Cutefish.Privacy's DeviceUse).
+// One process using one capture device (Lingmo.Privacy's DeviceUse).
 struct DeviceUse {
     enum Kind {
         Camera,
@@ -43,7 +43,7 @@ struct DeviceUse {
 using DeviceUses = std::vector<DeviceUse>;
 
 // The streams that capture from a camera, a microphone or a sink's monitor,
-// read from the PipeWire graph on the main loop (Cutefish.Privacy's
+// read from the PipeWire graph on the main loop (Lingmo.Privacy's
 // PipeWireCapture).
 class PipeWireCapture
 {
@@ -127,7 +127,7 @@ private:
 };
 
 // Which processes use a camera, a microphone, or record the system's audio
-// (Cutefish.Privacy's DeviceUsage), cameras first; and the applications
+// (Lingmo.Privacy's DeviceUsage), cameras first; and the applications
 // behind them (the status bar's DeviceUsers), one entry per application.
 class DeviceUsage
 {

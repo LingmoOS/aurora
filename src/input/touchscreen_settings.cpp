@@ -32,7 +32,7 @@ bool TouchscreenSettings::registerService()
         return true;
     auto exported = DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export touchscreen settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export touchscreen settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -74,7 +74,7 @@ void TouchscreenSettings::setDeviceEnabled(const std::string &name, bool enabled
         m_disabledDevices.push_back(name);
     m_settings.setValue(disabledDevicesKey, m_disabledDevices);
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist touchscreen settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist touchscreen settings to" << m_settings.path();
     notify(disabledDevicesChanged, "disabledDevicesChanged");
     notify(settingsChanged, "settingsChanged");
 }

@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/wm/mru_window_tracker.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: one desk, one switchable container. The tracked list
+// Adapted for Lingmo: one desk, one switchable container. The tracked list
 // is ordered by activation; windows never activated fall back to stacking
 // order, topmost first, as Ash's container walk does.
 

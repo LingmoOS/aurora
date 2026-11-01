@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/wm/gestures/wm_gesture_handler.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: upstream switches desks with four fingers and keeps
+// Adapted for Lingmo: upstream switches desks with four fingers and keeps
 // three for its overview; here three fingers sideways switch desks and three
 // fingers up and down bring the overview in and take it away, both following
 // the fingers. libinput swipes stand in for ui::ScrollEvent. The desk content

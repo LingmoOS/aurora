@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/manager/configure_displays_task.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: exact-mode and capability validation precede the
+// Adapted for Lingmo: exact-mode and capability validation precede the
 // backend-independent layout resolver without running a DRM transaction.
 
 #include "display/display_configuration_validator.h"

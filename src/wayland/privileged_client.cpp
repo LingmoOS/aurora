@@ -78,7 +78,7 @@ void PrivilegedClients::onConnectionDestroyed(wl_listener *listener, void *)
     // The listener is removed with the client; do not touch it again.
     connection->listening = false;
     connection->client = nullptr;
-    LM_INFO(cfWayland) << "Trusted" << connection->label << "client disconnected";
+    LM_INFO(lingmoWayland) << "Trusted" << connection->label << "client disconnected";
 }
 
 void PrivilegedClients::forget(TrustedConnection &connection)
@@ -106,7 +106,7 @@ wl_client *PrivilegedClients::adopt(TrustedConnection &connection, int fd)
 
     wl_client *client = wl_client_create(m_display, fd);
     if (!client) {
-        LM_WARNING(cfWayland) << "Cannot create the trusted" << connection.label << "client";
+        LM_WARNING(lingmoWayland) << "Cannot create the trusted" << connection.label << "client";
         close(fd);
         return nullptr;
     }
@@ -117,7 +117,7 @@ wl_client *PrivilegedClients::adopt(TrustedConnection &connection, int fd)
     wl_client_add_destroy_listener(client, &connection.destroy.listener);
     connection.listening = true;
 
-    LM_INFO(cfWayland) << "Trusted" << connection.label << "client adopted";
+    LM_INFO(lingmoWayland) << "Trusted" << connection.label << "client adopted";
     return client;
 }
 
@@ -135,7 +135,7 @@ int PrivilegedClients::createCaptureConnection()
     });
     int fds[2] {-1, -1};
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds)) {
-        LM_WARNING(cfWayland) << "Cannot create a capture connection";
+        LM_WARNING(lingmoWayland) << "Cannot create a capture connection";
         return -1;
     }
     auto connection = std::make_unique<TrustedConnection>();

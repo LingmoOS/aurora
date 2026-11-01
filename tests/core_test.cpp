@@ -108,16 +108,16 @@ TEST(CompositorOptionsTest, TakesTheReadyDescriptor)
 
 TEST(LoggingTest, RulesReachTheCategories)
 {
-    EXPECT_TRUE(cfDrm.isEnabled(base::LogLevel::Info));
-    EXPECT_FALSE(cfDrm.isEnabled(base::LogLevel::Debug));
+    EXPECT_TRUE(lingmoDrm.isEnabled(base::LogLevel::Info));
+    EXPECT_FALSE(lingmoDrm.isEnabled(base::LogLevel::Debug));
 
     core::setLoggingRules("lingmo.drm.debug=true;lingmo.scene=false");
-    EXPECT_TRUE(cfDrm.isEnabled(base::LogLevel::Debug));
-    EXPECT_FALSE(cfScene.isEnabled(base::LogLevel::Warning));
+    EXPECT_TRUE(lingmoDrm.isEnabled(base::LogLevel::Debug));
+    EXPECT_FALSE(lingmoScene.isEnabled(base::LogLevel::Warning));
 
     core::setLoggingRules("");
-    EXPECT_FALSE(cfDrm.isEnabled(base::LogLevel::Debug));
-    EXPECT_TRUE(cfScene.isEnabled(base::LogLevel::Warning));
+    EXPECT_FALSE(lingmoDrm.isEnabled(base::LogLevel::Debug));
+    EXPECT_TRUE(lingmoScene.isEnabled(base::LogLevel::Warning));
 }
 
 TEST(LoggingTest, TheMacroWritesOneLine)
@@ -127,7 +127,7 @@ TEST(LoggingTest, TheMacroWritesOneLine)
                                   std::string_view message) {
         lines.push_back(base::logging::formatLine(category, level, message));
     });
-    LM_INFO(cfWayland) << "started" << 3;
+    LM_INFO(lingmoWayland) << "started" << 3;
     base::logging::setHandler(nullptr);
     ASSERT_EQ(lines.size(), 1u);
     EXPECT_EQ(lines.front(), "lingmo.wayland: started 3");

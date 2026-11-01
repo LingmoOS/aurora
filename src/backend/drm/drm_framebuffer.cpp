@@ -124,7 +124,7 @@ DrmFramebuffer *DrmFramebuffer::forBuffer(DrmDeviceApi *device, gbm_bo *bo)
 
     uint32_t id = 0;
     if (!device->addFramebuffer(params, &id)) {
-        LM_CRITICAL(cfDrm).printf("Failed to register a %ux%u GBM buffer as a framebuffer", params.width,
+        LM_CRITICAL(lingmoDrm).printf("Failed to register a %ux%u GBM buffer as a framebuffer", params.width,
                                   params.height);
         return nullptr;
     }

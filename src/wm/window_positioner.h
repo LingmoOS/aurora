@@ -6,7 +6,7 @@
 //           (GetBoundsAndShowStateForNewWindow, GetReferenceWindow)
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the reference window is the application's own most
+// Adapted for Lingmo: the reference window is the application's own most
 // recent window, and a new window cascades from it rather than taking its
 // bounds, since a Wayland client has chosen its size before it maps. Ash's
 // automatic side-by-side rearrangement is not ported.

@@ -163,13 +163,13 @@ std::unique_ptr<DrmOutput::CompositedBuffer> DrmOutput::acquireComposited(gbm_su
     if (!framebuffer) {
         m_transferUnavailable = m_backend->usesForeignRenderer();
         gbm_surface_release_buffer(surface, bo);
-        LM_WARNING(cfDrm) << "No scanout transfer path for" << publicName()
+        LM_WARNING(lingmoDrm) << "No scanout transfer path for" << publicName()
                           << size;
         return nullptr;
     }
     if (m_transferRoute != int(route)) {
         m_transferRoute = int(route);
-        LM_INFO(cfDrm) << "Scanout transfer for" << publicName()
+        LM_INFO(lingmoDrm) << "Scanout transfer for" << publicName()
                        << (route == CrossGpuTransfer::Direct                 ? "direct"
                                   : route == CrossGpuTransfer::DmaBufImport ? "DMA-BUF import"
                                                                             : "bounded CPU copy");
@@ -360,7 +360,7 @@ bool DrmOutput::init(render::EglRenderer *renderer)
 
     m_gbmSurface = createSurface(size());
     if (!m_gbmSurface) {
-        LM_CRITICAL(cfDrm) << "Failed to create a GBM surface for" << m_config.name;
+        LM_CRITICAL(lingmoDrm) << "Failed to create a GBM surface for" << m_config.name;
         return false;
     }
 
@@ -398,7 +398,7 @@ bool DrmOutput::init(render::EglRenderer *renderer, std::unique_ptr<render::EglR
     m_cursor = DrmCursor::create(m_device, m_config.crtcId);
     m_scanout->setHardwareCursor(m_cursor != nullptr);
 
-    LM_INFO(cfDrm).printf("Render target initialized for %s: %zu overlay planes, hardware cursor %s",
+    LM_INFO(lingmoDrm).printf("Render target initialized for %s: %zu overlay planes, hardware cursor %s",
                           m_config.name.c_str(), m_scanout->maxOverlays(),
                           m_cursor ? "available" : "unavailable");
     return true;
@@ -618,7 +618,7 @@ bool DrmOutput::configure(const std::vector<Configuration> &configuration, bool 
     });
     if (!committed.succeeded) {
         detail = committed.failedDevice + ": " + committed.message;
-        LM_WARNING(cfDrm) << detail;
+        LM_WARNING(lingmoDrm) << detail;
         if (outcome == DrmCommitStatus::Success)
             outcome = DrmCommitStatus::Invalidated;
         for (const auto &batch : batches)
@@ -711,7 +711,7 @@ bool DrmOutput::createModeBlob()
 {
     destroyModeBlob();
     if (!m_device->createPropertyBlob(&m_config.mode, sizeof(m_config.mode), &m_modeBlobId)) {
-        LM_CRITICAL(cfDrm) << "Failed to create the mode property blob";
+        LM_CRITICAL(lingmoDrm) << "Failed to create the mode property blob";
         return false;
     }
     return true;
@@ -753,7 +753,7 @@ bool DrmOutput::enable()
         m_outstanding.push_back(frame);
         m_scheduler.submitted(frame);
         scheduleFrame(Reason::Resume);
-        LM_INFO(cfDrm) << "Output resumed with retained scanout:" << m_config.name;
+        LM_INFO(lingmoDrm) << "Output resumed with retained scanout:" << m_config.name;
         return true;
     }
     m_enabled = true;
@@ -769,7 +769,7 @@ bool DrmOutput::enable()
     }
     m_scheduler.submitted(frame);
     frameDrawn(frame, aimedNs());
-    LM_INFO(cfDrm) << "Output enabled:" << m_config.name;
+    LM_INFO(lingmoDrm) << "Output enabled:" << m_config.name;
     return true;
 }
 
@@ -960,7 +960,7 @@ void DrmOutput::wakeup()
             frameDrawn(frame, aimedNs());
             const auto took = m_now() - started;
             if (took > m_scheduler.period()) {
-                LM_DEBUG(cfDrm) << "Composited frame" << frame << "for" << m_config.name << "in"
+                LM_DEBUG(lingmoDrm) << "Composited frame" << frame << "for" << m_config.name << "in"
                                 << std::chrono::duration<double, std::milli>(took).count()
                                 << "ms, longer than its refresh period";
             }
@@ -985,7 +985,7 @@ bool DrmOutput::renderFrame(uint64_t frame, bool modeset)
     // real commit. Composing the same frame without promotions is always
     // possible, and it is what keeps a failed optimization from dropping a
     // frame or leaving a stale buffer on screen.
-    LM_WARNING(cfDrm) << "Hardware plane commit failed; compositing this frame instead";
+    LM_WARNING(lingmoDrm) << "Hardware plane commit failed; compositing this frame instead";
     return renderAttempt(frame, modeset, false, prepared, true);
 }
 
@@ -1091,7 +1091,7 @@ bool DrmOutput::renderAttempt(uint64_t frame, bool modeset, bool allowPromotion,
             --m_untintedRepaints;
         compositedBuffer = m_acquireBuffer();
         if (!compositedBuffer) {
-            LM_WARNING(cfDrm) << "Failed to obtain a framebuffer for the composited frame";
+            LM_WARNING(lingmoDrm) << "Failed to obtain a framebuffer for the composited frame";
             clearPromotions();
             return false;
         }
@@ -1183,7 +1183,7 @@ void DrmOutput::onPageFlip(uint64_t frame, uint32_t seconds, uint32_t microsecon
     if (!m_unsynced && sequence == 0 && m_lastSequence == 0 && m_completions > 0) {
         m_unsynced = true;
         m_scheduler.setPeriod(framePeriod(pacingRate()));
-        LM_INFO(cfDrm) << m_config.name << "has no vblank; pacing at" << pacingRate()
+        LM_INFO(lingmoDrm) << m_config.name << "has no vblank; pacing at" << pacingRate()
                        << "Hz instead of the mode's" << refreshRate();
     }
     m_presentations.complete(frame, seconds, microseconds, sequence, m_monotonicClock,
@@ -1250,7 +1250,7 @@ void DrmOutput::onFlipTimeout()
         return;
     const auto oldest = m_events.begin();
     const uint64_t frame = oldest->first;
-    LM_WARNING(cfDrm) << "No page flip event on" << m_config.name << "for frame" << frame
+    LM_WARNING(lingmoDrm) << "No page flip event on" << m_config.name << "for frame" << frame
                       << "within"
                       << std::chrono::duration_cast<std::chrono::milliseconds>(m_flipTimeout.interval())
                                 .count()
@@ -1367,7 +1367,7 @@ bool DrmOutput::commit(const std::vector<PlaneContent> &planes, bool modeset, ui
     if (!ok) {
         if (frame)
             m_events.erase(frame);
-        LM_WARNING(cfDrm).printf("Atomic commit failed (%s): %s", modeset ? "modeset" : "flip",
+        LM_WARNING(lingmoDrm).printf("Atomic commit failed (%s): %s", modeset ? "modeset" : "flip",
                                  strerror(errno));
         return false;
     }

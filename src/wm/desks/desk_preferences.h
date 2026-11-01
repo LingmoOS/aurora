@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/wm/desks/desks_restore_util.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the `lingmo/desks` settings file instead of the
+// Adapted for Lingmo: the `lingmo/desks` settings file instead of the
 // primary user's prefs, and only what outlives the windows - how many desks
 // there are, the names the user gave them and which one was active. Windows
 // are not restored onto desks.

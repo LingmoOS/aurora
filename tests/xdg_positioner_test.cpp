@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/wayland_positioner_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 //
 // Ported in full. Exo's SetFlipState is a no-op upstream, so the builder does

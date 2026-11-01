@@ -68,7 +68,7 @@ std::unique_ptr<EglRenderTarget> EglRenderTarget::create(EGLDisplay display, EGL
     }
 
     if (eglSurface == EGL_NO_SURFACE) {
-        LM_CRITICAL(cfRender) << "Failed to create an EGL window surface";
+        LM_CRITICAL(lingmoRender) << "Failed to create an EGL window surface";
         return nullptr;
     }
 
@@ -112,7 +112,7 @@ base::Rect EglRenderTarget::prepareDamage(const base::Region &damage, const std:
     const double ratio = full.isEmpty()
             ? 0
             : double(repaint.width()) * repaint.height() / (double(full.width()) * full.height());
-    LM_DEBUG(cfRender) << "repaint" << context.outputId << (repaint == full ? "full" : "partial")
+    LM_DEBUG(lingmoRender) << "repaint" << context.outputId << (repaint == full ? "full" : "partial")
                       << "damage-ratio" << ratio << "buffer-age" << age;
     return repaint;
 }
@@ -141,7 +141,7 @@ bool EglRenderTarget::swap(EglSwapState &state)
         m_damageValid = false;
     }
     if (!ok)
-        LM_WARNING(cfRender) << "eglSwapBuffers failed";
+        LM_WARNING(lingmoRender) << "eglSwapBuffers failed";
     return ok;
 }
 

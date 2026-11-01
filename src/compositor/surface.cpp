@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/surface.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "compositor/surface.h"
@@ -504,7 +504,7 @@ void Surface::applyCommit(CommitRequest &request)
         commitDesynchronized();
 
     // Exo runs this through SurfaceDelegate::OnSurfaceCommit, which owns the
-    // hierarchy commit above. Cutefish notifies afterwards instead, so a role
+    // hierarchy commit above. Lingmo notifies afterwards instead, so a role
     // owner sees committed state. Handlers may destroy other observers.
     for (SurfaceObserver *observer : std::vector<SurfaceObserver *>(m_observers)) {
         if (!*alive)

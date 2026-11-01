@@ -12,7 +12,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfNotificationService("lingmo.shell.notifications.service");
+static const base::LogCategory lingmoNotificationService("lingmo.shell.notifications.service");
 
 Notifications::Files Notifications::Files::defaults()
 {
@@ -71,11 +71,11 @@ bool Notifications::registerServices()
     object->addSignal("applicationsChanged", "");
     object->addProperty("doNotDisturb", [this] { return m_settings.doNotDisturb(); });
     if (!object->publish()) {
-        LM_WARNING(cfNotificationService) << "Cannot export /Notification";
+        LM_WARNING(lingmoNotificationService) << "Cannot export /Notification";
         return false;
     }
     if (!m_bus->requestName("org.lingmo.Notification", dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfNotificationService) << "Cannot own org.lingmo.Notification";
+        LM_WARNING(lingmoNotificationService) << "Cannot own org.lingmo.Notification";
         return false;
     }
     m_object = std::move(object);

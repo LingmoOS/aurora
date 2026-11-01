@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/xdg_shell.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the ChromeOS window-state types become wm::
+// Adapted for Lingmo: the ChromeOS window-state types become wm::
 // WindowStateType and the HT* hit-test constants become wm::ResizeEdge. The
 // zxdg_decoration half lives in xdg_decoration.cc and reaches the shell surface
 // through shellSurfaceForToplevel().
@@ -40,7 +40,7 @@ class SerialTracker;
 
 // Exo stops at version 3, which brought xdg_popup.reposition and
 // xdg_positioner.set_reactive. Versions 4 to 6 add configure_bounds,
-// wm_capabilities and the suspended state, all Cutefish's own.
+// wm_capabilities and the suspended state, all Lingmo's own.
 constexpr uint32_t kXdgWmBaseVersion = 6;
 
 // How long a client has to answer xdg_wm_base.ping before its toplevels turn

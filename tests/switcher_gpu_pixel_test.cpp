@@ -86,7 +86,7 @@ protected:
         const display::LogicalDisplay logical {
                 display::DisplayId("a"),
                 {display::DisplayId("a")},
-                "Cutefish-a",
+                "Lingmo-a",
                 kOutput,
                 kOutput,
                 *compositor::OutputScale::fromNumerator(uint32_t(base::roundToInt(scale * 120))),
@@ -194,13 +194,13 @@ protected:
 
 TEST_P(SwitcherGpuPixels, GpuPanelCompositesAsTheCpuOne)
 {
-    view->showWindowCycle(windows, 1, "Cutefish-a");
+    view->showWindowCycle(windows, 1, "Lingmo-a");
     marker->setGeometry(view->bounds().adjusted(-20, -20, 20, 20));
 
     toolkit::setGpuRenderingAllowed(false);
     const ui::Bitmap cpu = composite();
     view->hideWindowCycle();
-    view->showWindowCycle(windows, 1, "Cutefish-a");
+    view->showWindowCycle(windows, 1, "Lingmo-a");
     toolkit::setGpuRenderingAllowed(true);
     const ui::Bitmap gpu = composite();
     // Twice: the second frame reuses the texture the first one drew.

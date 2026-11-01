@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/manager/configure_displays_task_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: tests use the revisioned request and structured-error
+// Adapted for Lingmo: tests use the revisioned request and structured-error
 // contract without Chromium display tasks.
 
 #include <gtest/gtest.h>

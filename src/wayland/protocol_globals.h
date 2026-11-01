@@ -50,7 +50,7 @@ class SecurityDelegate;
 class Server;
 class WaylandComputerControl;
 class WaylandWindowPlacement;
-class WaylandCutefishShell;
+class WaylandLingmoShell;
 class WaylandXdgActivation;
 class WaylandXdgShell;
 struct WaylandSeat;
@@ -158,7 +158,7 @@ private:
     std::unique_ptr<ForeignToplevelList> m_toplevelList;
     std::unique_ptr<WaylandComputerControl> m_computerControl;
     std::unique_ptr<WaylandWindowPlacement> m_windowPlacement;
-    std::unique_ptr<WaylandCutefishShell> m_lingmoShell;
+    std::unique_ptr<WaylandLingmoShell> m_lingmoShell;
 };
 
 } // namespace wayland

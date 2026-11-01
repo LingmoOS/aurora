@@ -217,7 +217,7 @@ display::LogicalDisplay logicalDisplay(const char *name, base::Rect bounds, bool
 {
     return {displayId(name),
             {displayId(name)},
-            "Cutefish-" + std::string(name),
+            "Lingmo-" + std::string(name),
             bounds,
             bounds,
             *compositor::OutputScale::fromNumerator(uint32_t(scale * 120)),
@@ -704,14 +704,14 @@ protected:
 TEST_F(MultiOutputShellTest, AWindowTakesItsOutputsScaleAndOutlivesTheOutput)
 {
     ASSERT_EQ(2u, shell->outputs().size());
-    EXPECT_EQ("Cutefish-a", shell->outputs().front().name);
+    EXPECT_EQ("Lingmo-a", shell->outputs().front().name);
     EXPECT_TRUE(shell->outputs().front().primary);
     int outputChanges = 0;
     base::Subscription changes = shell->outputsChanged.connect([&] { ++outputChanges; });
 
     shell::ShellWindow panel(shell.get(), wm::WindowRole::Panel);
     panel.setContentView(std::make_unique<ProbeView>(ui::Color::rgb(0xff0000)));
-    panel.setOutput("Cutefish-b");
+    panel.setOutput("Lingmo-b");
     panel.setGeometry(base::Rect(1000, 0, 800, 30));
     panel.setExclusiveZone(wm::ScreenEdge::Top, 30);
     panel.show();

@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/display/manager/display_manager.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: publish validated value snapshots as one batch and
+// Adapted for Lingmo: publish validated value snapshots as one batch and
 // centralize logical-display selection and coordinate lookup.
 
 #include "display/display_manager.h"

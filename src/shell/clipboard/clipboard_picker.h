@@ -25,7 +25,7 @@ class ShellWindow;
 // press elsewhere, another window activated) closes it.
 //
 // Ash's equivalent is ClipboardHistoryControllerImpl with its menu; the card
-// and its keys are Cutefish's own.
+// and its keys are Lingmo's own.
 class ClipboardPicker : public Component
 {
 public:

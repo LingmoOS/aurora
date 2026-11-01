@@ -17,7 +17,7 @@ class Window;
 
 // The policy half of ShadowController. Upstream carries only the veto
 // (ShouldShowShadowForWindow) because the elevation lives in a window property
-// that ash writes; Cutefish has no property bag, so the delegate answers both
+// that ash writes; Lingmo has no property bag, so the delegate answers both
 // questions.
 class ShadowControllerDelegate
 {

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Cutefish counterparts to chromium/src/components/exo/pointer_unittest.cc,
+// Lingmo counterparts to chromium/src/components/exo/pointer_unittest.cc,
 // keyboard_unittest.cc and seat_unittest.cc, against fake delegates.
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 

@@ -63,7 +63,7 @@ bool KeyboardSettings::registerService()
         return true;
     auto exported = DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export keyboard settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export keyboard settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -107,7 +107,7 @@ void KeyboardSettings::setLayoutApplier(LayoutApplier applier)
     m_applier = std::move(applier);
     if (m_layout.empty() || !m_applier || m_applier(m_layout))
         return;
-    LM_WARNING(cfInput).printf("Cannot use the saved keyboard layout \"%s\"", m_layout.c_str());
+    LM_WARNING(lingmoInput).printf("Cannot use the saved keyboard layout \"%s\"", m_layout.c_str());
     m_layout.clear();
     notify(layoutChanged, "layoutChanged");
 }
@@ -130,7 +130,7 @@ void KeyboardSettings::save(const std::string &key, const std::optional<T> &valu
     else
         m_settings.remove(group + key);
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist keyboard settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist keyboard settings to" << m_settings.path();
 }
 
 void KeyboardSettings::setRepeatEnabled(bool enabled)

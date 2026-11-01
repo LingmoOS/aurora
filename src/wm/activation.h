@@ -9,7 +9,7 @@
 // goes", the activation-change ordering, what happens when the active window
 // is destroyed or hidden, and redirecting activation to a modal transient.
 // What is dropped: aura's focused-window-inside-active-window distinction
-// (Cutefish has no nested focusable widgets) and the FocusRules indirection.
+// (Lingmo has no nested focusable widgets) and the FocusRules indirection.
 
 #ifndef LINGMO_WM_ACTIVATION_H_
 #define LINGMO_WM_ACTIVATION_H_

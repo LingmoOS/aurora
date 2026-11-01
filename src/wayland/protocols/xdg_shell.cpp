@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/xdg_shell.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "wayland/protocols/xdg_shell.h"
@@ -94,7 +94,7 @@ void xdg_positioner_set_offset(wl_client*, wl_resource* resource, int32_t x, int
     getUserDataAs<WaylandPositioner>(resource)->setOffset(base::Point(x, y));
 }
 
-// Version 3. Empty, as in Weston and Exo: Cutefish recomputes a popup's
+// Version 3. Empty, as in Weston and Exo: Lingmo recomputes a popup's
 // position whenever its parent moves anyway.
 void xdg_positioner_set_reactive(wl_client*, wl_resource*) { }
 
@@ -132,7 +132,7 @@ std::vector<WaylandXdgSurface*>& liveXdgSurfaces()
 }
 
 // The state behind one xdg_wm_base. Exo leaves xdg_wm_base.pong
-// NOTIMPLEMENTED and Ash has no hung-window handling, so this is Cutefish's
+// NOTIMPLEMENTED and Ash has no hung-window handling, so this is Lingmo's
 // own: one ping at a time, and a timeout that marks every toplevel created
 // through this xdg_wm_base unresponsive, since the whole client has stalled.
 struct WaylandWmBase {
@@ -432,7 +432,7 @@ public:
             // An in-process client, as in the tests, has the compositor's own pid.
             if (pid <= 0 || pid == getpid())
                 return;
-            LM_INFO(cfWayland) << "Killing unresponsive client" << pid;
+            LM_INFO(lingmoWayland) << "Killing unresponsive client" << pid;
             kill(pid, SIGKILL);
         });
     }
@@ -510,7 +510,7 @@ void xdg_toplevel_set_app_id(wl_client*, wl_resource* resource, const char* appI
         shellSurface->setApplicationId(base::strings::sanitizedUtf8(appId));
 }
 
-// Cutefish has no window menu yet. It belongs to the decoration, but nothing
+// Lingmo has no window menu yet. It belongs to the decoration, but nothing
 // in v0.1 draws menus; a client that asks for one simply gets nothing.
 void xdg_toplevel_show_window_menu(wl_client*, wl_resource*, wl_resource*, uint32_t, int32_t,
                                    int32_t)

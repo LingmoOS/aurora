@@ -1303,7 +1303,7 @@ display::LogicalDisplay logicalDisplay(const char *name, base::Rect bounds, bool
 {
     return {displayId(name),
             {displayId(name)},
-            "Cutefish-" + std::string(name),
+            "Lingmo-" + std::string(name),
             bounds,
             bounds,
             {},

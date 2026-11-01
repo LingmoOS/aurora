@@ -6,10 +6,10 @@
 //           chromium/src/components/exo/wayland/wayland_watcher.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
-// Trimmed for Cutefish: no globals are registered yet, and the fd is watched by
+// Trimmed for Lingmo: no globals are registered yet, and the fd is watched by
 // the compositor's own main loop instead of base::MessagePumpForUI.
 
 #ifndef LINGMO_WAYLAND_SERVER_H_

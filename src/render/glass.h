@@ -12,7 +12,7 @@ namespace Lingmo::Render {
 // angles are degrees; the lens roll-off band is the corner radius of the blur
 // rectangle, so the glass keeps its proportions as a surface is resized.
 //
-// Defaults describe the Cutefish shell panel material, so a client can enable
+// Defaults describe the Lingmo shell panel material, so a client can enable
 // the effect without sending any parameter. Glass is nearly clear: a strong tint
 // or a wide blur turns it into frosted plastic and hides the refraction that
 // makes it read as glass at all.

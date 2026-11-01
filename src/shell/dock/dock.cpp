@@ -12,7 +12,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfDock("lingmo.shell.dock");
+static const base::LogCategory lingmoDock("lingmo.shell.dock");
 
 Dock::Dock(dbus::Connection *bus, TaskManager &tasks, ApplicationLauncher &launcher, std::string settingsPath,
            std::unique_ptr<TrashMonitor> trash)
@@ -65,7 +65,7 @@ bool Dock::registerService()
                       [this](bool enabled) { m_settings.setBounceOnLaunch(enabled); },
                       dbus::ArgumentNames{{"enabled"}, {}});
     if (!object->publish() || !m_bus->requestName("org.lingmo.Dock", dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfDock) << "Cannot own org.lingmo.Dock";
+        LM_WARNING(lingmoDock) << "Cannot own org.lingmo.Dock";
         return false;
     }
     m_object = std::move(object);

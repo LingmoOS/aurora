@@ -7,7 +7,7 @@
 //           chromium/src/components/exo/xdg_shell_surface.{h,cc}
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 //
 // What is taken from Exo: the configure serial queue and its ack semantics, the
@@ -54,7 +54,7 @@ public:
         Popup,
     };
 
-    // xdg-decoration's two modes. Cutefish prefers ServerSide, but only for a
+    // xdg-decoration's two modes. Lingmo prefers ServerSide, but only for a
     // client that asked to negotiate at all: one that never creates a
     // decoration object is decorating itself and must be left alone.
     enum class DecorationMode {

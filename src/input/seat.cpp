@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/seat.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "input/seat.h"
@@ -304,7 +304,7 @@ void Seat::notifyCursorChanged()
 
 void Seat::traceCursors(const char *transition) const
 {
-    if (!cfCursorTransitions.isEnabled(base::LogLevel::Debug))
+    if (!lingmoCursorTransitions.isEnabled(base::LogLevel::Debug))
         return;
     for (const Pointer *pointer : m_pointers)
         pointer->traceCursor(transition);

@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ui/wm/core/window_modality_controller.{h,cc}
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: only window-modal transients exist; system and child
+// Adapted for Lingmo: only window-modal transients exist; system and child
 // modality have no Wayland or X11 source. Every Window is already a toplevel,
 // so GetToplevelWindow disappears. The WindowManager's input sink calls in
 // instead of a pre-target handler, and the bounce animation, touch

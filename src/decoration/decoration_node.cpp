@@ -147,7 +147,7 @@ void DecorationNode::paintCaption(render::Renderer& renderer, const base::Rect& 
     render::Texture* texture = caption->texture.get();
 
     // Centred in the titlebar, and moved into the space beside the buttons when
-    // centring would put it under them: the rule the Cutefish KWin decoration
+    // centring would put it under them: the rule the Lingmo KWin decoration
     // used, which keeps the caption off the buttons without ever centring it in
     // a box that is not the window.
     const base::Size size(base::roundToInt(texture->size().width() / scale),

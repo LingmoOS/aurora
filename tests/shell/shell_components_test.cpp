@@ -328,7 +328,7 @@ TEST_F(ShellComponentsTest, TheOsdVolumeUpKeepsAVolumeAboveNormal)
     EXPECT_NEAR(1.0, values->m_volume, 1e-9);
 }
 
-TEST_F(ShellComponentsTest, TheOsdServesOrgCutefishOsd)
+TEST_F(ShellComponentsTest, TheOsdServesOrgLingmoOsd)
 {
     auto levels = std::make_unique<FakeLevels>();
     FakeLevels *values = levels.get();

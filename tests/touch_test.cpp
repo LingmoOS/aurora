@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Cutefish counterparts to chromium/src/components/exo/touch_unittest.cc,
+// Lingmo counterparts to chromium/src/components/exo/touch_unittest.cc,
 // against a fake delegate, and the touch half of InputManager.
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 

@@ -6,7 +6,7 @@
 // (accelerator_controller_unittest.cc, ash_accelerator_configuration_unittest.cc,
 // accelerator_launcher_state_machine_unittest.cc, accelerator_history_unittest.cc)
 // and ash/wm/window_cycle/window_cycle_controller_unittest.cc, rewritten
-// against the Cutefish abstractions. No DRM, no GL, no Wayland client.
+// against the Lingmo abstractions. No DRM, no GL, no Wayland client.
 
 #include <algorithm>
 #include <memory>

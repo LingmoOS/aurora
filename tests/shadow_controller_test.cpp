@@ -8,10 +8,10 @@
 //
 // Compositor-owned window shadows, from the window manager's side.
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 //
-// The cases upstream has and Cutefish keeps are ShadowBounds, ShadowStyle,
+// The cases upstream has and Lingmo keeps are ShadowBounds, ShadowStyle,
 // ShowState and teardown. The one it cannot have is the CSD pair: ChromeOS
 // windows never draw their own exterior, so nothing upstream has to decide
 // whether the client already owns the space around its window geometry.

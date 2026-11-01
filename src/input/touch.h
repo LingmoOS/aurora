@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/touch.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: the seat resolves each new touch point's target once
+// Adapted for Lingmo: the seat resolves each new touch point's target once
 // and hands it to every client's Touch, where aura targets the event before
 // its pre-target handlers see it. A frame follows each libinput frame rather
 // than each event, which is the end-of-sequence signal upstream's TODO asks

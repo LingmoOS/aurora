@@ -14,7 +14,7 @@ namespace Lingmo::Shell {
 
 namespace dbus = base::dbus;
 
-static const base::LogCategory cfTray("lingmo.shell.tray");
+static const base::LogCategory lingmoTray("lingmo.shell.tray");
 
 static constexpr const char *kService = "org.kde.StatusNotifierWatcher";
 static constexpr const char *kPath = "/StatusNotifierWatcher";
@@ -66,7 +66,7 @@ bool StatusNotifierWatcher::registerService()
     object->addSignal("StatusNotifierHostRegistered", "");
     object->addSignal("StatusNotifierHostUnregistered", "");
     if (!object->publish() || !m_bus->requestName(kService, base::dbus::Connection::DoNotQueue)) {
-        LM_WARNING(cfTray) << "Cannot serve" << kService;
+        LM_WARNING(lingmoTray) << "Cannot serve" << kService;
         return false;
     }
     m_object = std::move(object);
@@ -146,7 +146,7 @@ void StatusNotifierWatcher::ownerChanged(const std::string &service, const std::
     for (const std::string &id : waiting) {
         if (std::find(m_items.begin(), m_items.end(), id) != m_items.end())
             continue;
-        LM_DEBUG(cfTray) << "Registering" << id << "to the tray";
+        LM_DEBUG(lingmoTray) << "Registering" << id << "to the tray";
         m_items.push_back(id);
         if (m_object)
             m_object->emitSignal("StatusNotifierItemRegistered", id);

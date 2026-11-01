@@ -7,7 +7,7 @@
 // Behaviour follows ash/frame/caption_buttons: a button tracks its own hover
 // and pressed state, a press is only honoured if the release lands on the same
 // button, and the action is a window-state request rather than anything done to
-// the client directly. The artwork follows the Cutefish KWin decoration: a
+// the client directly. The artwork follows the Lingmo KWin decoration: a
 // circular hover wash under a 24x24 icon grid.
 
 #ifndef LINGMO_DECORATION_CAPTION_BUTTON_H_

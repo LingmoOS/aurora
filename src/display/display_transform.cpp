@@ -5,7 +5,7 @@
 // Upstream: chromium/src/ash/display/root_window_transformers.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: point and rectangle mappings cover fractional
+// Adapted for Lingmo: point and rectangle mappings cover fractional
 // scale, negative origins, and all compositor-supported rotations.
 
 #include "display/display_transform.h"

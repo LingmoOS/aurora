@@ -10,7 +10,7 @@
 // Explicit synchronization: fence handling and the buffer-release rules that
 // keep a client from reusing storage the compositor is still reading.
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 
 #include <gtest/gtest.h>

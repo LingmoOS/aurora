@@ -6,7 +6,7 @@
 //           window_cycle_list.cc and window_cycle_event_filter.cc
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #include "wm/window_cycle_controller.h"
@@ -203,7 +203,7 @@ void WindowCycleController::startCycling()
     if (const input::Seat *seat = m_manager->seat())
         m_pointerOrigin = seat->pointerLocation();
     m_showTimer.start();
-    LM_DEBUG(cfInputTransitions) << "application cycle started over" << m_applications.size()
+    LM_DEBUG(lingmoInputTransitions) << "application cycle started over" << m_applications.size()
                                 << "applications";
 }
 
@@ -242,7 +242,7 @@ void WindowCycleController::stopCycling(bool accept)
     const auto applications = std::exchange(m_applications, {});
     if (accept && !applications.empty())
         switchToApplication(applications[m_currentIndex]);
-    LM_DEBUG(cfInputTransitions) << "application cycle" << (accept ? "completed" : "cancelled");
+    LM_DEBUG(lingmoInputTransitions) << "application cycle" << (accept ? "completed" : "cancelled");
 }
 
 void WindowCycleController::switchToApplication(const std::vector<Window *> &windows)

@@ -63,7 +63,7 @@ bool HotCornerSettings::registerService()
         return true;
     auto exported = input::DBusExport::create(service, path, service);
     if (!exported) {
-        LM_WARNING(cfInput) << "Cannot export hot corner settings: no session bus";
+        LM_WARNING(lingmoInput) << "Cannot export hot corner settings: no session bus";
         return false;
     }
     base::dbus::Object &object = exported->object();
@@ -119,7 +119,7 @@ void HotCornerSettings::setCorner(const std::string &corner, const std::string &
         m_settings.remove(key + "Modifiers");
     }
     if (!m_settings.sync())
-        LM_WARNING(cfInput) << "Cannot persist hot corner settings to" << m_settings.path();
+        LM_WARNING(lingmoInput) << "Cannot persist hot corner settings to" << m_settings.path();
     changed();
     if (m_object)
         m_object->emitSignal("changed");

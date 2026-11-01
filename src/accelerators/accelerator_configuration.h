@@ -6,7 +6,7 @@
 //           chromium/src/ash/public/cpp/accelerator_configuration.h
 // Revision: 8abbac30b9cf2fe976422c58c000c94685648b65
 //
-// Adapted for Cutefish: the pref dictionary becomes a group of the compositor's
+// Adapted for Lingmo: the pref dictionary becomes a group of the compositor's
 // settings file keyed by action name; deprecated accelerators and the enterprise policy gate are
 // dropped; the update callback and the observer list collapse into one
 // signal.

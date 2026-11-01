@@ -6,7 +6,7 @@
 //           chromium/src/components/exo/wayland/scoped_wl.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: integrates the upstream behavior with native
+// Adapted for Lingmo: integrates the upstream behavior with native
 // compositor types and ownership.
 
 #ifndef LINGMO_WAYLAND_SCOPED_WL_H_

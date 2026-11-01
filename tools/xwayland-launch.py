@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wait for Cutefish Xwayland readiness and exec an X11 application."""
+"""Wait for Lingmo Xwayland readiness and exec an X11 application."""
 
 import argparse
 import ctypes

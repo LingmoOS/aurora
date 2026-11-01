@@ -6,7 +6,7 @@
 //           chromium/src/gpu/command_buffer/common/capabilities.h
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gfx::NativePixmapHandle becomes DmaBufAttributes, and
+// Adapted for Lingmo: gfx::NativePixmapHandle becomes DmaBufAttributes, and
 // the slice of gpu::Capabilities the dmabuf protocol needs becomes DmaBufDevice.
 
 #ifndef LINGMO_RENDER_DMABUF_H_

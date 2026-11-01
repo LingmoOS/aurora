@@ -6,7 +6,7 @@
 // Upstream: chromiumos/platform2/vm_tools/sommelier/{sommelier,sommelier-window}.cc
 // Revision: aa8a57908bdcff297e229679dc3240b1b108f57e
 //
-// Adapted for Cutefish: X11 metadata, configure and focus messages map to the
+// Adapted for Lingmo: X11 metadata, configure and focus messages map to the
 // native window manager, including translated negative desktop coordinates.
 #include "xwm.h"
 

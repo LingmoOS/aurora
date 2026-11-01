@@ -5,7 +5,7 @@
 // Upstream: chromium/src/components/exo/wayland/zwp_linux_dmabuf.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: gfx::NativePixmapHandle becomes render::DmaBufAttributes
+// Adapted for Lingmo: gfx::NativePixmapHandle becomes render::DmaBufAttributes
 // and Display::CreateLinuxDMABufBuffer becomes Compositor::createDmaBufBuffer.
 // The plane_idx, already_used and out_of_bounds checks are protocol-mandated
 // errors upstream leaves to its GPU import; they are explicit here.
@@ -376,7 +376,7 @@ std::unique_ptr<LinuxDmabufGlobal> LinuxDmabufGlobal::create(wl_display* display
 
     auto manager = std::make_unique<DmaBufFeedbackManager>(compositor, device);
     if (manager->formatsAndModifiers().empty()) {
-        LM_WARNING(cfWayland) << "No importable DMA-BUF format; not advertising linux-dmabuf";
+        LM_WARNING(lingmoWayland) << "No importable DMA-BUF format; not advertising linux-dmabuf";
         return nullptr;
     }
 

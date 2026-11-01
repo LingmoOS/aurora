@@ -9,7 +9,7 @@
 // Scene-level scanout eligibility: what the compositor is willing to hand to a
 // hardware plane before any hardware is consulted.
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 
 #include <gtest/gtest.h>

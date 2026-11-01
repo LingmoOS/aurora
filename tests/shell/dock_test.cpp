@@ -231,7 +231,7 @@ TEST_F(DockTest, PinsMovesAndDrops)
     EXPECT_EQ(ids(), (std::vector<std::string>{DockModel::kLauncherId, "terminal", "editor", "files"}));
 }
 
-TEST_F(DockTest, ServesOrgCutefishDock)
+TEST_F(DockTest, ServesOrgLingmoDock)
 {
     start("[Dock]\nPinned=files\n");
     ASSERT_TRUE(dock->registerService());

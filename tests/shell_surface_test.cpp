@@ -6,11 +6,11 @@
 //           chromium/src/components/exo/xdg_shell_surface_unittest.cc
 // Revision: 7acd40ddefff49c9d36144999aafdbb674dbd07a
 //
-// Adapted for Cutefish: exercises the corresponding behavior with native
+// Adapted for Lingmo: exercises the corresponding behavior with native
 // compositor test doubles and APIs.
 //
 // Adapted: no views::Widget and no Ash, so the assertions are about the
-// Cutefish Window and about what the configure callback was handed. The cases
+// Lingmo Window and about what the configure callback was handed. The cases
 // that only exercise ChromeOS state (snap, pip, float, desks) are dropped.
 
 #include <gtest/gtest.h>
@@ -1672,7 +1672,7 @@ display::LogicalDisplay logicalDisplay(const char *name, base::Rect bounds, bool
 {
     return {displayId(name),
             {displayId(name)},
-            "Cutefish-" + std::string(name),
+            "Lingmo-" + std::string(name),
             bounds,
             bounds.adjusted(0, 24, 0, 0),
             {},
@@ -1819,7 +1819,7 @@ TEST_F(MultiDisplayShellSurfaceTest, LeavingFullscreenOnAnotherOutputRestoresThe
     const base::Rect normal = shell->window()->bounds();
     ASSERT_TRUE(kPrimary.contains(normal));
 
-    shell->setFullscreenOutput("Cutefish-b");
+    shell->setFullscreenOutput("Lingmo-b");
     shell->setFullscreen(true);
     EXPECT_EQ(kSecondary, shell->window()->bounds());
     shell->setFullscreen(false);
@@ -1832,7 +1832,7 @@ TEST_F(MultiDisplayShellSurfaceTest, FullscreenWithoutAnOutputStaysOnTheWindowsO
     ShellSurface *shell = mapApp("video", base::Size(400, 300));
     ASSERT_TRUE(kPrimary.contains(shell->window()->bounds()));
 
-    shell->setFullscreenOutput("Cutefish-b");
+    shell->setFullscreenOutput("Lingmo-b");
     shell->setFullscreen(true);
     EXPECT_EQ(kSecondary, shell->window()->bounds());
     shell->setFullscreen(false);

@@ -8,7 +8,7 @@
 // Wayland layer draws it.
 //
 // Upstream this is ui::Shadow (ui/compositor_extra/shadow.h), which
-// ui::wm::ShadowController owns directly. Cutefish's decoration library sits
+// ui::wm::ShadowController owns directly. Lingmo's decoration library sits
 // *above* the window manager, so the concrete shadow arrives through a
 // provider rather than being constructed here.
 
