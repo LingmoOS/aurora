@@ -412,8 +412,8 @@ base::Rect DockWindow::primaryGeometry() const
 double DockWindow::cornerRadius() const
 {
     // From the panel as drawn, which is between two sizes while it resizes;
-    // magnification makes it taller, not rounder, so the base thickness is
-    // what its corners come from.
+    // magnification keeps the bar's base thickness, so its corners come from
+    // that thickness.
     const bool bottom = m_dock->settings().direction() == DockSettings::Bottom;
     const double drawn = bottom ? m_panelRect.height() : m_panelRect.width();
     const double base = m_metrics.thickness();
@@ -971,16 +971,22 @@ void DockWindow::layoutItems()
             placed[i].icon->setDotRect({iconIn.x + itemSize + dotGap, iconIn.y + (itemSize - dot) / 2, dot, dot});
     }
 
-    // The panel the icons need: it grows on its screen side and along with the
-    // spread, keeping the base dock's padding around them.
+    // The panel the icons need: it grows along the dock with the spread, but
+    // keeps its rest thickness across it. Magnified icons then leave the bar
+    // on the screen's side, as they do on macOS, while its edge stays put.
     base::Rect panelRect = panel;
     if (rest && drawn) {
-        const double extraLeft = std::min(0.0, drawn->x - rest->x);
-        const double extraTop = std::min(0.0, drawn->y - rest->y);
-        const double extraRight =
-                std::max(0.0, drawn->x + drawn->width - (rest->x + rest->width));
-        const double extraBottom =
-                std::max(0.0, drawn->y + drawn->height - (rest->y + rest->height));
+        double extraLeft = 0;
+        double extraTop = 0;
+        double extraRight = 0;
+        double extraBottom = 0;
+        if (bottom) {
+            extraLeft = std::min(0.0, drawn->x - rest->x);
+            extraRight = std::max(0.0, drawn->x + drawn->width - (rest->x + rest->width));
+        } else {
+            extraTop = std::min(0.0, drawn->y - rest->y);
+            extraBottom = std::max(0.0, drawn->y + drawn->height - (rest->y + rest->height));
+        }
         if (extraLeft != 0 || extraTop != 0 || extraRight != 0 || extraBottom != 0) {
             const double leftEdge = panel.x() + extraLeft;
             const double topEdge = panel.y() + extraTop;

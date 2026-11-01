@@ -1246,14 +1246,16 @@ TEST_F(ShellComponentsTest, TheDockMagnifiesTheIconsNearThePointer)
     EXPECT_LT(placementOf(dock, dock->applicationIcon(shell::DockModel::kLauncherId)).shift, -1);
     EXPECT_GT(terminalPlacement.shift, 1);
 
-    // The glass panel grows with what is drawn: taller on the screen's side
-    // and wider with the spread, while its edge against the screen stays put
-    // and the window does not move.
+    // The glass panel grows only along the dock with the spread; it keeps its
+    // rest thickness so the lifted icons overflow its screen side, while its
+    // edge against the screen stays put and the window does not move.
     const base::Rect magnifiedPanel = dock->panelRect();
     EXPECT_EQ(restPanel.bottom(), magnifiedPanel.bottom());
-    EXPECT_GT(magnifiedPanel.height(), restPanel.height());
-    EXPECT_EQ(restPanel.y() - (magnifiedPanel.height() - restPanel.height()), magnifiedPanel.y());
+    EXPECT_EQ(restPanel.y(), magnifiedPanel.y());
+    EXPECT_EQ(restPanel.height(), magnifiedPanel.height());
     EXPECT_GT(magnifiedPanel.width(), restPanel.width());
+    // The icon is drawn above the panel, not merely inside it.
+    EXPECT_LT(files->geometry().y + files->presentedIconRect().y, magnifiedPanel.y());
     EXPECT_EQ(window, dock->window()->geometry());
     EXPECT_EQ(magnifiedPanel, dock->window()->surface()->backgroundBlurRect());
     ASSERT_TRUE(dock->window()->surface()->inputRegion());
