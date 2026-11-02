@@ -42,7 +42,7 @@ public:
     {
         const base::Settings settings(settingsPath.empty() ? preferencesFile("services")
                                                            : settingsPath);
-        m_iconTheme = settings.stringValue("Appearance/IconTheme", "Lingmo");
+        m_iconTheme = settings.stringValue("Appearance/IconTheme", "lingmo-light");
         m_fontFamily = settings.stringValue("Appearance/Font", "");
         m_fontPointSize = settings.doubleValue("Appearance/FontSize", 9);
         if (m_theme)

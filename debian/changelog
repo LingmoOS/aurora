@@ -1,3 +1,10 @@
+lingmo-compositor (5.0.5+lingmo5u1) unstable; urgency=medium
+
+  * shell: change default icon theme fallback from "Lingmo" to "lingmo-light"
+    to match the installed directory name of lingmo-systemicons.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 02 Nov 2026 14:00:00 +0800
+
 lingmo-compositor (5.0.4+lingmo5u1) unstable; urgency=medium
 
   * Default the mouse to the scrollbar direction rather than the natural
