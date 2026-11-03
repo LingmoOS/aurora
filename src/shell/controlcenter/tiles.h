@@ -116,6 +116,38 @@ private:
     bool m_inside = false;
 };
 
+// A small "More / Less" row that expands or collapses the secondary cards.
+// Height is fixed at kHeight; the chevron rotates 180° when expanded.
+class ExpandButton : public ui::View
+{
+public:
+    static constexpr double kHeight = 28;
+
+    explicit ExpandButton();
+
+    void setExpanded(bool expanded);
+    bool expanded() const { return m_expanded; }
+    void setLabel(std::string more, std::string less);
+
+    std::function<void()> onClicked;
+
+    ui::SizeF sizeHint() const override { return {0, kHeight}; }
+    bool acceptsPointer() const override { return true; }
+
+protected:
+    void layout() override;
+    void paint(ui::Painter &painter) override;
+    void pointerEnter() override;
+    void pointerLeave() override;
+    void pointerRelease(const ui::PointerEvent &event) override;
+
+private:
+    ui::Label *m_label   = nullptr;
+    ui::Icon  *m_chevron = nullptr;
+    bool m_expanded = false;
+    bool m_hovered  = false;
+};
+
 // The media card, 60 tall. Always shown; without a
 // playing player it reads "Not Playing" with the default cover and three
 // dimmed, disabled buttons.

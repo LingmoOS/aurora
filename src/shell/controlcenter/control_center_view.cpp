@@ -20,8 +20,6 @@ using Lingmo::i18n::tr;
 
 namespace Lingmo::Shell {
 
-// The panels' titles: 13 pt.
-static constexpr double kTitleFontSize = 13.0 * 4 / 3;
 // The slider writes the backlight once the knob rests this long.
 static constexpr std::chrono::milliseconds kBrightnessDelay {100};
 
@@ -34,11 +32,9 @@ static double windowScale(const ui::View *view)
 ControlCenterView::ControlCenterView(ControlCenterServices &services)
     : m_services(services)
 {
-    m_title = addChild<ui::Label>(tr("Control Center"));
-    m_title->setFontSize(kTitleFontSize);
-    m_title->setElide(ui::Label::Elide::Right);
     m_users = addChild<DeviceUsersTile>();
 
+    // ── Primary row (always visible) ──────────────────────────────────────
     m_wireless = addChild<CardItem>();
     m_wireless->setGlyph("network-wireless-connected-100");
     m_wireless->setTitle(tr("Wi-Fi"));
@@ -69,6 +65,16 @@ ControlCenterView::ControlCenterView(ControlCenterServices &services)
     m_doNotDisturb->setTitle(tr("Do Not Disturb"));
     m_doNotDisturb->onClicked = [this] { m_services.setDoNotDisturb(!m_services.doNotDisturb()); };
 
+    // ── Expand button ─────────────────────────────────────────────────────
+    m_expandButton = addChild<ExpandButton>();
+    m_expandButton->onClicked = [this] {
+        m_expanded = !m_expanded;
+        applyExpanded();
+        if (onHeightChanged)
+            onHeightChanged();
+    };
+
+    // ── Secondary row (collapsible) ───────────────────────────────────────
     m_camera = addChild<CardItem>();
     m_camera->setArtwork("camera");
     m_camera->setTitle(tr("Camera"));
@@ -79,12 +85,23 @@ ControlCenterView::ControlCenterView(ControlCenterServices &services)
     m_microphone->setTitle(tr("Microphone"));
     m_microphone->onClicked = [this] { m_services.setMicrophoneEnabled(!m_microphone->isChecked()); };
 
+    m_hotspot = addChild<CardItem>();
+    m_hotspot->setArtwork("hotspot");
+    m_hotspot->setTitle(tr("Hotspot"));
+    m_hotspot->onClicked = [this] { m_services.stopHotspot(); };
+
+    m_powerProfile = addChild<CardItem>();
+    m_powerProfile->setArtwork("power-profile");
+    m_powerProfile->setTitle(tr("Power Mode"));
+
+    // ── Media tile ────────────────────────────────────────────────────────
     m_media = addChild<MediaTile>();
     m_media->onPrevious = [this] { m_services.mediaPrevious(); };
     m_media->onPlay = [this] { m_services.mediaPlay(); };
     m_media->onPause = [this] { m_services.mediaPause(); };
     m_media->onNext = [this] { m_services.mediaNext(); };
 
+    // ── Sliders ───────────────────────────────────────────────────────────
     // TRANSLATORS: the title of the screen brightness slider.
     m_brightness = addChild<TileSlider>(tr("Display"));
     m_brightness->slider()->setRange(1, 100, 1);
@@ -105,20 +122,33 @@ ControlCenterView::ControlCenterView(ControlCenterServices &services)
         m_services.setMuted(value == 0);
     };
 
+    applyExpanded();
     refresh();
 }
 
 ControlCenterView::~ControlCenterView() = default;
 
+void ControlCenterView::applyExpanded()
+{
+    m_expandButton->setExpanded(m_expanded);
+    m_expandButton->setLabel(tr("More"), tr("Less"));
+    m_camera->setVisible(m_expanded);
+    m_microphone->setVisible(m_expanded);
+    m_hotspot->setVisible(m_expanded);
+    m_powerProfile->setVisible(m_expanded);
+}
+
 void ControlCenterView::retranslate()
 {
-    m_title->setText(tr("Control Center"));
     m_wireless->setTitle(tr("Wi-Fi"));
     m_bluetooth->setTitle(tr("Bluetooth"));
     m_darkMode->setTitle(tr("Dark Mode"));
     m_doNotDisturb->setTitle(tr("Do Not Disturb"));
     m_camera->setTitle(tr("Camera"));
     m_microphone->setTitle(tr("Microphone"));
+    m_hotspot->setTitle(tr("Hotspot"));
+    m_powerProfile->setTitle(tr("Power Mode"));
+    m_expandButton->setLabel(tr("More"), tr("Less"));
     // TRANSLATORS: the title of the screen brightness slider.
     m_brightness->setTitle(tr("Display"));
     m_sound->setTitle(tr("Sound"));
@@ -151,7 +181,40 @@ void ControlCenterView::refresh()
     m_microphone->setChecked(m_services.microphoneEnabled());
     m_microphone->setStatus(m_microphone->isChecked() ? tr("On") : tr("Off"));
 
+    // Hotspot: only relevant when hardware supports it.
+    const bool hotspotOn = m_services.hotspotActive();
+    m_hotspot->setChecked(hotspotOn);
+    m_hotspot->setStatus(hotspotOn ? tr("On") : tr("Off"));
+    m_hotspot->onClicked = [this] {
+        if (m_services.hotspotActive())
+            m_services.stopHotspot();
+    };
+
+    // Power profile: cycle through available profiles on click.
+    const std::vector<std::string> profiles = m_services.powerProfiles();
+    if (profiles.empty()) {
+        m_powerProfile->setStatus(tr("Off"));
+    } else {
+        const std::string &current = m_services.powerProfile();
+        m_powerProfile->setStatus(current.empty() ? profiles.front() : current);
+    }
+    m_powerProfile->setChecked(!profiles.empty());
+    m_powerProfile->onClicked = [this, profiles] {
+        if (profiles.size() < 2)
+            return;
+        const std::string current = m_services.powerProfile();
+        size_t idx = 0;
+        for (size_t i = 0; i < profiles.size(); ++i) {
+            if (profiles[i] == current) {
+                idx = i;
+                break;
+            }
+        }
+        m_services.setPowerProfile(profiles[(idx + 1) % profiles.size()]);
+    };
+
     m_media->setState(m_services.media());
+    m_media->setVisible(m_services.media().hasPlayer);
 
     m_brightness->setVisible(m_services.brightnessEnabled());
     m_brightness->slider()->setValue(m_services.brightness());
@@ -166,35 +229,53 @@ void ControlCenterView::refresh()
         onHeightChanged();
 }
 
-double ControlCenterView::headerHeight() const
-{
-    // The capitals' top as far from the edge as the text is from the side,
-    // and the tiles as far below the baseline.
-    const double textBaseline = kTitleInset - kGap + m_title->capHeight();
-    return textBaseline + kTitleInset - kGap;
-}
-
 double ControlCenterView::layoutHeight() const
 {
     const double width = kWidth - 2 * kGap;
-    std::vector<double> heights {headerHeight()};
-    if (m_users->isVisible())
-        heights.push_back(m_users->heightForWidth(width));
-    int cards = 0;
-    for (const CardItem *card : {m_wireless, m_bluetooth, m_darkMode, m_doNotDisturb, m_camera, m_microphone})
-        cards += card->isVisible();
-    const int rows = (cards + 1) / 2;
-    if (rows > 0)
-        heights.push_back(rows * CardItem::kHeight + (rows - 1) * kGap);
-    heights.push_back(MediaTile::kHeight);
-    if (m_brightness->isVisible())
-        heights.push_back(m_brightness->heightForWidth(width));
-    if (m_sound->isVisible())
-        heights.push_back(m_sound->heightForWidth(width));
     double height = 0;
-    for (double value : heights)
-        height += value;
-    return height + (heights.size() - 1) * kGap;
+    int sections = 0;
+
+    auto add = [&](double h) {
+        height += h;
+        ++sections;
+    };
+
+    if (m_users->isVisible())
+        add(m_users->heightForWidth(width));
+
+    // Primary cards (always 4 → 2 rows).
+    {
+        int cards = 0;
+        for (const CardItem *card : {m_wireless, m_bluetooth, m_darkMode, m_doNotDisturb})
+            cards += card->isVisible();
+        const int rows = (cards + 1) / 2;
+        if (rows > 0)
+            add(rows * CardItem::kHeight + (rows - 1) * kGap);
+    }
+
+    // Expand button.
+    add(ExpandButton::kHeight);
+
+    // Secondary cards (only when expanded).
+    if (m_expanded) {
+        int cards = 0;
+        for (const CardItem *card : {m_camera, m_microphone, m_hotspot, m_powerProfile})
+            cards += card->isVisible();
+        const int rows = (cards + 1) / 2;
+        if (rows > 0)
+            add(rows * CardItem::kHeight + (rows - 1) * kGap);
+    }
+
+    if (m_media->isVisible())
+        add(MediaTile::kHeight);
+
+    if (m_brightness->isVisible())
+        add(m_brightness->heightForWidth(width));
+
+    if (m_sound->isVisible())
+        add(m_sound->heightForWidth(width));
+
+    return height + (sections - 1) * kGap;
 }
 
 double ControlCenterView::windowHeight(double scale) const
@@ -216,15 +297,8 @@ void ControlCenterView::layout()
         m_media->setState(m_services.media());
     }
 
-    const double scale = windowScale(this);
     const double width = kWidth - 2 * kGap;
     double y = kGap;
-
-    const double textBaseline = kTitleInset - kGap + m_title->capHeight();
-    const double titleTop = alignedLabelTop(m_title, textBaseline, scale);
-    m_title->setGeometry({kTitleInset, y + titleTop, width - 2 * (kTitleInset - kGap),
-                          m_title->sizeHint().height});
-    y += headerHeight() + kGap;
 
     if (m_users->isVisible()) {
         const double height = m_users->heightForWidth(width);
@@ -233,22 +307,38 @@ void ControlCenterView::layout()
     }
 
     const double cellWidth = (width - kGap) / 2;
-    int index = 0;
-    for (CardItem *card : {m_wireless, m_bluetooth, m_darkMode, m_doNotDisturb, m_camera, m_microphone}) {
-        if (!card->isVisible())
-            continue;
-        const int row = index / 2;
-        const int column = index % 2;
-        card->setGeometry({kGap + column * (cellWidth + kGap), y + row * (CardItem::kHeight + kGap), cellWidth,
-                           CardItem::kHeight});
-        ++index;
-    }
-    const int rows = (index + 1) / 2;
-    if (rows > 0)
-        y += rows * CardItem::kHeight + (rows - 1) * kGap + kGap;
 
-    m_media->setGeometry({kGap, y, width, MediaTile::kHeight});
-    y += MediaTile::kHeight + kGap;
+    auto placeCards = [&](std::vector<CardItem *> cards) {
+        int index = 0;
+        for (CardItem *card : cards) {
+            if (!card->isVisible())
+                continue;
+            const int row = index / 2;
+            const int column = index % 2;
+            card->setGeometry({kGap + column * (cellWidth + kGap), y + row * (CardItem::kHeight + kGap),
+                               cellWidth, CardItem::kHeight});
+            ++index;
+        }
+        const int rows = (index + 1) / 2;
+        if (rows > 0)
+            y += rows * CardItem::kHeight + (rows - 1) * kGap + kGap;
+    };
+
+    // Primary row.
+    placeCards({m_wireless, m_bluetooth, m_darkMode, m_doNotDisturb});
+
+    // Expand button.
+    m_expandButton->setGeometry({kGap, y, width, ExpandButton::kHeight});
+    y += ExpandButton::kHeight + kGap;
+
+    // Secondary row (only when expanded).
+    if (m_expanded)
+        placeCards({m_camera, m_microphone, m_hotspot, m_powerProfile});
+
+    if (m_media->isVisible()) {
+        m_media->setGeometry({kGap, y, width, MediaTile::kHeight});
+        y += MediaTile::kHeight + kGap;
+    }
 
     for (TileSlider *slider : {m_brightness, m_sound}) {
         if (!slider->isVisible())
