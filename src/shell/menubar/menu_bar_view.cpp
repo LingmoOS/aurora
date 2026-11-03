@@ -30,13 +30,11 @@ public:
             setInsets(BarContext::kEdgeMargin - (BarContext::kItemGap - BarContext::kHighlightGap) / 2,
                       BarContext::kHighlightGap / 2);
             setGlyphWidth(BarContext::kIconSize);
-            // A circular avatar decoded at its device size, as the Image
-            // with sourceSize and an OpacityMask of a circle.
-            m_avatar = addChild<ui::ImageView>();
-            m_avatar->setFillMode(ui::ImageView::FillMode::Stretch);
-            m_avatar->setMipmap(true);
-            m_avatar->setCornerRadius(BarContext::kIconSize / 2);
-            m_avatar->setRendering(ui::ImageView::Rendering::MaskedLayer);
+            // The system logo shown at its original shape, not a circular
+            // avatar mask. The logo entry replaces the user's picture; the
+            // user menu still opens below it.
+            m_logo = addChild<ui::ThemeIcon>("systemlogo", BarContext::kIconSize);
+            m_logo->setThemeSize(int(BarContext::kIconSize));
         } else {
             setInsets(BarContext::kHighlightGap / 2, BarContext::kHighlightGap / 2);
             m_label = addChild<BarLabel>();
@@ -49,17 +47,14 @@ public:
 
     double preferredWidth() const
     {
-        if (m_avatar)
+        if (m_logo)
             return BarContext::kItemGap / 2 + BarContext::kEdgeMargin + BarContext::kIconSize
                     + BarContext::kSmallSpacing * 2;
         return BarContext::kItemGap + m_label->sizeHint().width + BarContext::kSmallSpacing * 2;
     }
 
-    void setAvatar(const std::string &file)
-    {
-        if (m_avatar)
-            m_avatar->setSource(file);
-    }
+    // No-op: the logo is always systemlogo; user picture is not displayed.
+    void setAvatar(const std::string &) {}
 
     void updateLook()
     {
@@ -77,8 +72,8 @@ public:
 protected:
     void layout() override
     {
-        if (m_avatar)
-            m_avatar->setGeometry(centred({BarContext::kIconSize, BarContext::kIconSize}));
+        if (m_logo)
+            m_logo->setGeometry(centred({BarContext::kIconSize, BarContext::kIconSize}));
         if (m_label)
             m_label->setGeometry(centred(m_label->sizeHint()));
     }
@@ -86,7 +81,7 @@ protected:
 private:
     const MenuBarModel::Row m_row;
     BarLabel *m_label = nullptr;
-    ui::ImageView *m_avatar = nullptr;
+    ui::ThemeIcon *m_logo = nullptr;
 };
 
 MenuBarView::MenuBarView(Shell *shell, StatusBarMenuBarHost host)
