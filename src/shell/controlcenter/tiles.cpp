@@ -279,17 +279,15 @@ void IconButton::pointerRelease(const ui::PointerEvent &event)
 
 ExpandButton::ExpandButton()
 {
-    m_label   = addChild<ui::Label>();
+    m_label = addChild<ui::Label>();
     m_label->setFontSize(12);
     m_label->setElide(ui::Label::Elide::Right);
-    m_chevron = addChild<ui::Icon>("chevron-down", 12);
     setExpanded(false);
 }
 
 void ExpandButton::setExpanded(bool expanded)
 {
     m_expanded = expanded;
-    m_chevron->setTransform(expanded ? ui::Transform{.rotation = 180} : ui::Transform{});
     requestPaint();
 }
 
@@ -301,43 +299,41 @@ void ExpandButton::setLabel(std::string more, std::string less)
 void ExpandButton::layout()
 {
     const ui::Theme &theme = ui::Theme::current();
-    const double h    = geometry().height;
-    const double chevW = m_chevron->sizeHint().width;
-    const double gap   = theme.smallSpacing;
+    const double h      = geometry().height;
+    const double chevW  = 12;
+    const double gap    = theme.smallSpacing;
     const double labelH = m_label->sizeHint().height;
-    // Chevron at the right end; label to the left of it.
-    m_chevron->setGeometry({geometry().width - chevW - gap,
-                            (h - chevW) / 2.0, chevW, chevW});
     m_label->setGeometry({gap * 2, (h - labelH) / 2.0,
                           std::max(0.0, geometry().width - chevW - gap * 4), labelH});
 }
 
 void ExpandButton::paint(ui::Painter &painter)
 {
-    if (!m_hovered)
-        return;
     const ui::Color surface = ::Lingmo::Shell::Panel::tileInkColor();
     const bool dark = ::Lingmo::Shell::Panel::isDark(surface);
-    painter.fillRoundedRect(localRect(), ui::Theme::current().smallRadius,
-                            ::Lingmo::Shell::Panel::on(surface, dark ? 0.12 : 0.07));
-}
 
-void ExpandButton::pointerEnter()
-{
-    m_hovered = true;
-    requestPaint();
-}
+    if (m_hovered)
+        painter.fillRoundedRect(localRect(), ui::Theme::current().smallRadius,
+                                ::Lingmo::Shell::Panel::on(surface, dark ? 0.12 : 0.07));
 
-void ExpandButton::pointerLeave()
-{
-    m_hovered = false;
-    requestPaint();
-}
-
-void ExpandButton::pointerRelease(const ui::PointerEvent &event)
-{
-    if (localRect().contains(event.position) && onClicked)
-        onClicked();
+    // Hand-drawn chevron: ∨ when collapsed, ∧ when expanded.
+    const double h     = geometry().height;
+    const double w     = geometry().width;
+    const double gap   = ui::Theme::current().smallSpacing;
+    const double chevW = 12;
+    const double cx    = w - chevW / 2.0 - gap;
+    const double cy    = h / 2.0;
+    const double arm   = chevW * 0.36;
+    const ui::Color ink = ::Lingmo::Shell::Panel::on(surface, dark ? 0.7 : 0.45);
+    if (m_expanded) {
+        // ∧
+        painter.drawLine({cx - arm, cy + arm * 0.5}, {cx,         cy - arm * 0.5}, ink, 1.5);
+        painter.drawLine({cx,       cy - arm * 0.5}, {cx + arm,   cy + arm * 0.5}, ink, 1.5);
+    } else {
+        // ∨
+        painter.drawLine({cx - arm, cy - arm * 0.5}, {cx,         cy + arm * 0.5}, ink, 1.5);
+        painter.drawLine({cx,       cy + arm * 0.5}, {cx + arm,   cy - arm * 0.5}, ink, 1.5);
+    }
 }
 
 // MprisItem's buttons: 28 px each, 6 apart.

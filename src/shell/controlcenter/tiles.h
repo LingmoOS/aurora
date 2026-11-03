@@ -117,7 +117,7 @@ private:
 };
 
 // A small "More / Less" row that expands or collapses the secondary cards.
-// Height is fixed at kHeight; the chevron rotates 180° when expanded.
+// Height is fixed at kHeight; the chevron is hand-drawn in paint().
 class ExpandButton : public ui::View
 {
 public:
@@ -143,7 +143,6 @@ protected:
 
 private:
     ui::Label *m_label   = nullptr;
-    ui::Icon  *m_chevron = nullptr;
     bool m_expanded = false;
     bool m_hovered  = false;
 };
