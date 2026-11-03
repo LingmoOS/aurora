@@ -336,6 +336,24 @@ void ExpandButton::paint(ui::Painter &painter)
     }
 }
 
+void ExpandButton::pointerEnter()
+{
+    m_hovered = true;
+    requestPaint();
+}
+
+void ExpandButton::pointerLeave()
+{
+    m_hovered = false;
+    requestPaint();
+}
+
+void ExpandButton::pointerRelease(const ui::PointerEvent &event)
+{
+    if (localRect().contains(event.position) && onClicked)
+        onClicked();
+}
+
 // MprisItem's buttons: 28 px each, 6 apart.
 static constexpr double kButtonSize = 28;
 
