@@ -1,3 +1,14 @@
+lingmo-compositor (5.0.6+lingmo5u1) unstable; urgency=medium
+
+  * dock: fix separator line position during magnification animation.
+    The divider was positioned using only the animated section position
+    without accounting for the lateral shift that magnification applies
+    to icons. Now the separator follows the shift of the last pinned icon
+    that precedes it, so it tracks with the icons during hover zoom.
+    The trailing divider likewise follows the last application icon.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 05 Nov 2026 12:00:00 +0800
+
 lingmo-compositor (5.0.5+lingmo5u1) unstable; urgency=medium
 
   * shell: change default icon theme fallback from "Lingmo" to "lingmo-light"

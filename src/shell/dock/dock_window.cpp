@@ -1012,15 +1012,41 @@ void DockWindow::layoutItems()
         return bottom ? base::RectF(start, lineAcross, 1, lineLength)
                       : base::RectF(lineAcross, start, lineLength, 1);
     };
-    m_divider = lineRect(along(m_applications->sectionPosition() + middle,
-                               m_applications->targetSectionPosition() + middle));
+
+    // During magnification the icons shift laterally. The separator must
+    // shift with the pinned icons that precede it: find the cumulative shift
+    // at the section boundary from the last placed icon whose rest position
+    // is before (or at) sectionPosition.
+    const double sectionPos = m_applications->sectionPosition();
+    double separatorShift = 0;
+    if (smoothed) {
+        // Walk placed in reverse; find the last one at or before sectionPos.
+        for (int i = int(placed.size()) - 1; i >= 0; --i) {
+            if (placed[i].position <= sectionPos + itemSize / 2) {
+                separatorShift = placements[i].shift;
+                break;
+            }
+        }
+    }
+
+    m_divider = lineRect(along(sectionPos + middle,
+                               m_applications->targetSectionPosition() + middle)
+                         + separatorShift);
     const double extent = m_applications->trailingExtent();
     m_trailingOpacity = 0.18 * std::clamp((extent - 2) / (m_drawn.separatorExtent - 2), 0.0, 1.0);
+
+    // The trailing divider sits at the end of the applications section.
+    // Its shift follows the last placed application icon.
+    double trailingSeparatorShift = 0;
+    if (smoothed && !placed.empty())
+        trailingSeparatorShift = placements[placed.size() - 1].shift;
+
     m_trailingDivider = m_trailingOpacity > 0
             ? lineRect(along(m_applications->length() + middle * extent / m_drawn.separatorExtent,
                              m_applications->targetLength()
                                      + middle * m_applications->targetTrailingExtent()
-                                             / m_metrics.sectionExtent()))
+                                             / m_metrics.sectionExtent())
+                       + trailingSeparatorShift)
             : base::RectF();
     m_panel->setGeometry({0, 0, double(m_windowRect.width()), double(m_windowRect.height())});
     m_panel->requestPaint();
