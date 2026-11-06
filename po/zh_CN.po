@@ -714,3 +714,9 @@ msgstr "截取或录制屏幕、窗口或所选区域"
 #: data/lingmo-screenshot.desktop
 msgid "screenshot;screen recording;capture;record;"
 msgstr "截图;屏幕录制;截取;录制;"
+
+msgid "More"
+msgstr "展开"
+
+msgid "Less"
+msgstr "收起"
