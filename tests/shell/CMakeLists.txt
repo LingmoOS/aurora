@@ -40,3 +40,5 @@ target_compile_definitions(controlcenter_test PRIVATE LINGMO_SOURCE_DIR="${PROJE
 lingmo_add_shell_test(statusbar_view_test DBUS lingmo-shell-statusbar-view)
 target_compile_definitions(statusbar_view_test PRIVATE LINGMO_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 lingmo_add_shell_test(menubar_test DBUS lingmo-shell-menubar)
+
+lingmo_add_shell_test(screen_keyboard_test lingmo-shell-keyboard)

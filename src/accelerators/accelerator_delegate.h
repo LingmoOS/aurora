@@ -22,6 +22,7 @@ public:
     // org.lingmo.Launcher.toggle.
     virtual void toggleAppList() = 0;
     virtual void toggleSearch() {}
+    virtual void toggleScreenKeyboard() {}
 
     // org.lingmo.Screenshot: every screen at once, a part of one chosen
     // with the pointer, the capture tools, and the end of a recording.
@@ -60,6 +61,7 @@ public:
 
     void toggleAppList() override;
     void toggleSearch() override;
+    void toggleScreenKeyboard() override;
     void takeScreenshot(bool toClipboard) override;
     void takePartialScreenshot(bool toClipboard) override;
     void startCaptureMode() override;

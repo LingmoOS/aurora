@@ -79,6 +79,7 @@ class RecordingDelegate : public AcceleratorDelegate
 public:
     void toggleAppList() override { ++appListToggles; }
     void toggleSearch() override { ++searchToggles; }
+    void toggleScreenKeyboard() override { ++screenKeyboardToggles; }
     void takeScreenshot(bool toClipboard) override
     {
         captures.push_back(toClipboard ? "screen-clipboard" : "screen");
@@ -105,6 +106,7 @@ public:
 
     int appListToggles = 0;
     int searchToggles = 0;
+    int screenKeyboardToggles = 0;
     int clipboardHistoryToggles = 0;
     std::vector<std::string> captures;
     std::vector<std::string> levels;
@@ -537,7 +539,7 @@ TEST(AcceleratorConfiguration, EachConventionKeepsItsOwnOverrides)
     const std::string file = directory.filePath("compositor.conf");
     const auto maximize = toActionId(AcceleratorAction::ToggleMaximized);
     const auto launcher = toActionId(AcceleratorAction::ToggleAppList);
-    const Accelerator pcBinding(XKB_KEY_k, MetaDown | ControlDown);
+    const Accelerator pcBinding(XKB_KEY_j, MetaDown | ControlDown);
     const Accelerator commandBinding(XKB_KEY_space, MetaDown | ShiftDown);
 
     AcceleratorConfiguration configuration(file);
@@ -1976,4 +1978,14 @@ TEST_F(AcceleratorTest, GlobalSearchUsesMetaSpaceWithoutOpeningLauncher)
     ASSERT_TRUE(session.isBlocked());
     chord({KEY_LEFTMETA}, KEY_SPACE);
     EXPECT_EQ(1, delegate.searchToggles);
+}
+
+TEST_F(AcceleratorTest, ScreenKeyboardShortcutIsBlockedOnLockScreen)
+{
+    chord({KEY_LEFTMETA, KEY_LEFTCTRL}, KEY_K);
+    EXPECT_EQ(1, delegate.screenKeyboardToggles);
+    chord({KEY_LEFTMETA}, KEY_L);
+    ASSERT_TRUE(session.isBlocked());
+    chord({KEY_LEFTMETA, KEY_LEFTCTRL}, KEY_K);
+    EXPECT_EQ(1, delegate.screenKeyboardToggles);
 }

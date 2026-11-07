@@ -66,6 +66,7 @@
 #include "shell/screenshot/screen_grabber.h"
 #include "shell/secrets/secret_prompts.h"
 #include "shell/shell.h"
+#include "shell/keyboard/screen_keyboard.h"
 #include "shell/shell_window.h"
 #include "shell/statusbar/device_usage.h"
 #include "shell/statusbar/status_bar.h"
@@ -660,6 +661,9 @@ void CompositorShell::initShell()
         m_acceleratorDelegate->searchActivationToken = environment.createActivationToken;
     environment.theme = &m_decorationTheme;
     m_shell = std::make_unique<shell::Shell>(environment);
+
+    auto* screenKeyboard = m_shell->addComponent(std::make_unique<shell::ScreenKeyboard>(m_shell.get()));
+    screenKeyboard->registerService();
 
     // First, so the components that share its decode go before it.
     auto *wallpaper = m_shell->addComponent(std::make_unique<shell::Wallpaper>(m_shell.get()));

@@ -47,6 +47,7 @@ struct AcceleratorData {
 // AcceleratorLauncherStateMachine keeps Meta+L from doing it as well.
 inline constexpr auto kAcceleratorData = std::to_array<AcceleratorData>({
         {true, XKB_KEY_space, MetaDown, AcceleratorAction::ToggleSearch},
+        {true, XKB_KEY_k, MetaDown | ControlDown, AcceleratorAction::ToggleScreenKeyboard},
         {false, XKB_KEY_Super_L, NoModifier, AcceleratorAction::ToggleAppList},
         {true, XKB_KEY_l, MetaDown, AcceleratorAction::LockScreen},
 
@@ -128,6 +129,7 @@ inline constexpr auto kAcceleratorData = std::to_array<AcceleratorData>({
 // Control. The launcher has no default.
 inline constexpr auto kCommandAcceleratorData = std::to_array<AcceleratorData>({
         {true, XKB_KEY_space, MetaDown, AcceleratorAction::ToggleSearch},
+        {true, XKB_KEY_k, MetaDown | ControlDown, AcceleratorAction::ToggleScreenKeyboard},
         {true, XKB_KEY_q, ControlDown | MetaDown, AcceleratorAction::LockScreen},
 
         // Window management.

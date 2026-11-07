@@ -18,6 +18,7 @@ namespace {
 constexpr auto kActionNames = std::to_array<std::pair<AcceleratorAction, const char *>>({
         {AcceleratorAction::ToggleAppList, "toggle-app-list"},
         {AcceleratorAction::ToggleSearch, "toggle-search"},
+        {AcceleratorAction::ToggleScreenKeyboard, "toggle-screen-keyboard"},
         {AcceleratorAction::LockScreen, "lock-screen"},
         {AcceleratorAction::CycleForwardMru, "cycle-forward-mru"},
         {AcceleratorAction::CycleBackwardMru, "cycle-backward-mru"},

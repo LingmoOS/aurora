@@ -1003,8 +1003,8 @@ install(FILES
 install(FILES LICENSE LICENSE.chromium LICENSE.sommelier DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-compositor)
 install(FILES ${DISPLAY_CONFIG_XML} DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/interfaces)
 lingmo_add_translations(lingmo-compositor SOURCES src/shell src/auth src/wm/overview
-    DESKTOP_FILES data/lingmo-screenshot.desktop)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lingmo-screenshot.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+    DESKTOP_FILES data/lingmo-screenshot.desktop data/lingmo-screen-keyboard.desktop)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lingmo-screenshot.desktop ${CMAKE_CURRENT_BINARY_DIR}/lingmo-screen-keyboard.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 
 target_link_libraries(lingmo-wayland-input PUBLIC lingmo-protocols)
 

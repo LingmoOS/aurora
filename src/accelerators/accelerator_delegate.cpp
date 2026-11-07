@@ -94,6 +94,11 @@ void DBusAcceleratorDelegate::toggleSearch()
          searchActivationToken ? searchActivationToken() : std::string());
 }
 
+void DBusAcceleratorDelegate::toggleScreenKeyboard()
+{
+    call("org.lingmo.ScreenKeyboard", "/org/lingmo/ScreenKeyboard", "toggle");
+}
+
 void DBusAcceleratorDelegate::takeScreenshot(bool toClipboard)
 {
     callScreenshot("takeScreenshot", toClipboard);

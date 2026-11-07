@@ -175,6 +175,7 @@ bool AcceleratorController::canPerformAction(AcceleratorAction action,
         return commands::canToggleShowDesktop(m_context);
 
     // The following are always enabled.
+    case AcceleratorAction::ToggleScreenKeyboard:
     case AcceleratorAction::ToggleSearch:
     case AcceleratorAction::DesksActivateDeskLeft:
     case AcceleratorAction::DesksActivateDeskRight:
@@ -247,6 +248,9 @@ void AcceleratorController::performAction(AcceleratorAction action, const Accele
         break;
     case AcceleratorAction::ToggleSearch:
         m_context.delegate->toggleSearch();
+        break;
+    case AcceleratorAction::ToggleScreenKeyboard:
+        m_context.delegate->toggleScreenKeyboard();
         break;
     case AcceleratorAction::ToggleFullscreen:
         commands::toggleFullscreen(m_context);

@@ -201,3 +201,15 @@ target_link_libraries(lingmo-shell-statusbar-view PUBLIC lingmo-shell lingmo-she
 target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-statusbar-view)
 # The status bar's menu bar.
 include(src/shell/menubar/menubar.cmake)
+
+# Non-activating on-screen keyboard, using the existing seat/IME dispatch path.
+add_library(lingmo-shell-keyboard STATIC
+    src/shell/keyboard/keyboard_model.cpp
+    src/shell/keyboard/keyboard_view.cpp
+    src/shell/keyboard/screen_keyboard.cpp)
+target_link_libraries(lingmo-shell-keyboard PUBLIC lingmo-shell)
+target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-keyboard)
+
+add_executable(lingmo-screen-keyboard src/shell/keyboard/main.cpp)
+target_link_libraries(lingmo-screen-keyboard PRIVATE Lingmo::SDKBase)
+install(TARGETS lingmo-screen-keyboard RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

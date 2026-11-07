@@ -720,3 +720,39 @@ msgstr "展开"
 
 msgid "Less"
 msgstr "收起"
+
+msgid "Screen Keyboard"
+msgstr "屏幕键盘"
+
+msgid "Hide keyboard"
+msgstr "隐藏键盘"
+
+msgid "Space"
+msgstr "空格"
+
+msgid "Enter"
+msgstr "回车"
+
+msgid "Select an input field, or check the keyboard layout."
+msgstr "请选择输入框，或检查键盘布局。"
+
+msgid "Type using the mouse or touch screen"
+msgstr "使用鼠标或触摸屏输入"
+
+msgid "Uses the current input method."
+msgstr "使用当前输入法。"
+
+msgid "Applies to the next key only"
+msgstr "仅作用于下一次按键"
+
+msgid "Keep letters uppercase"
+msgstr "保持字母大写"
+
+msgid "Switch letters and symbols"
+msgstr "切换字母与符号"
+
+msgid "Delete previous character"
+msgstr "删除前一个字符"
+
+msgid "Delete next character"
+msgstr "删除后一个字符"

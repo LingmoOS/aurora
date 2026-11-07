@@ -28,6 +28,7 @@ enum class AcceleratorAction : uint32_t {
     // General.
     ToggleAppList,
     ToggleSearch,
+    ToggleScreenKeyboard,
     LockScreen,
 
     // Windows.
