@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "shell/notification/notification_centre.h"
+#include "shell/notification/notification_widgets.h"
 
 #include <algorithm>
 #include <cmath>
@@ -398,7 +399,15 @@ public:
     void setTargetBottom(double bottom) { m_bottom.setTarget(bottom, m_centre->m_motion); }
     double bottom() const { return m_bottom.value(); }
 
-    double heightForWidth(double) const override { return m_bottom.value() + ui::Theme::current().largeSpacing; }
+    double heightForWidth(double width) const override {
+        auto* widgets=m_centre->m_widgets;
+        const double widgetHeight=widgets && widgets->isVisible()?widgets->heightForWidth(std::max(0.0,width-12)):0;
+        return m_bottom.value() + (widgetHeight>0?widgetHeight+24:0) + ui::Theme::current().largeSpacing;
+    }
+    void layout() override {
+        if(auto* widgets=m_centre->m_widgets; widgets && widgets->isVisible())
+            widgets->setGeometry({6,m_bottom.value()+16,std::max(0.0,geometry().width-12),widgets->heightForWidth(std::max(0.0,geometry().width-12))});
+    }
     ui::SizeF sizeHint() const override { return {0, heightForWidth(0)}; }
 
 private:
@@ -441,7 +450,7 @@ protected:
         empty->setColor(ui::color(toolkit::CompositorColor::NotificationCentreEmptyText));
         const ui::SizeF emptySize = empty->sizeHint();
         empty->setGeometry({list.x + (list.width - emptySize.width) / 2,
-                            list.y + (list.height - emptySize.height) / 2, emptySize.width, emptySize.height});
+                            m_centre->m_widgets && m_centre->m_widgets->isVisible() ? list.y+12 : list.y + (list.height - emptySize.height) / 2, emptySize.width, emptySize.height});
     }
 
     void paint(ui::Painter &) override
@@ -556,6 +565,8 @@ void NotificationCentre::open(ShellWindow *parent, const base::Point &position)
     m_placedGeometry = base::Rect(position, base::Size(1, 1));
 
     m_open = true;
+    if(m_widgets)NotificationWidgetProvider::instance().active(m_widgets,true);
+    relayout();
     // With the centre open the user is looking at every notification already.
     m_banners.setBannersSuppressed(true);
     m_history.updateTime();
@@ -571,6 +582,7 @@ void NotificationCentre::close()
     if (!m_open)
         return;
     m_open = false;
+    if(m_widgets)NotificationWidgetProvider::instance().active(m_widgets,false);
     m_timeTimer.stop();
     if (m_window)
         m_window->hide();
@@ -605,6 +617,7 @@ void NotificationCentre::retranslate()
         return;
     m_title->setText(tr("Notification Center"));
     m_empty->setText(tr("No Notifications"));
+    if(m_widgets && m_open)NotificationWidgetProvider::instance().active(m_widgets,true);
     for (GroupHeader *header : m_headers)
         header->retranslate();
     m_history.updateTime();
@@ -622,6 +635,7 @@ void NotificationCentre::destroyWindow()
     m_scroll = nullptr;
     m_list = nullptr;
     m_empty = nullptr;
+    m_widgets = nullptr;
     m_window.reset();
     m_parent = nullptr;
 }
@@ -650,6 +664,9 @@ void NotificationCentre::build(const Placement &placement)
     m_scroll = content->addChild<ui::ScrollView>();
     m_scroll->setElastic(false);
     m_list = m_scroll->setContent<List>(this, window);
+    if(const auto& provider=NotificationWidgetProvider::instance();provider.create) {
+        auto widgets=std::unique_ptr<ui::View>(provider.create());m_widgets=widgets.get();m_widgets->setVisible(false);m_list->addChild(std::move(widgets));
+    }
     m_empty = content->addChild<ui::Label>(tr("No Notifications"));
     m_empty->setElide(ui::Label::Elide::None);
     m_window->setContentView(std::move(content));
@@ -850,7 +867,7 @@ void NotificationCentre::layoutPass()
     for (GroupHeader *header : m_headers)
         m_list->raiseChild(header);
 
-    m_list->setTargetBottom(y);
+    m_list->setTargetBottom(liveTotal==0 && m_widgets && m_widgets->isVisible()?48:y);
     m_scroll->requestLayout();
     m_liveCount = liveTotal;
     m_clear->setVisible(liveTotal > 0);

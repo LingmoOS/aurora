@@ -1,3 +1,10 @@
+lingmo-compositor (5.0.6+lingmo5u5) unstable; urgency=medium
+
+  * Host shared widgets below notifications without duplicating widget code.
+  * Release widget resources when closing Notification Center and recommend the provider.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sun, 08 Nov 2026 12:00:00 +0800
+
 lingmo-compositor (5.0.6+lingmo5u4) unstable; urgency=medium
 
   * Add non-activating screen keyboard, shortcut, launcher entry and tests.

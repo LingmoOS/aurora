@@ -906,7 +906,7 @@ add_library(lingmo-shell STATIC
     src/shell/shell_window.cpp src/shell/shell_window.h
     src/shell/window_renderer.cpp src/shell/window_renderer.h)
 target_include_directories(lingmo-shell PUBLIC src)
-target_link_libraries(lingmo-shell PUBLIC lingmo-wm lingmo-input lingmo-display
+target_link_libraries(lingmo-shell PUBLIC ${CMAKE_DL_LIBS} lingmo-wm lingmo-input lingmo-display
     lingmo-decoration lingmo-sdk-host lingmo-shell-common PRIVATE lingmo-wayland-shell)
 target_compile_definitions(lingmo-shell PRIVATE
     LINGMO_SHELL_DATA_DIR="${CMAKE_INSTALL_FULL_DATADIR}/lingmo-compositor/shell")

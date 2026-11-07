@@ -40,7 +40,8 @@ Depends: lingmo-sdk,
          lingmo-framework,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: xwayland,
+Recommends: lingmo-filemanager,
+            xwayland,
             pipewire-bin
 Description: Lingmo OS Wayland compositor and desktop shell
  The Lingmo desktop's display server: DRM/KMS output, input, window

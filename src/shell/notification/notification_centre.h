@@ -144,6 +144,7 @@ private:
     ui::ScrollView *m_scroll = nullptr;
     List *m_list = nullptr;
     ui::Label *m_empty = nullptr;
+    ui::View *m_widgets = nullptr;
 
     std::vector<Row *> m_rows;
     std::vector<GroupHeader *> m_headers;
