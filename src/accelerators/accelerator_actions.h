@@ -27,6 +27,7 @@ namespace Lingmo::Accelerators {
 enum class AcceleratorAction : uint32_t {
     // General.
     ToggleAppList,
+    ToggleSearch,
     LockScreen,
 
     // Windows.

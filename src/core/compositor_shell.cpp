@@ -656,6 +656,8 @@ void CompositorShell::initShell()
         wayland::WaylandXdgActivation *activation = m_globals->xdgActivation();
         environment.createActivationToken = [activation] { return activation->createShellToken(); };
     }
+    if (m_acceleratorDelegate)
+        m_acceleratorDelegate->searchActivationToken = environment.createActivationToken;
     environment.theme = &m_decorationTheme;
     m_shell = std::make_unique<shell::Shell>(environment);
 

@@ -86,6 +86,14 @@ void DBusAcceleratorDelegate::toggleAppList()
     call("org.lingmo.Launcher", "/Launcher", "toggle");
 }
 
+void DBusAcceleratorDelegate::toggleSearch()
+{
+    // The session bus activates lingmo-search on demand. Forward a shell-issued
+    // token so the search field can receive focus without a focus-stealing bypass.
+    call("org.lingmo.Search", "/org/lingmo/Search", "toggle",
+         searchActivationToken ? searchActivationToken() : std::string());
+}
+
 void DBusAcceleratorDelegate::takeScreenshot(bool toClipboard)
 {
     callScreenshot("takeScreenshot", toClipboard);

@@ -78,6 +78,7 @@ class RecordingDelegate : public AcceleratorDelegate
 {
 public:
     void toggleAppList() override { ++appListToggles; }
+    void toggleSearch() override { ++searchToggles; }
     void takeScreenshot(bool toClipboard) override
     {
         captures.push_back(toClipboard ? "screen-clipboard" : "screen");
@@ -103,6 +104,7 @@ public:
     void mediaStop() override { players.push_back("stop"); }
 
     int appListToggles = 0;
+    int searchToggles = 0;
     int clipboardHistoryToggles = 0;
     std::vector<std::string> captures;
     std::vector<std::string> levels;
@@ -536,7 +538,7 @@ TEST(AcceleratorConfiguration, EachConventionKeepsItsOwnOverrides)
     const auto maximize = toActionId(AcceleratorAction::ToggleMaximized);
     const auto launcher = toActionId(AcceleratorAction::ToggleAppList);
     const Accelerator pcBinding(XKB_KEY_k, MetaDown | ControlDown);
-    const Accelerator commandBinding(XKB_KEY_space, MetaDown);
+    const Accelerator commandBinding(XKB_KEY_space, MetaDown | ShiftDown);
 
     AcceleratorConfiguration configuration(file);
     configuration.initialize();
@@ -670,8 +672,8 @@ TEST_F(AcceleratorTest, ALoneMetaOpensTheLauncherAndMetaChordsDoNot)
 
     ASSERT_EQ(AcceleratorConfigResult::Success,
               configuration->addUserAccelerator(toActionId(AcceleratorAction::ToggleAppList),
-                                                Accelerator(XKB_KEY_space, MetaDown)));
-    chord({KEY_LEFTMETA}, KEY_SPACE);
+                                                Accelerator(XKB_KEY_space, MetaDown | ShiftDown)));
+    chord({KEY_LEFTMETA, KEY_LEFTSHIFT}, KEY_SPACE);
     EXPECT_EQ(2, delegate.appListToggles);
 
     chord({KEY_LEFTMETA}, KEY_L);
@@ -1806,9 +1808,9 @@ TEST_F(AcceleratorTest, ServiceValidatesConfirmsAndReportsConflicts)
     // other.
     EXPECT_EQ("success",
               parse(service.addAccelerator("toggle-app-list", KEY_SPACE, 0,
-                                           MetaDown))
+                                           MetaDown | ShiftDown))
                       ["result"].toString());
-    chord({KEY_LEFTMETA}, KEY_SPACE);
+    chord({KEY_LEFTMETA, KEY_LEFTSHIFT}, KEY_SPACE);
     EXPECT_EQ(1, delegate.appListToggles);
     EXPECT_EQ("success",
               parse(service.restoreDefault("toggle-app-list"))
@@ -1963,4 +1965,15 @@ TEST_F(AcceleratorTest, ARecorderThatLeavesTheBusLiftsTheAcceleratorBlock)
     }
     EXPECT_TRUE(input_test::runUntil(
             loop, [&] { return !controller->shouldPreventProcessingAccelerators(); }));
+}
+
+TEST_F(AcceleratorTest, GlobalSearchUsesMetaSpaceWithoutOpeningLauncher)
+{
+    chord({KEY_LEFTMETA}, KEY_SPACE);
+    EXPECT_EQ(1, delegate.searchToggles);
+    EXPECT_EQ(0, delegate.appListToggles);
+    chord({KEY_LEFTMETA}, KEY_L);
+    ASSERT_TRUE(session.isBlocked());
+    chord({KEY_LEFTMETA}, KEY_SPACE);
+    EXPECT_EQ(1, delegate.searchToggles);
 }

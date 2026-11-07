@@ -10,6 +10,7 @@
 
 
 #include <functional>
+#include <string>
 
 namespace Lingmo::Accelerators {
 
@@ -20,6 +21,7 @@ public:
 
     // org.lingmo.Launcher.toggle.
     virtual void toggleAppList() = 0;
+    virtual void toggleSearch() {}
 
     // org.lingmo.Screenshot: every screen at once, a part of one chosen
     // with the pointer, the capture tools, and the end of a recording.
@@ -54,8 +56,10 @@ class DBusAcceleratorDelegate : public AcceleratorDelegate
 public:
     // The launcher drawn in this process; unset, the call goes over D-Bus.
     std::function<void()> launcherToggle;
+    std::function<std::string()> searchActivationToken;
 
     void toggleAppList() override;
+    void toggleSearch() override;
     void takeScreenshot(bool toClipboard) override;
     void takePartialScreenshot(bool toClipboard) override;
     void startCaptureMode() override;

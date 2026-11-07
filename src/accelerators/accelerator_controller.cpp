@@ -13,6 +13,7 @@
 #include <xkbcommon/xkbcommon-keysyms.h>
 
 #include "accelerators/accelerator_configuration.h"
+#include "accelerators/accelerator_delegate.h"
 #include "accelerators/accelerator_table.h"
 #include "core/logging.h"
 #include "session/session_controller.h"
@@ -174,6 +175,7 @@ bool AcceleratorController::canPerformAction(AcceleratorAction action,
         return commands::canToggleShowDesktop(m_context);
 
     // The following are always enabled.
+    case AcceleratorAction::ToggleSearch:
     case AcceleratorAction::DesksActivateDeskLeft:
     case AcceleratorAction::DesksActivateDeskRight:
     case AcceleratorAction::DesksMoveActiveItemLeft:
@@ -242,6 +244,9 @@ void AcceleratorController::performAction(AcceleratorAction action, const Accele
         break;
     case AcceleratorAction::ToggleAppList:
         commands::toggleAppList(m_context);
+        break;
+    case AcceleratorAction::ToggleSearch:
+        m_context.delegate->toggleSearch();
         break;
     case AcceleratorAction::ToggleFullscreen:
         commands::toggleFullscreen(m_context);

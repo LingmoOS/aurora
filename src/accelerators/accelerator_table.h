@@ -46,6 +46,7 @@ struct AcceleratorData {
 // As in Ash, a lone Meta opens the launcher on release; the
 // AcceleratorLauncherStateMachine keeps Meta+L from doing it as well.
 inline constexpr auto kAcceleratorData = std::to_array<AcceleratorData>({
+        {true, XKB_KEY_space, MetaDown, AcceleratorAction::ToggleSearch},
         {false, XKB_KEY_Super_L, NoModifier, AcceleratorAction::ToggleAppList},
         {true, XKB_KEY_l, MetaDown, AcceleratorAction::LockScreen},
 
@@ -126,6 +127,7 @@ inline constexpr auto kAcceleratorData = std::to_array<AcceleratorData>({
 // recording. Command+Shift+3, 4 and 5 capture as well, onto the clipboard with
 // Control. The launcher has no default.
 inline constexpr auto kCommandAcceleratorData = std::to_array<AcceleratorData>({
+        {true, XKB_KEY_space, MetaDown, AcceleratorAction::ToggleSearch},
         {true, XKB_KEY_q, ControlDown | MetaDown, AcceleratorAction::LockScreen},
 
         // Window management.
@@ -205,6 +207,7 @@ inline constexpr auto kCommandAcceleratorData = std::to_array<AcceleratorData>({
 // Switching applications always switches, over a fullscreen game too, and
 // the overview comes up over one.
 inline constexpr std::array kPreferredActions = {
+        AcceleratorAction::ToggleSearch,
         AcceleratorAction::CycleBackwardMru,
         AcceleratorAction::CycleForwardMru,
         AcceleratorAction::ToggleOverview,
