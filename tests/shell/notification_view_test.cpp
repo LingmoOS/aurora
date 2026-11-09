@@ -38,6 +38,7 @@
 #include "shell_test_util.h"
 #include "temporary_directory.h"
 #include "ui/scroll_view.h"
+#include "ui/text_markup.h"
 #include "ui/view.h"
 #include "wm/window.h"
 #include "wm/window_manager.h"
@@ -214,7 +215,7 @@ TEST(NotificationMotionTest, FollowsTheQtCurve)
 TEST(NotificationMarkupTest, ReadsStyledText)
 {
     const ui::Color link {1, 2, 3, 255};
-    const auto spans = shell::styledTextSpans("A <b>bold</b> &amp; <a href=\"x\">link</a><br/>next &#x263A;", link);
+    const auto spans = ui::styledTextSpans("A <b>bold</b> &amp; <a href=\"x\">link</a><br/>next &#x263A;", link);
     std::string text;
     for (const auto &span : spans)
         text += span.text;
@@ -227,7 +228,7 @@ TEST(NotificationMarkupTest, ReadsStyledText)
     EXPECT_EQ(link, spans[3].color->fixedColor());
     EXPECT_EQ("x", spans[3].link);
 
-    const auto styled = shell::styledTextSpans("<i>it</i><u>under</u><a href='https://e.org/a b'>go</a>", link);
+    const auto styled = ui::styledTextSpans("<i>it</i><u>under</u><a href='https://e.org/a b'>go</a>", link);
     ASSERT_EQ(3u, styled.size());
     EXPECT_TRUE(styled[0].italic);
     EXPECT_TRUE(styled[1].underline);

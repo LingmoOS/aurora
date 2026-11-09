@@ -135,10 +135,5 @@ private:
     uint64_t m_bodyTheme = 0;
 };
 
-// The notification body markup subset: <b>, <strong>, <i>, <em>,
-// <u>, <a href>, <br>, <p> and the character references, other tags
-// dropped. Bold runs take weight 700, links the colour given and their href.
-std::vector<ui::Label::Span> styledTextSpans(const std::string &markup, ui::Color linkColor);
-
 } // namespace Lingmo::Shell
 
