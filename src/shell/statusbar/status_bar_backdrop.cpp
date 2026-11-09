@@ -16,9 +16,10 @@ void StatusBarBackdrop::follow(Wallpaper *wallpaper)
 {
     m_judgementChanged.reset();
     m_wallpaper = wallpaper;
-    if (!m_wallpaper)
-        return;
-    const auto update = [this] { present(m_wallpaper->isJudged(), m_wallpaper->style()); };
+    if (!m_wallpaper) { setUnavailable(); return; }
+    const auto update = [this] {
+        m_valid=m_wallpaper->isJudged();m_style=m_wallpaper->style();changed();
+    };
     m_judgementChanged = m_wallpaper->judgementChanged.connect(update);
     update();
 }

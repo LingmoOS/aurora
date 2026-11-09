@@ -80,6 +80,9 @@ public:
     const BarBackdrop::Style &style() const { return m_style; }
     // The judgement changed, in the same loop turn as the picture it is for.
     base::Signal<> judgementChanged;
+    // Average wallpaper colour behind a global logical rectangle, including
+    // the readability gradient actually drawn under the status bar.
+    BarBackdrop::Sample sampleBehind(const ui::RectF& globalRect) const;
 
     // The primary output's picture as shown, null for a colour or nothing.
     ui::Bitmap primaryPicture() const;

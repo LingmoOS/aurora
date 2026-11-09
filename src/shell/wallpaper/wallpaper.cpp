@@ -133,6 +133,41 @@ Wallpaper::Wallpaper(Shell *shell, std::string cacheDirectory, std::string servi
     }
 }
 
+BarBackdrop::Sample Wallpaper::sampleBehind(const ui::RectF& area) const
+{
+    for(const auto& screen:m_screens) {
+        const auto bounds=screen->output.bounds;
+        const double left=std::max(area.x,double(bounds.x()));
+        const double top=std::max(area.y,double(bounds.y()));
+        const double right=std::min(area.right(),double(bounds.x()+bounds.width()));
+        const double bottom=std::min(area.bottom(),double(bounds.y()+bounds.height()));
+        if(right<=left || bottom<=top)continue;
+        BarBackdrop::Sample sample;
+        if(screen->showingImage && !screen->node->picture().isNull()) {
+            const auto image=screen->node->picture().converted(ui::Bitmap::Format::Argb32Premultiplied);
+            const double sx=double(image.width())/std::max(1,bounds.width());
+            const double sy=double(image.height())/std::max(1,bounds.height());
+            // A bounded grid avoids scanning a full wallpaper on every layout.
+            for(int row=0;row<4;++row)for(int col=0;col<8;++col){
+                const int x=std::clamp(int((left-bounds.x()+(col+.5)*(right-left)/8)*sx),0,image.width()-1);
+                const int y=std::clamp(int((top-bounds.y()+(row+.5)*(bottom-top)/4)*sy),0,image.height()-1);
+                const auto pixel=reinterpret_cast<const uint32_t*>(image.constScanLine(y))[x];
+                sample.red+=(pixel>>16)&255;sample.green+=(pixel>>8)&255;sample.blue+=pixel&255;
+            }
+            sample.red/=32;sample.green/=32;sample.blue/=32;sample.valid=true;
+        } else if(screen->showingColor)sample=BarBackdrop::sampleColor(m_background.color);
+        if(sample.valid && screen->output.primary && m_style.gradientVisible){
+            const auto color=m_style.gradientColor;
+            const double alpha=color.a/255.0*std::clamp(1.0-(top+bottom-2*bounds.y())/(2*BarBackdrop::kGradientHeight),0.0,1.0);
+            sample.red=sample.red*(1-alpha)+color.r*alpha;
+            sample.green=sample.green*(1-alpha)+color.g*alpha;
+            sample.blue=sample.blue*(1-alpha)+color.b*alpha;
+        }
+        return sample;
+    }
+    return {};
+}
+
 Wallpaper::~Wallpaper()
 {
     m_appearanceChanged.reset();
@@ -385,8 +420,8 @@ void Wallpaper::present(const Screen &screen)
 
 void Wallpaper::publish(bool judged, const BarBackdrop::Style &style)
 {
-    if (judged == m_judged && style == m_style)
-        return;
+    // A new image can keep the same strip average but change local contrast.
+    // Notify local icon samplers even when the aggregate verdict is unchanged.
     m_judged = judged;
     m_style = style;
     updateGradient();

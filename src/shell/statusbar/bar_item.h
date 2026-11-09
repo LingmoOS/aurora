@@ -35,6 +35,7 @@ public:
     // What is behind the bar is dark, so its contents are light and cast a
     // shadow.
     virtual bool lightContents() const = 0;
+    virtual bool lightContentsAt(const ui::RectF&) const { return lightContents(); }
     // #FFFFFF on a dark backdrop, black at 85% otherwise.
     ui::Color textColor() const;
     // The menu bar's: #FFFFFF on a dark backdrop, black otherwise.

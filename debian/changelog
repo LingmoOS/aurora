@@ -1,3 +1,11 @@
+lingmo-compositor (5.0.6+lingmo5u6) unstable; urgency=medium
+
+  * Follow appearance service startup and icon theme changes in the shell.
+  * Select status icons using local wallpaper contrast and refresh resource artwork.
+  * Use the supplied Launchpad icon and add startup regression coverage.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 09 Nov 2026 12:00:00 +0800
+
 lingmo-compositor (5.0.6+lingmo5u5) unstable; urgency=medium
 
   * Host shared widgets below notifications without duplicating widget code.

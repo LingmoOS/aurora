@@ -17,6 +17,7 @@
 #include "base/locale.h"
 #include "core/main_loop.h"
 #include "shell/shell_window.h"
+#include "shell/wallpaper/wallpaper.h"
 #include "shell/statusbar/clock_format.h"
 #include "shell/statusbar/status_bar.h"
 #include "shell/statusbar/device_usage.h"
@@ -256,7 +257,18 @@ void StatusBarWindow::updateStatusItemLimits()
 
 void StatusBarWindow::setWallpaper(Wallpaper *wallpaper)
 {
+    m_wallpaper = wallpaper;
     m_backdrop->follow(wallpaper);
+    updateLook();
+}
+
+bool StatusBarWindow::lightContentsAt(const ui::RectF& rect) const
+{
+    if(!m_wallpaper || !m_window || rect.width<=0 || rect.height<=0)return lightContents();
+    const auto geometry=m_window->geometry();
+    const auto sample=m_wallpaper->sampleBehind({rect.x+geometry.x(),rect.y+geometry.y(),rect.width,rect.height});
+    if(!sample.valid)return lightContents();
+    return BarBackdrop::prefersWhite(BarBackdrop::relativeLuminance(sample.red,sample.green,sample.blue));
 }
 
 bool StatusBarWindow::lightContents() const

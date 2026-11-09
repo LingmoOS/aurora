@@ -60,6 +60,7 @@ private:
     void updateIcon();
     void updateContent();
 
+    bool m_localLight = false;
     std::string m_iconName;
     std::string m_glyph;
     std::string m_label;

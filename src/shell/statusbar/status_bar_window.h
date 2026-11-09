@@ -99,6 +99,7 @@ public:
     ClockItem *clock() const { return m_clock; }
     // The bar's contents are light.
     bool lightContents() const override;
+    bool lightContentsAt(const ui::RectF& windowRect) const override;
     // One of the panels is open.
     bool panelOpen() const;
     void platePainted() override;
@@ -125,6 +126,7 @@ private:
     ui::RectF availableGeometry() const;
 
     Shell *m_shell;
+    Wallpaper *m_wallpaper = nullptr;
     std::unique_ptr<StatusBar> m_statusBar;
     std::unique_ptr<StatusBarBackdrop> m_backdrop;
     std::unique_ptr<DeviceUsage> m_deviceUsage;

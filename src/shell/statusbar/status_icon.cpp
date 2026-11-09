@@ -126,10 +126,14 @@ void StatusIcon::showBattery(const Battery &battery, bool percentage)
 void StatusIcon::showNetwork(const StatusBarIndicators::Network &network)
 {
     setVisible(network.wirelessHwEnabled);
-    setGlyph(!network.wirelessEnabled ? "network-wireless-disabled"
-             : network.hotspotActive  ? "network-wireless-hotspot"
-             : !network.wirelessName.empty() ? network.wirelessIcon
-                                             : "network-wireless-connected-00");
+    if(!network.wirelessEnabled || network.hotspotActive) {
+        setGlyph(!network.wirelessEnabled?"network-wireless-disabled":"network-wireless-hotspot");
+        return;
+    }
+    auto name=network.wirelessName.empty()?std::string("network-wireless-connected-00"):network.wirelessIcon;
+    if(name=="network-wireless-connected-33")name="network-wireless-connected-25";
+    if(name=="network-wireless-connected-66")name="network-wireless-connected-75";
+    setIconName(name);
 }
 
 void StatusIcon::updateContent()
@@ -155,17 +159,20 @@ void StatusIcon::updateIcon()
     if (!m_glyph.empty()) {
         m_icon->setGlyph(m_glyph);
     } else {
-        const char *variant = bar()->lightContents() ? "statusbar/dark/" : "statusbar/light/";
+        const char *variant = m_localLight ? "statusbar/dark/" : "statusbar/light/";
         m_icon->setSource(m_iconName.empty() ? std::string() : shellDataFile(variant + m_iconName + ".svg"));
     }
 }
 
 void StatusIcon::updateLook()
 {
-    const bool light = bar()->lightContents();
-    m_icon->setColor(bar()->textColor());
+    const auto origin=mapToWindow({0,0});
+    const bool light = bar()->lightContentsAt({origin.x,origin.y,geometry().width,geometry().height});
+    m_localLight=light;
+    const auto ink=light?ui::Color::rgb(0xFFFFFF):ui::Color{0,0,0,217};
+    m_icon->setColor(ink);
     m_icon->setDropShadow(light);
-    m_text->setTextColor(bar()->textColor());
+    m_text->setTextColor(ink);
     m_text->setDropShadow(light);
     updateIcon();
     barChanged();
@@ -186,6 +193,8 @@ void StatusIcon::layout()
     }
     const ui::SizeF size {m_content->horizontalExtent().preferred, m_content->verticalExtent(-1).preferred};
     m_content->setGeometry(centred(size));
+    const auto origin=mapToWindow({0,0});
+    if(m_localLight!=bar()->lightContentsAt({origin.x,origin.y,geometry().width,geometry().height}))updateLook();
 }
 
 ClockItem::ClockItem(BarContext *bar)
