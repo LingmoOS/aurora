@@ -174,10 +174,10 @@ void NotificationCentre::Row::setNotification(const Notification &notification, 
 {
     m_notification = notification;
     m_groupKey = notification.groupKey();
-    // The centre shows neither actions nor progress.
+    // The centre keeps the progress bar, such as an update's, but not the
+    // actions: those belong to the banner the user can still act on.
     Notification shown = notification;
     shown.actions.clear();
-    shown.value = -1;
     m_card->setNotification(shown);
     m_card->setTimeText(timeText);
 }

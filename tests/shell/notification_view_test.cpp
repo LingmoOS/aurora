@@ -420,6 +420,15 @@ TEST_F(NotificationViewTest, AReplacementRestartsTheCountdownAndGlidesTheProgres
     EXPECT_TRUE(banner->isTimerRunning());
 }
 
+TEST_F(NotificationViewTest, TheCentreShowsProgressFromTheHistory)
+{
+    notify("Updating", "Downloading 40%", {}, 0, {{"value", dbus::Variant(int32_t(40))}});
+    centre().open(statusBar.get(), base::Point(1440 - 120, kStatusBar));
+    frames();
+    ASSERT_EQ(1u, centre().rows().size());
+    EXPECT_EQ(40, centre().rows()[0]->card()->notification().value);
+}
+
 TEST_F(NotificationViewTest, TheCentreOpensUnderTheBarAndTakesTheBanners)
 {
     notify("On screen");
