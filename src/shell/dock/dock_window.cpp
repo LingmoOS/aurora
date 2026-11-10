@@ -889,17 +889,12 @@ void DockWindow::layoutItems()
           1, 1);
 
     // The row as it rests, for the magnification: every icon's centre along
-    // the dock, its width, and the gap before it.
+    // the dock and its width. Storage order need not match spatial order.
     std::vector<DockMagnification::Item> items;
     items.reserve(placed.size());
     for (size_t i = 0; i < placed.size(); ++i) {
         const double centre = placed[i].position + itemSize / 2;
-        double gapBefore = 0;
-        if (i > 0) {
-            const double previous = placed[i - 1].position + itemSize / 2;
-            gapBefore = std::max(0.0, centre - previous - itemSize);
-        }
-        items.push_back({centre, itemSize, gapBefore});
+        items.push_back({centre, itemSize});
     }
     m_magnification->setItems(std::move(items), m_metrics.pitch());
     const double contentOrigin = m_start + m_drawn.lengthPadding;

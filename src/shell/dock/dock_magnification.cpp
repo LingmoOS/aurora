@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 namespace Lingmo::Shell {
 
@@ -106,29 +107,43 @@ std::vector<DockMagnification::Placement> DockMagnification::computeTargets() co
         scales[i] = 1.0 + (m_factor - 1.0) * weight * weight;
     }
 
-    // The row with the scaled widths and the same gaps: where every item's
-    // centre lands, before the row is moved back under the pointer.
+    // Presentation entries retain insertion order when an icon is pinned or
+    // moved. Find neighbours by position, without reordering the placements
+    // whose indices still belong to the caller's icons.
+    std::vector<size_t> order(m_items.size());
+    std::iota(order.begin(), order.end(), size_t(0));
+    std::stable_sort(order.begin(), order.end(), [this](size_t a, size_t b) {
+        return m_items[a].centre < m_items[b].centre;
+    });
+
+    // Preserve the rest distances, including overlaps while icons cross in a
+    // layout transition, and add only the widths gained by magnification.
+    // Rebuilding from nonnegative gaps would spread even unscaled overlaps.
     std::vector<double> centres(m_items.size());
-    centres.front() = m_items.front().centre;
-    for (size_t i = 1; i < m_items.size(); ++i) {
-        centres[i] = centres[i - 1] + m_items[i - 1].width * scales[i - 1] / 2 + m_items[i].gap
-                + m_items[i].width * scales[i] / 2;
+    centres[order.front()] = m_items[order.front()].centre;
+    for (size_t position = 1; position < order.size(); ++position) {
+        const size_t previous = order[position - 1];
+        const size_t current = order[position];
+        centres[current] = centres[previous] + m_items[current].centre - m_items[previous].centre
+                + m_items[previous].width * (scales[previous] - 1) / 2
+                + m_items[current].width * (scales[current] - 1) / 2;
     }
 
-    // Moving the row so that the place under the pointer stays there: the
-    // pointer's place between two resting centres maps onto the same place
-    // between their scaled ones. Beyond the ends, and with one item, the row
-    // keeps its place and only grows.
+    // Keep the place under the pointer fixed between its spatial neighbours.
+    // Beyond the ends, and with one item, the row keeps its place and grows.
     double offset = 0;
-    if (m_items.size() > 1 && pointer > m_items.front().centre && pointer < m_items.back().centre) {
-        for (size_t i = 0; i + 1 < m_items.size(); ++i) {
-            const double from = m_items[i].centre;
-            const double to = m_items[i + 1].centre;
+    if (order.size() > 1 && pointer > m_items[order.front()].centre
+            && pointer < m_items[order.back()].centre) {
+        for (size_t position = 0; position + 1 < order.size(); ++position) {
+            const size_t before = order[position];
+            const size_t after = order[position + 1];
+            const double from = m_items[before].centre;
+            const double to = m_items[after].centre;
             if (pointer < from || pointer > to)
                 continue;
             const double span = to - from;
             const double t = span > 0 ? (pointer - from) / span : 0.0;
-            const double here = centres[i] + (centres[i + 1] - centres[i]) * t;
+            const double here = centres[before] + (centres[after] - centres[before]) * t;
             offset = pointer - here;
             break;
         }

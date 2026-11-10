@@ -30,8 +30,6 @@ public:
         double centre = 0;
         // The icon's width at rest.
         double width = 0;
-        // The gap before it, from the item before; ignored for the first.
-        double gap = 0;
 
         bool operator==(const Item &) const = default;
     };
@@ -68,7 +66,8 @@ public:
     void setPointer(std::optional<double> along);
     std::optional<double> pointer() const { return m_pointer; }
 
-    // The rest layout and the distance between two items at rest.
+    // The rest layout, in any storage order, and the distance between two
+    // items at rest. Placements keep the supplied order as positions cross.
     void setItems(std::vector<Item> items, double pitch);
 
     // What to draw with, in the order of the last setItems().

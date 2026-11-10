@@ -941,12 +941,48 @@ TEST_F(ShellComponentsTest, TheLaunchersDragPinsWhereItIsDropped)
     EXPECT_EQ(ui::MoveAction, view->finished.back());
     EXPECT_FALSE(presentation->isDragging());
 
+    // Pinning appended the presentation entry, although the icon belongs in
+    // the middle. Sweep the settled dock in both directions: magnification
+    // must keep the icon under the pointer fixed and return the panel home.
+    move(14, 700, 300);
+    ASSERT_TRUE(test::runUntil([&] {
+        frame();
+        return !presentation->isRunning() && !dock->magnification()->isRunning();
+    }));
+    const base::Rect restPanel = dock->panelRect();
+    std::vector<std::pair<shell::DockIcon *, base::PointF>> restCentres;
+    for (shell::DockIcon *icon : dock->icons())
+        restCentres.push_back({icon, centreOf(dock, icon)});
+    int timestamp = 15;
+    for (int direction = 0; direction < 2; ++direction) {
+        for (const auto &[icon, centre] : restCentres) {
+            move(timestamp++, centre.x(), centre.y());
+            ASSERT_TRUE(test::runUntil([&] {
+                frame();
+                return !dock->magnification()->isRunning();
+            }));
+            // At the final item the row grows from its first centre, as it
+            // does beyond the ends; only interior anchors stay in place.
+            if (icon != dock->trashIcon())
+                EXPECT_NEAR(centre.x(), centreOf(dock, icon).x(), 1);
+            EXPECT_NEAR(1.5, icon->presentationScale(), 0.05);
+            EXPECT_LT(dock->panelRect().width(), restPanel.width() + 4 * 70);
+        }
+        std::reverse(restCentres.begin(), restCentres.end());
+    }
+    move(timestamp++, 700, 300);
+    ASSERT_TRUE(test::runUntil([&] {
+        frame();
+        return !dock->magnification()->isRunning();
+    }));
+    EXPECT_EQ(restPanel, dock->panelRect());
+
     // Dropped nowhere on the dock: the dock is as it was.
-    beginDrag(20, {50, 10}, {terminal.x(), terminal.y() - 300});
-    move(30, terminal.x() - 20, terminal.y());
+    beginDrag(timestamp + 1, {50, 10}, {terminal.x(), terminal.y() - 300});
+    move(timestamp + 10, terminal.x() - 20, terminal.y());
     test::runFor(std::chrono::milliseconds(50));
-    move(31, 700, 300);
-    release(32);
+    move(timestamp + 11, 700, 300);
+    release(timestamp + 12);
     EXPECT_FALSE(presentation->isDragging());
     EXPECT_EQ(dockIds(dock).size(), 4u);
 }

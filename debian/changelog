@@ -1,3 +1,13 @@
+lingmo-compositor (5.0.8+lingmo5u1) unstable; urgency=medium
+
+  * dock: keep hover magnification stable after pinning or reordering icons.
+    Calculate adjacent items in spatial order while retaining presentation
+    indices, preventing the dock panel from stretching across the screen.
+  * Add regression coverage for launcher drops, reordered entries, overlaps
+    during transitions and return-to-rest animation.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 10 Nov 2026 14:31:09 +0800
+
 lingmo-compositor (5.0.7+lingmo5u1) unstable; urgency=medium
 
   * Show update progress in notification centre history.
