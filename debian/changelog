@@ -1,3 +1,10 @@
+lingmo-compositor (5.0.6+lingmo5u7) unstable; urgency=medium
+
+  * Show update progress in notification centre history.
+  * Use the toolkit's shared styled text parser in notification cards.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 10 Nov 2026 14:29:04 +0800
+
 lingmo-compositor (5.0.6+lingmo5u6) unstable; urgency=medium
 
   * Follow appearance service startup and icon theme changes in the shell.
