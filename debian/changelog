@@ -1,4 +1,4 @@
-lingmo-compositor (5.0.6+lingmo5u7) unstable; urgency=medium
+lingmo-compositor (5.0.7+lingmo5u1) unstable; urgency=medium
 
   * Show update progress in notification centre history.
   * Use the toolkit's shared styled text parser in notification cards.
