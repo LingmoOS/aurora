@@ -84,6 +84,8 @@ public:
     bool bannersSuppressed() const { return m_bannersSuppressed; }
     void setBannersSuppressed(bool suppressed);
 
+    base::Signal<std::string> soundRequested;
+
     // The banner timed out; it moves to the history.
     void expired(uint32_t id);
     void close(uint32_t id);
@@ -91,7 +93,7 @@ public:
     void invokeAction(uint32_t id, const std::string &actionKey);
 
 private:
-    void add(const Notification &notification);
+    void add(const Notification &notification, bool playSound = true);
     void replace(uint32_t id, const Notification &notification);
     void onRemoved(uint32_t id, NotificationServer::CloseReason reason);
     void removePending();

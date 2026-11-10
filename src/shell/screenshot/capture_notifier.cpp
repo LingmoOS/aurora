@@ -25,10 +25,6 @@ static const char kShowInFolder[] = "show-in-folder";
 // The notification centre keeps a 132 px square cut from the middle; the
 // picture only needs to cover it.
 static constexpr int kThumbnailSize = 132;
-// The freedesktop sound theme, which libcanberra plays from without a theme
-// set; the variant directories it looks in, best first.
-static const char kSoundTheme[] = "freedesktop";
-
 using ImageData = std::tuple<int32_t, int32_t, int32_t, bool, int32_t, int32_t, std::vector<uint8_t>>;
 
 static std::string fileName(const std::string &path)
@@ -62,34 +58,16 @@ CaptureNotifier::CaptureNotifier(dbus::Connection *bus)
 
 CaptureNotifier::~CaptureNotifier() = default;
 
-std::string CaptureNotifier::soundFile(const std::string &event)
-{
-    std::vector<std::string> roots = {base::paths::dataHome()};
-    for (const std::string &directory : base::paths::dataDirectories())
-        roots.push_back(directory);
-    for (const std::string &root : roots) {
-        for (const char *variant : {"/stereo/", "/"}) {
-            for (const char *extension : {".oga", ".ogg", ".wav"}) {
-                const std::string path = root + "/sounds/" + kSoundTheme + variant + event + extension;
-                std::error_code error;
-                if (std::filesystem::is_regular_file(path, error))
-                    return path;
-            }
-        }
-    }
-    return {};
-}
-
 void CaptureNotifier::playShutter()
 {
-    const std::string file = soundFile("screen-capture");
-    if (file.empty())
-        return;
     if (playSound) {
-        playSound(file);
+        playSound("screen-capture");
         return;
     }
-    base::Process::startDetached("pw-play", {file});
+    // The service owns sound settings, theme lookup and playback. The event
+    // falls back to camera-shutter in the freedesktop theme.
+    dbus::Proxy(m_bus, "org.lingmo.Services", "/org/lingmo/Services/Sound",
+                "org.lingmo.Services.Sound").send("playEvent", std::string("screen-capture"));
 }
 
 void CaptureNotifier::notifySaved(const std::string &path, bool video)
@@ -133,16 +111,17 @@ void CaptureNotifier::notifyPicture(const std::string &body, const ui::Bitmap &i
 
 void CaptureNotifier::notifyFailed(const std::string &summary, const std::string &reason)
 {
-    notify(summary, reason, {}, {});
+    notify(summary, reason, {}, {}, {}, false);
 }
 
 void CaptureNotifier::notify(const std::string &summary, const std::string &body, const std::string &image,
-                             const std::string &path, const ui::Bitmap &thumbnail)
+                             const std::string &path, const ui::Bitmap &thumbnail, bool suppressSound)
 {
     if (!m_bus)
         return;
     dbus::VariantMap hints;
     hints["urgency"] = dbus::Variant(uint8_t(1));
+    hints["suppress-sound"] = dbus::Variant(suppressSound);
     // Under the Screenshot entry in the launcher, for its name, icon and settings.
     hints["desktop-entry"] = dbus::Variant(std::string("lingmo-screenshot"));
     if (!image.empty())

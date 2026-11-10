@@ -30,6 +30,9 @@ struct Notification {
     std::vector<std::string> actions;
     int32_t timeout = -1;
     int32_t urgency = 1;
+    // Notification sound hints; only a displayed banner may play one.
+    bool suppressSound = false;
+    std::string soundName;
     // Progress in percent from the "value" hint, or -1.
     int32_t value = -1;
     // Milliseconds since the epoch, UTC.

@@ -309,7 +309,7 @@ void NotificationBanners::invokeAction(uint32_t id, const std::string &actionKey
         m_server.invokeAction(id, actionKey);
 }
 
-void NotificationBanners::add(const Notification &notification)
+void NotificationBanners::add(const Notification &notification, bool playSound)
 {
     const bool critical = notification.urgency >= 2;
     if (m_bannersSuppressed
@@ -333,6 +333,11 @@ void NotificationBanners::add(const Notification &notification)
         --live;
     }
 
+    if (playSound && !notification.suppressSound && !m_settings.doNotDisturb()
+        && m_settings.applicationMode(notification.applicationKey()) == NotificationSettings::Banners) {
+        const std::string event = notification.soundName.empty() ? "message-new-instant" : notification.soundName;
+        soundRequested(event);
+    }
     m_notifications.push_back(notification);
     rowsInserted(count() - 1, 1);
 }
@@ -341,7 +346,7 @@ void NotificationBanners::replace(uint32_t id, const Notification &notification)
 {
     const int row = rowOf(id);
     if (row < 0 || m_pendingRemovals.count(id)) {
-        add(notification);
+        add(notification, false);
         return;
     }
 

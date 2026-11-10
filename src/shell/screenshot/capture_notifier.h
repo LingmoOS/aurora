@@ -26,8 +26,7 @@ public:
     explicit CaptureNotifier(base::dbus::Connection *bus);
     ~CaptureNotifier();
 
-    // The sound theme's "screen-capture" event, played by PipeWire's player
-    // in a process of its own.
+    // Ask the session sound service to play the screen-capture event.
     void playShutter();
     void notifySaved(const std::string &path, bool video);
     // A copy has no file to name or show; its picture says what was taken.
@@ -36,10 +35,8 @@ public:
     void notifyTaken(const ui::Bitmap &image);
     void notifyFailed(const std::string &summary, const std::string &reason);
 
-    // The sound file for the event; empty when the theme has none.
-    static std::string soundFile(const std::string &event);
-    // Tests: what playShutter() runs instead of the player.
-    std::function<void(const std::string &file)> playSound;
+    // Tests: what playShutter() sends instead of the service.
+    std::function<void(const std::string &event)> playSound;
 
     // The thumbnail a copied picture is shown with: at least 132 px both
     // ways, as the notification centre crops it, unless the picture is
@@ -48,7 +45,7 @@ public:
 
 private:
     void notify(const std::string &summary, const std::string &body, const std::string &image,
-                const std::string &path, const ui::Bitmap &thumbnail = {});
+                const std::string &path, const ui::Bitmap &thumbnail = {}, bool suppressSound = true);
     void notifyPicture(const std::string &body, const ui::Bitmap &image);
     void actionInvoked(uint32_t id, const std::string &action);
 

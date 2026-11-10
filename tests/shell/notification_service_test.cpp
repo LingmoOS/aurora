@@ -412,3 +412,38 @@ TEST(NotificationImagesTest, PrunesOnlyItsOwnPictures)
     EXPECT_TRUE(std::filesystem::exists(images + "/note.txt"));
     EXPECT_TRUE(std::filesystem::exists(images + "/0a1b2c3d.png"));
 }
+
+TEST_F(NotificationServiceTest, SoundsFollowNewVisibleNotificationsOnly)
+{
+    start();
+    std::vector<std::string> sounds;
+    auto subscription = notifications->banners().soundRequested.connect(
+            [&](std::string event) { sounds.push_back(event); });
+    const uint32_t first = notify("First");
+    settle();
+    EXPECT_EQ(sounds, (std::vector<std::string>{"message-new-instant"}));
+    notify("Progress", first);
+    notify("Silent", 0, {{"suppress-sound", dbus::Variant(true)}});
+    settle();
+    EXPECT_EQ(sounds.size(), 1u);
+    notifications->settings().setDoNotDisturb(true);
+    notify("Do not disturb");
+    notify("Critical but quiet", 0, {{"urgency", dbus::Variant(uint8_t(2))}});
+    settle();
+    EXPECT_EQ(sounds.size(), 1u);
+    notifications->settings().setDoNotDisturb(false);
+    notifications->settings().setApplicationMode("org.example.Chat", NotificationSettings::CenterOnly);
+    notify("History only");
+    settle();
+    EXPECT_EQ(sounds.size(), 1u);
+    notifications->settings().setApplicationMode("org.example.Chat", NotificationSettings::Banners);
+    notifications->banners().setBannersSuppressed(true);
+    notify("Center open");
+    settle();
+    EXPECT_EQ(sounds.size(), 1u);
+    notifications->banners().setBannersSuppressed(false);
+    notify("Custom sound", 0, {{"sound-name", dbus::Variant(std::string("dialog-warning"))}});
+    settle();
+    ASSERT_EQ(sounds.size(), 2u);
+    EXPECT_EQ(sounds.back(), "dialog-warning");
+}

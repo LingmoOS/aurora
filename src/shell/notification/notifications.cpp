@@ -26,6 +26,10 @@ Notifications::Notifications(dbus::Connection *bus, Applications &applications, 
     , m_history(files.history, files.images)
     , m_banners(m_server, m_settings, m_history)
 {
+    m_subscriptions.push_back(m_banners.soundRequested.connect([this](const std::string &event) {
+        dbus::Proxy(m_bus, "org.lingmo.Services", "/org/lingmo/Services/Sound",
+                    "org.lingmo.Services.Sound").send("playEvent", event);
+    }));
     m_subscriptions.push_back(m_settings.doNotDisturbChanged.connect([this] {
         if (m_object)
             m_object->emitSignal("doNotDisturbChanged");

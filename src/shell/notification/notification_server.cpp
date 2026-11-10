@@ -198,6 +198,8 @@ void NotificationServer::notify(dbus::MethodCall &call)
     notification.timeout = timeout;
     notification.desktopEntry = stringHint(hints, "desktop-entry");
     notification.urgency = intHint(hints, "urgency", 1);
+    notification.suppressSound = intHint(hints, "suppress-sound", 0) != 0;
+    notification.soundName = stringHint(hints, "sound-name");
     notification.value = intHint(hints, "value", -1);
 
     // A replacement is an update the application asked for, such as
@@ -220,6 +222,7 @@ void NotificationServer::notify(dbus::MethodCall &call)
     notification.id = id;
     m_last = notification;
     pending->wasReplaced = wasReplaced;
+    notification.suppressSound = notification.suppressSound || wasReplaced;
 
     // "image-data" wins over "image-path"; the underscored names are from
     // older revisions of the spec that some applications still send.
@@ -367,6 +370,7 @@ void NotificationServer::flush()
             continue;
 
         Notification &notification = pending->notification;
+        notification.suppressSound = notification.suppressSound || pending->closeRequested;
         const uint32_t id = notification.id;
         const bool replaced = pending->wasReplaced && m_open.count(id);
         m_open.insert(id);
