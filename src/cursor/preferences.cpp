@@ -16,6 +16,7 @@ namespace Lingmo::Cursor {
 Preferences::Preferences(Cursor &cursor)
     : m_cursor(cursor)
     , m_settings(preferencesFile("services"))
+    , m_pointerSettings(preferencesFile("compositor"))
 {
     base::EventLoop *loop = core::mainLoop();
     if (!loop)
@@ -45,6 +46,8 @@ Preferences::Preferences(Cursor &cursor)
 void Preferences::reload()
 {
     m_settings.reload();
+    m_pointerSettings.reload();
+    m_cursor.setShakeToLocate(m_pointerSettings.boolValue("Mouse/shakeToLocate", true));
     const auto theme = m_settings.stringValue("Appearance/CursorTheme", "default");
     // A stored size that is not a number counts as 0.
     constexpr auto sizeKey = "Appearance/CursorSize";

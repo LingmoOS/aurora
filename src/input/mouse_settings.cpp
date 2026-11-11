@@ -20,6 +20,7 @@ static constexpr auto group = "Mouse/";
 MouseSettings::MouseSettings(const std::string &settingsFile)
     : m_settings(settingsFile.empty() ? preferencesFile("compositor") : settingsFile)
 {
+    m_shakeToLocate = m_settings.boolValue("Mouse/shakeToLocate", true);
     m_leftHanded = m_settings.boolValue("Mouse/leftHanded", false);
     m_naturalScroll = m_settings.boolValue("Mouse/naturalScroll", m_naturalScroll);
     // The legacy accelerationProfile preference means flat (acceleration disabled).
@@ -41,6 +42,9 @@ bool MouseSettings::registerService()
         return false;
     }
     base::dbus::Object &object = exported->object();
+    object.addProperty("shakeToLocate", [this] { return m_shakeToLocate; });
+    object.addMethod("setShakeToLocate", [this](bool enabled) { setShakeToLocate(enabled); });
+    object.addSignal("shakeToLocateChanged", "");
     object.addProperty("available", [this] { return m_available; });
     object.addProperty("leftHanded", [this] { return m_leftHanded; });
     object.addProperty("naturalScroll", [this] { return m_naturalScroll; });
@@ -79,6 +83,14 @@ void MouseSettings::notify(const base::Signal<> &signal, const char *member)
     signal();
     if (m_object)
         m_object->emitSignal(member);
+}
+
+void MouseSettings::setShakeToLocate(bool enabled)
+{
+    if (m_shakeToLocate == enabled) return;
+    m_shakeToLocate = enabled;
+    save("shakeToLocate", enabled);
+    notify(shakeToLocateChanged, "shakeToLocateChanged");
 }
 
 void MouseSettings::setAvailable(bool available)

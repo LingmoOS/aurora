@@ -7,6 +7,8 @@ namespace Core {}
 namespace Test {}
 namespace Testsupport {}
 namespace core = Core;
+namespace Input {}
+namespace input = Input;
 namespace test = Test;
 namespace testsupport = Testsupport;
 }

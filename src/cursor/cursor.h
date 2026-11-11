@@ -8,6 +8,8 @@
 
 #include "base/geometry.h"
 #include "cursor/theme.h"
+#include "cursor/shake_detector.h"
+#include "base/timer.h"
 #include "input/seat_observer.h"
 #include "render/cursor_sink.h"
 #include "scene/node.h"
@@ -38,6 +40,9 @@ public:
     void setSink(render::CursorSink *sink);
     void setScale(double scale);
     void setTheme(const std::string &theme, int size);
+    void setShakeToLocate(bool enabled);
+    bool shakeToLocate() const { return m_shakeEnabled; }
+    double locatorScale() const { return m_locatorScale; }
     void paintForCapture(render::Renderer &renderer) const;
 
     // Where paintForCapture() would draw, in global logical coordinates; empty
@@ -65,6 +70,13 @@ private:
     // Pushes the current frame to the sink; returns false to composite instead.
     bool pushToSink();
     void updatePresentation();
+    void animateLocator();
+    void resetLocator();
+    bool m_shakeEnabled = true;
+    double m_locatorScale = 1;
+    ShakeDetector m_shake;
+    ShakeAnimation m_shakeAnimation;
+    base::Timer m_locatorTimer;
 
     render::CursorSink *m_sink = nullptr;
     bool m_hardware = false;

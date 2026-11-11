@@ -22,6 +22,7 @@
 #include "compositor/shm_pool.h"
 #include "compositor/surface.h"
 #include "core/main_loop.h"
+#include "loop_test_util.h"
 #include "cursor/cursor.h"
 #include "cursor/output_cursor_router.h"
 #include "fake_drm_device.h"
@@ -87,9 +88,9 @@ public:
 class DrmCursorTest : public ::testing::Test
 {
 protected:
-    void SetUp() override { m_device = std::make_unique<testing::FakeDrmDevice>(); }
+    void SetUp() override { m_device = std::make_unique<Testing::FakeDrmDevice>(); }
 
-    std::unique_ptr<testing::FakeDrmDevice> m_device;
+    std::unique_ptr<Testing::FakeDrmDevice> m_device;
 };
 
 } // namespace
@@ -618,6 +619,39 @@ TEST(SessionLockCursor, WakingWithARefusingPlaneStillLeavesNoSessionCursor)
     EXPECT_FALSE(fixture.cursor->isHardware());
     EXPECT_FALSE(fixture.sink.visible);
     EXPECT_TRUE(fixture.node->isVisible());
+}
+
+} // namespace Lingmo
+
+namespace Lingmo {
+TEST(CursorLocator, ClientCursorIsRestoredAndAnExplicitHiddenCursorStaysHidden)
+{
+    LockCursorFixture fixture;
+    PermissivePointerDelegate delegate;
+    input::Pointer pointer(&delegate, &fixture.seat);
+    auto *window = fixture.makeSurface({400, 300});
+    window->setPosition({100, 100});
+    fixture.seat.onPointerMotion(input::Timestamp(std::chrono::milliseconds(1)), {150, 150});
+    ASSERT_EQ(pointer.focusedSurface(), window);
+    auto *image = fixture.makeSurface({16, 16});
+    pointer.setCursor(image, {2, 2});
+    ASSERT_TRUE(fixture.clients->isVisible());
+    ASSERT_FALSE(fixture.node->isVisible());
+    for (int i = 0; i < 8; ++i) fixture.seat.updateCursorPosition({150.0 + i%2*80, 150});
+    ASSERT_TRUE(test::runUntil([&] { return fixture.cursor->locatorScale() == 2.5; }));
+    EXPECT_FALSE(fixture.clients->isVisible());
+    EXPECT_TRUE(fixture.node->isVisible());
+    EXPECT_EQ(pointer.cursorSurface(), image);
+    fixture.cursor->setShakeToLocate(false);
+    EXPECT_TRUE(fixture.clients->isVisible());
+    EXPECT_FALSE(fixture.node->isVisible());
+    EXPECT_EQ(pointer.cursorSurface(), image);
+    pointer.setCursor(nullptr, {});
+    fixture.cursor->setShakeToLocate(true);
+    for (int i = 0; i < 8; ++i) fixture.seat.updateCursorPosition({150.0 + i%2*80, 150});
+    test::runFor(std::chrono::milliseconds(150));
+    EXPECT_FALSE(fixture.node->isVisible());
+    EXPECT_TRUE(fixture.cursor->captureBounds().isEmpty());
 }
 
 } // namespace Lingmo

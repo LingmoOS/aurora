@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 #include <gtest/gtest.h>
+#include "loop_test_util.h"
+#include <linux/input-event-codes.h>
 
 #include <cstdlib>
 #include <filesystem>
@@ -282,4 +284,57 @@ TEST_F(CursorSearchTest, AShapeIsReadOncePerThemeAndSize)
     EXPECT_EQ(sink.image.pixel(0, 0), 0xff123478u);
     cursor.setTheme("First", 24);
     EXPECT_EQ(sink.image.pixel(0, 0), 0xff12349au);
+}
+
+TEST(CursorLocator, ShakeEnlargesWithoutMovingTheHotspotAndRestoresHardware)
+{
+    CopyingSink sink;
+    scene::Scene scene;
+    compositor::Compositor compositor(nullptr);
+    input::Seat seat(&compositor);
+    cursor::Cursor cursor(seat, *scene.root(), 24);
+    cursor.setSink(&sink);
+    seat.updateCursorPosition({100, 100});
+    const auto original = cursor.captureBounds();
+    ASSERT_TRUE(cursor.isHardware());
+    for (int i = 0; i < 7; ++i) seat.updateCursorPosition({100.0 + (i % 2) * 80, 100});
+    ASSERT_TRUE(test::runUntil([&] { return cursor.locatorScale() == 2.5; }));
+    EXPECT_FALSE(cursor.isHardware());
+    EXPECT_EQ(seat.cursorPosition(), base::PointF(100, 100));
+    const auto enlarged = cursor.captureBounds();
+    EXPECT_NEAR(enlarged.width(), original.width() * 2.5, 0.1);
+    // Scale about the hotspot rather than moving the actual pointer.
+    EXPECT_NEAR(100 - enlarged.x(), (100 - original.x()) * 2.5, 0.1);
+    ASSERT_TRUE(test::runUntil([&] { return cursor.locatorScale() == 1; }));
+    EXPECT_TRUE(cursor.isHardware());
+    EXPECT_EQ(cursor.captureBounds(), original);
+    cursor.setSink(nullptr);
+}
+
+TEST(CursorLocator, DisableAndTouchResetTheEffectAndDraggingDoesNotTrigger)
+{
+    scene::Scene scene;
+    compositor::Compositor compositor(nullptr);
+    input::Seat seat(&compositor);
+    cursor::Cursor cursor(seat, *scene.root(), 24);
+    cursor.setShakeToLocate(false);
+    for (int i = 0; i < 8; ++i) seat.updateCursorPosition({100.0 + i%2*80, 100});
+    test::runFor(std::chrono::milliseconds(150));
+    EXPECT_EQ(cursor.locatorScale(), 1);
+    cursor.setShakeToLocate(true);
+    seat.updatePointerButtonState(BTN_LEFT, true);
+    for (int i = 0; i < 8; ++i) seat.updateCursorPosition({100.0 + i%2*80, 100});
+    test::runFor(std::chrono::milliseconds(150));
+    EXPECT_EQ(cursor.locatorScale(), 1);
+    seat.updatePointerButtonState(BTN_LEFT, false);
+    for (int i = 0; i < 8; ++i) seat.updateCursorPosition({100.0 + i%2*80, 100});
+    ASSERT_TRUE(test::runUntil([&] { return cursor.locatorScale() > 1; }));
+    cursor.setShakeToLocate(false);
+    EXPECT_EQ(cursor.locatorScale(), 1);
+    cursor.setShakeToLocate(true);
+    for (int i = 0; i < 8; ++i) seat.updateCursorPosition({100.0 + i%2*80, 100});
+    ASSERT_TRUE(test::runUntil([&] { return cursor.locatorScale() > 1; }));
+    seat.setCursorHiddenByTouch(true);
+    EXPECT_EQ(cursor.locatorScale(), 1);
+    EXPECT_TRUE(cursor.captureBounds().isEmpty());
 }

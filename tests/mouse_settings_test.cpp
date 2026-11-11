@@ -45,12 +45,12 @@ TEST(MouseSettings, PersistsWithoutDevicesAndNotifiesOnlyOnChanges)
     {
         MouseSettings settings(file);
         EXPECT_TRUE(settings.acceleration());
-        EXPECT_TRUE(settings.naturalScroll());
+        EXPECT_FALSE(settings.naturalScroll());
         int changes = 0;
         auto counting = settings.settingsChanged.connect([&changes] { ++changes; });
         settings.setLeftHanded(true);
         settings.setLeftHanded(true);
-        settings.setNaturalScroll(false);
+        settings.setNaturalScroll(true);
         settings.setAcceleration(false);
         settings.setPointerAcceleration(-0.8);
         EXPECT_EQ(changes, 4);
@@ -64,7 +64,7 @@ TEST(MouseSettings, PersistsWithoutDevicesAndNotifiesOnlyOnChanges)
     }
     MouseSettings restored(file);
     EXPECT_TRUE(restored.leftHanded());
-    EXPECT_FALSE(restored.naturalScroll());
+    EXPECT_TRUE(restored.naturalScroll());
     EXPECT_FALSE(restored.acceleration());
     EXPECT_DOUBLE_EQ(restored.pointerAcceleration(), -0.8);
     EXPECT_FALSE(restored.available());
@@ -144,6 +144,8 @@ TEST(MouseSettings, DBusPropertiesMethodsAndServiceRestart)
             const auto reply = proxy.call(method, value);
             EXPECT_FALSE(reply.isError()) << method << ": " << reply.error().message;
         };
+        invoke("setShakeToLocate", false);
+        EXPECT_EQ(proxy.property<bool>("shakeToLocate"), false);
         invoke("setLeftHanded", true);
         invoke("setNaturalScroll", false);
         invoke("setAcceleration", false);
@@ -178,4 +180,22 @@ TEST(MouseSettings, SendsTheChangeSignalsSettingsListensTo)
     proxy.call("setLeftHanded", true);
     EXPECT_TRUE(input_test::runUntil(loop, [&received] { return received.size() == 2; }));
     EXPECT_EQ(received, (std::vector<std::string> {"settingsChanged()", "leftHandedChanged()"}));
+}
+
+TEST(MouseSettings, ShakeLocatorPreferencePersistsWithoutChangingPointerSpeed)
+{
+    TemporaryDirectory directory;
+    const auto file = directory.filePath("compositor.conf");
+    {
+        MouseSettings settings(file);
+        EXPECT_TRUE(settings.shakeToLocate());
+        settings.setPointerAcceleration(0.25);
+        settings.setShakeToLocate(false);
+        EXPECT_FALSE(settings.shakeToLocate());
+    }
+    MouseSettings restored(file);
+    EXPECT_FALSE(restored.shakeToLocate());
+    EXPECT_EQ(restored.pointerAcceleration(), 0.25);
+    restored.setShakeToLocate(true);
+    EXPECT_TRUE(Settings(file).boolValue("Mouse/shakeToLocate", false));
 }

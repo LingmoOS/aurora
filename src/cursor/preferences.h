@@ -23,6 +23,7 @@ public:
 private:
     Cursor &m_cursor;
     base::Settings m_settings;
+    base::Settings m_pointerSettings;
     base::FileWatch m_watch;
     std::vector<base::dbus::Match> m_appearanceSignals;
 };

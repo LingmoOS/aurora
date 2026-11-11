@@ -1,3 +1,12 @@
+lingmo-compositor (5.0.11+lingmo5u1) unstable; urgency=medium
+
+  * Add shake-to-locate cursor detection, temporary enlargement and smooth
+    return while preserving pointer coordinates and restoring hardware cursors.
+  * Expose and persist the mouse locator preference, with cursor, hardware,
+    gesture detection and settings regression coverage.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 12 Nov 2026 01:58:05 +0800
+
 lingmo-compositor (5.0.10+lingmo5u1) unstable; urgency=medium
 
   * Add Efficient desktop mode with a bottom taskbar, right-side tray,

@@ -13,6 +13,7 @@
 
 #include "base/timer.h"
 #include "input/seat.h"
+#include "compositor/compositor.h"
 #include "input/types.h"
 namespace scene = Lingmo::Scene;
 
@@ -34,6 +35,15 @@ public:
                 notifyChanged();
             startTimer();
         };
+    }
+
+    void setVisualScale(double scale)
+    {
+        if (scale == m_visualScale) return;
+        m_visualScale = scale;
+        if (!m_frames.empty())
+            setGeometry(base::Rect(position(), (base::SizeF(m_frames.front().image.size()) * (scale / m_density)).toSize()));
+        notifyChanged();
     }
 
     void setDensity(int density)
@@ -80,7 +90,7 @@ public:
             if (!m_frames.empty())
                 setGeometry(base::Rect(
                         position(),
-                        (base::SizeF(m_frames.front().image.size()) / m_density).toSize()));
+                        (base::SizeF(m_frames.front().image.size()) * (m_visualScale / m_density)).toSize()));
             notifyChanged();
         }
         m_wantsDisplay = visible;
@@ -94,7 +104,7 @@ public:
     base::Point hotspot() const
     {
         return m_frames.empty() ? base::Point()
-                                : (base::PointF(m_frames.front().hotspot) / m_density).toPoint();
+                                : (base::PointF(m_frames.front().hotspot) * (m_visualScale / m_density)).toPoint();
     }
 
     const Frame *currentFrame() const
@@ -149,6 +159,7 @@ private:
         return loaded;
     }
 
+    double m_visualScale = 1;
     int m_size;
     std::string m_theme = "default";
     std::map<std::pair<input::CursorShape, int>, std::vector<Frame>> m_loaded;
@@ -166,6 +177,8 @@ Cursor::Cursor(input::Seat &seat, scene::Node &container, int size)
     , m_container(container)
     , m_node(static_cast<ImageNode *>(container.addChild(std::make_unique<ImageNode>(size))))
 {
+    m_locatorTimer.setInterval(std::chrono::milliseconds(16));
+    m_locatorTimer.onTimeout = [this] { animateLocator(); };
     m_seat.addObserver(this);
     m_node->onFrameChanged = [this] {
         if (!m_hardware || !pushToSink())
@@ -176,6 +189,7 @@ Cursor::Cursor(input::Seat &seat, scene::Node &container, int size)
 
 Cursor::~Cursor()
 {
+    m_locatorTimer.stop();
     m_seat.removeObserver(this);
     m_container.removeChild(m_node);
 }
@@ -195,6 +209,7 @@ void Cursor::setHeld(bool held)
     if (m_held == held)
         return;
     m_held = held;
+    if (held) resetLocator();
     // The sink learns the position before the image, which it then puts on the
     // output under the pointer and nowhere else first.
     if (!held && m_sink)
@@ -208,8 +223,8 @@ base::RectF Cursor::captureBounds() const
     if (!m_node->wantsDisplay())
         return {};
     const auto *frame = m_node->currentFrame();
-    return base::RectF(m_seat.cursorPosition() - base::PointF(frame->hotspot) / m_node->density(),
-                       base::SizeF(frame->image.size()) / m_node->density());
+    return base::RectF(m_seat.cursorPosition() - base::PointF(frame->hotspot) * (m_locatorScale / m_node->density()),
+                       base::SizeF(frame->image.size()) * (m_locatorScale / m_node->density()));
 }
 
 void Cursor::paintForCapture(render::Renderer &renderer) const
@@ -223,8 +238,8 @@ void Cursor::paintForCapture(render::Renderer &renderer) const
     if (texture)
         renderer.drawTextureF(
                 texture.get(),
-                base::RectF(m_seat.cursorPosition() - base::PointF(frame->hotspot) / m_node->density(),
-                            base::SizeF(image.size()) / m_node->density()));
+                base::RectF(m_seat.cursorPosition() - base::PointF(frame->hotspot) * (m_locatorScale / m_node->density()),
+                            base::SizeF(image.size()) * (m_locatorScale / m_node->density())));
 }
 
 void Cursor::setScale(double scale)
@@ -292,7 +307,7 @@ void Cursor::updatePresentation()
     }
     // A client cursor surface composites through the seat's container, so the
     // plane has to give the cursor back rather than draw a second one.
-    const bool wantsHardware = m_sink && m_node->wantsDisplay();
+    const bool wantsHardware = m_locatorScale == 1 && m_sink && m_node->wantsDisplay();
     m_hardware = wantsHardware && pushToSink();
 
     if (m_sink && !m_hardware)
@@ -317,16 +332,56 @@ void Cursor::onCursorChanged()
     // A touch hides every cursor, the client's own surface too, until the
     // mouse moves.
     const bool touched = m_seat.cursorHiddenByTouch();
-    const bool visible = !touched && (override || client || !m_seat.hasClientCursorRequest());
+    // A client-owned bitmap has no theme shape. During locating, use the
+    // system pointer as a temporary locator, then restore the client image.
+    // An explicit hidden cursor is never revealed by the locator.
+    if (touched) resetLocator();
+    const bool locatingClient = m_locatorScale > 1 && m_seat.hasClientCursor();
+    const bool visible = !touched && (override || client || locatingClient || !m_seat.hasClientCursorRequest());
     if (auto *container = m_seat.cursorContainer())
-        container->setVisible(!override && !touched);
-    m_node->setShape(override.value_or(client.value_or(m_seat.compositorCursorShape())), visible);
+        container->setVisible(!override && !touched && !locatingClient);
+    m_node->setVisualScale(m_locatorScale);
+    m_node->setShape(override.value_or(client.value_or(locatingClient ? input::CursorShape::Default : m_seat.compositorCursorShape())), visible);
     updatePresentation();
     onCursorPositionChanged();
 }
 
+void Cursor::setShakeToLocate(bool enabled)
+{
+    if (m_shakeEnabled == enabled) return;
+    m_shakeEnabled = enabled;
+    if (!enabled) { resetLocator(); onCursorChanged(); }
+}
+
+void Cursor::resetLocator()
+{
+    m_shake.reset(); m_shakeAnimation.reset(); m_locatorTimer.stop();
+    m_locatorScale = 1;
+    m_node->setVisualScale(1);
+}
+
+void Cursor::animateLocator()
+{
+    if (m_held || m_seat.cursorHiddenByTouch()) { resetLocator(); onCursorChanged(); return; }
+    const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    m_locatorScale = m_shakeAnimation.advance(now);
+    // Do not change input or the seat override: only image presentation.
+    onCursorChanged();
+    if (!m_shakeAnimation.active()) m_locatorTimer.stop();
+    if (auto *compositor = m_seat.compositor()) compositor->scheduleRepaint();
+}
+
 void Cursor::onCursorPositionChanged()
 {
+    if (m_shakeEnabled && !m_held && !m_seat.cursorHiddenByTouch() && m_seat.pressedButtons() == input::NoButton) {
+        const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        if (m_shake.move(m_seat.cursorPosition(), now)) {
+            m_shakeAnimation.trigger(now);
+            if (!m_locatorTimer.isActive()) m_locatorTimer.start();
+        }
+    } else m_shake.reset();
     if (m_hardware) {
         // The whole point of the plane: motion costs one ioctl, not a frame.
         // The sink maps the logical position onto each output itself.

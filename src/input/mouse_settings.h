@@ -23,6 +23,10 @@ public:
 
     bool available() const { return m_available; }
 
+    bool shakeToLocate() const { return m_shakeToLocate; }
+    void setShakeToLocate(bool enabled);
+    base::Signal<> shakeToLocateChanged;
+
     bool leftHanded() const { return m_leftHanded; }
 
     bool naturalScroll() const { return m_naturalScroll; }
@@ -52,6 +56,7 @@ private:
 
     base::Settings m_settings;
     bool m_available = false;
+    bool m_shakeToLocate = true;
     bool m_leftHanded = false;
     // A wheel reads as a scrollbar, not as a finger on the content: pushing it
     // down moves the content down, as on every other desktop. A touchpad keeps

@@ -374,3 +374,5 @@ add_subdirectory(shell)
 
 # Also buildable on its own against the SDK, without a DRM/GPU backend.
 add_subdirectory(dock-magnification)
+
+add_subdirectory(cursor-shake)
