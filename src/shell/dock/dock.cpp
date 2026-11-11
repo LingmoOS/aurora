@@ -44,6 +44,11 @@ bool Dock::registerService()
         return false;
 
     auto object = std::make_unique<dbus::Object>(m_bus, "/Dock", "org.lingmo.Dock");
+    object->addMethod("setEfficientMode", [this](bool enabled) { m_settings.setEfficientMode(enabled); });
+    object->addProperty("efficientMode", [this] { return m_settings.efficientMode(); });
+    m_subscriptions.push_back(m_settings.efficientModeChanged.connect([this] {
+        if (m_object) m_object->emitPropertiesChanged({"efficientMode"});
+    }));
     object->addMethod("setDirection",
                       [this](int32_t direction) { m_settings.setDirection(DockSettings::Direction(direction)); },
                       dbus::ArgumentNames{{"direction"}, {}});

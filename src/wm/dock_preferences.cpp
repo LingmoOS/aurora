@@ -53,8 +53,10 @@ DockPreferences::DockPreferences(DockLayoutManager &layout, WindowManager &manag
 void DockPreferences::reload()
 {
     m_settings.reload();
-    m_layout.setBehavior(behaviorFromSetting(int(m_settings.intValue("Dock/Visibility", 0))));
-    m_manager.setDockTransitionsAbovePanels(m_settings.boolValue("Dock/MinimizedArea", true));
+    const bool efficient = m_settings.intValue("Desktop/Mode", 0) == 1;
+    m_layout.setBehavior(efficient ? DockAutoHideBehavior::Never
+                                  : behaviorFromSetting(int(m_settings.intValue("Dock/Visibility", 0))));
+    m_manager.setDockTransitionsAbovePanels(!efficient && m_settings.boolValue("Dock/MinimizedArea", true));
 }
 
 } // namespace Lingmo::WM

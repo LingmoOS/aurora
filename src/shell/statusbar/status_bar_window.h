@@ -24,6 +24,7 @@ class Menu;
 namespace Lingmo::Shell {
 
 class ClockItem;
+class DockSettings;
 class DeviceUsage;
 class VpnNotifier;
 class ShellWindow;
@@ -52,6 +53,10 @@ public:
     StatusBarWindow(Shell *shell, std::unique_ptr<StatusBar> statusBar);
     ~StatusBarWindow() override;
 
+    void followDesktopMode(DockSettings &settings);
+    bool efficientMode() const { return m_efficientMode; }
+    int taskbarWidth() const;
+    base::Signal<int> taskbarWidthChanged;
     StatusBar &statusBar() { return *m_statusBar; }
     StatusBarBackdrop &backdrop() { return *m_backdrop; }
     // What the desktop shows decides the bar's contents; null leaves them to
@@ -96,6 +101,7 @@ public:
     StatusIcon *networkIcon() const { return m_network; }
     StatusIcon *batteryIcon() const { return m_battery; }
     StatusIcon *controlIcon() const { return m_control; }
+    StatusIcon *notificationIcon() const { return m_notification; }
     ClockItem *clock() const { return m_clock; }
     // The bar's contents are light.
     bool lightContents() const override;
@@ -125,6 +131,9 @@ private:
     void updateStatusItemLimits();
     ui::RectF availableGeometry() const;
 
+    bool m_efficientMode = false;
+    bool m_geometryUpdating = false;
+    base::Subscription m_modeChanged;
     Shell *m_shell;
     Wallpaper *m_wallpaper = nullptr;
     std::unique_ptr<StatusBar> m_statusBar;
@@ -146,6 +155,7 @@ private:
     StatusIcon *m_battery = nullptr;
     StatusIcon *m_control = nullptr;
     ClockItem *m_clock = nullptr;
+    StatusIcon *m_notification = nullptr;
     std::vector<StatusBarPanels *> m_panels;
     std::vector<base::Subscription> m_panelSubscriptions;
     StatusBarIndicators *m_indicators = nullptr;

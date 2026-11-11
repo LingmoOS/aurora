@@ -616,3 +616,15 @@ TEST_F(ControlCenterTest, TheBarsItemsOpenEveryPanel)
     statusBar->removePanels(center);
     statusBar->setIndicators(nullptr);
 }
+
+TEST_F(ControlCenterTest, EfficientTaskbarOpensControlCenterAboveItsBottomEdge)
+{
+    bar->setGeometry(base::Rect(900, kOutput.height() - 52, kOutput.width() - 900, 52));
+    bar->setExclusiveZone(wm::ScreenEdge::Bottom, 52);
+    center->openPanel(Panel::ControlCenter, bar.get(), {100, 0, 40, 52});
+    test::runFor(std::chrono::milliseconds(50)); frame();
+    ASSERT_NE(nullptr, center->popupWindow(Panel::ControlCenter));
+    const auto geometry = center->popupWindow(Panel::ControlCenter)->geometry();
+    EXPECT_LE(geometry.bottom(), bar->geometry().y());
+    EXPECT_GE(geometry.y(), kOutput.y());
+}

@@ -173,7 +173,10 @@ base::Rect ControlCenter::panelGeometry(Panel panel, ShellWindow *bar, const bas
             x = screen.x() + screen.width() - width - margin;
         x = std::max(x, screen.x() + margin);
         // The bar sits at the top of its own screen, which need not be at y 0.
-        return base::Rect(x, screen.y() + kBarHeight + margin, width, height);
+        const bool bottomBar = bar && bar->geometry().y() > screen.y() + screen.height() / 2;
+        const int y = bottomBar ? std::max(screen.y() + margin, bar->geometry().y() - height - margin)
+                                : screen.y() + kBarHeight + margin;
+        return base::Rect(x, y, width, height);
     }
 
     const base::Rect area = output ? m_shell->workArea(*output) : screen;
@@ -318,8 +321,15 @@ void ControlCenter::resizeControlCenter()
     const int height = int(open.controlCenter->windowHeight(scale));
     if (height == open.geometry.height())
         return;
-    open.geometry.setHeight(height);
+    open.geometry = panelGeometry(Panel::ControlCenter, open.bar, open.anchor);
     open.window->resize({double(open.geometry.width()), double(height)});
+    const auto origin = open.bar->geometry().topLeft();
+    ui::PopupPlacement placement;
+    placement.anchorRect = {double(open.geometry.x() - origin.x()), double(open.geometry.y() - origin.y()), 1, 1};
+    placement.anchor = ui::PopupAnchor::TopLeft;
+    placement.gravity = ui::PopupAnchor::BottomRight;
+    placement.flipX = placement.flipY = placement.slide = false;
+    open.window->setPopupPlacement(placement);
     updateWindow(Panel::ControlCenter);
 }
 

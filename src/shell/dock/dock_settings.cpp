@@ -32,6 +32,8 @@ DockSettings::DockSettings(std::string path)
                                  const bool factor =
                                          values.magnificationFactor != m_magnificationFactor;
                                  const bool bounce = values.bounceOnLaunch != m_bounceOnLaunch;
+                                 const bool mode = !m_modeSet && values.efficientMode != m_efficientMode;
+                                 if (!m_modeSet) m_efficientMode = values.efficientMode;
                                  m_iconSize = values.iconSize;
                                  m_direction = values.direction;
                                  m_visibility = values.visibility;
@@ -43,6 +45,7 @@ DockSettings::DockSettings(std::string path)
                                  m_bounceOnLaunch = values.bounceOnLaunch;
                                  m_ready = true;
                                  ready();
+                                 if (mode) efficientModeChanged();
                                  if (iconSize)
                                      iconSizeChanged();
                                  if (direction)
@@ -51,13 +54,13 @@ DockSettings::DockSettings(std::string path)
                                      visibilityChanged();
                                  if (tint)
                                      glassTintChanged();
-                                 if (area)
+                                 if (area || mode)
                                      minimizedAreaChanged();
-                                 if (magnification)
+                                 if (magnification || mode)
                                      magnificationChanged();
                                  if (factor)
                                      magnificationFactorChanged();
-                                 if (bounce)
+                                 if (bounce || mode)
                                      bounceOnLaunchChanged();
                              });
 }
@@ -87,6 +90,7 @@ DockSettings::Values DockSettings::load(const std::string &path)
     settings.sync();
 
     Values values;
+    values.efficientMode = settings.intValue("Desktop/Mode", 0) == 1;
     values.iconSize = int(settings.intValue("Dock/IconSize", kBaseIconSize));
     values.direction = Direction(settings.intValue("Dock/Direction", Bottom));
     values.visibility = Visibility(settings.intValue("Dock/Visibility", AlwaysShow));
@@ -111,6 +115,17 @@ void DockSettings::write(const char *key, double value)
         else
             settings.setValue(name, int64_t(value));
     });
+}
+
+void DockSettings::setEfficientMode(bool enabled)
+{
+    m_modeSet = true;
+    if (enabled == m_efficientMode) return;
+    m_efficientMode = enabled;
+    write("Desktop/Mode", enabled ? 1 : 0);
+    efficientModeChanged();
+    directionChanged(); iconSizeChanged(); visibilityChanged();
+    magnificationChanged(); bounceOnLaunchChanged(); minimizedAreaChanged();
 }
 
 void DockSettings::setIconSize(int iconSize)

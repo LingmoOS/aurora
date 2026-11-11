@@ -3,6 +3,8 @@
 // found in the LICENSE file.
 
 #include "shell/statusbar/status_bar_window.h"
+#include "shell/dock/dock_settings.h"
+#include "ui/painter.h"
 
 #include <algorithm>
 #include <chrono>
@@ -52,6 +54,10 @@ public:
     bool acceptsPointer() const override { return true; }
 
 protected:
+    void paint(ui::Painter &painter) override
+    {
+        if (m_bar->efficientMode()) painter.fillRect(localRect(), ui::Theme::current().background);
+    }
     void pointerPress(const ui::PointerEvent &) override { m_bar->closePopups(); }
 
     void layout() override
@@ -167,6 +173,9 @@ StatusBarWindow::StatusBarWindow(Shell *shell, std::unique_ptr<StatusBar> status
     m_battery->setIconWidth(BarContext::kIconSize + 6);
     m_control = statusIcon("control", Panel::ControlCenter);
     m_control->setIconName("control");
+    m_notification = statusIcon("notifications", Panel::NotificationCenter);
+    m_notification->setIconName("notifications");
+    m_notification->setVisible(false);
     m_clock = m_root->addChild<ClockItem>(this);
     m_clock->onClicked = [this](const ui::PointerEvent &) { togglePanel(Panel::NotificationCenter); };
     m_clock->onPreferredWidthChanged = [this] { layoutRow(); };
@@ -217,6 +226,7 @@ StatusBarWindow::StatusBarWindow(Shell *shell, std::unique_ptr<StatusBar> status
 
 StatusBarWindow::~StatusBarWindow()
 {
+    m_modeChanged.reset();
     m_subscriptions.clear();
     m_panelSubscriptions.clear();
     m_indicatorsChanged.reset();
@@ -231,17 +241,53 @@ StatusBarWindow::~StatusBarWindow()
         close(m_clockFd);
 }
 
+int StatusBarWindow::taskbarWidth() const
+{
+    double width = 12;
+    for (const auto &child : m_root->children()) {
+        if (child.get() != m_menuSlot && child->isVisible())
+            width += std::max(0.0, child->layoutHints().preferredWidth);
+    }
+    const auto *output = m_shell->output({});
+    return std::clamp(int(std::ceil(width)), 1, output ? std::max(1, output->bounds.width() * 2 / 3) : 600);
+}
+
+void StatusBarWindow::followDesktopMode(DockSettings &settings)
+{
+    const auto apply = [this, &settings] {
+        const bool efficient = settings.efficientMode();
+        if (efficient == m_efficientMode) return;
+        closePopups();
+        m_efficientMode = efficient;
+        if (m_menuBar) m_menuBar->closeMenu();
+        m_menuSlot->setVisible(!efficient);
+        m_notification->setVisible(efficient);
+        m_statusBar->appMenuRegistrar().setEnabled(!efficient);
+        updateClock(); layoutRow(); updateGeometry(); updateLook();
+    };
+    m_modeChanged = settings.efficientModeChanged.connect(apply);
+    apply();
+}
+
 void StatusBarWindow::updateGeometry()
 {
-    // Always the primary output, all its width.
+    if (m_geometryUpdating) return;
     const Shell::Output *output = m_shell->output({});
-    if (!output)
-        return;
+    if (!output) return;
+    m_geometryUpdating = true;
     m_window->setOutput(output->name);
-    m_window->setGeometry(base::Rect(output->bounds.x(), output->bounds.y(), output->bounds.width(), kHeight));
-    m_window->setExclusiveZone(wm::ScreenEdge::Top, kHeight);
-    updateGlass();
-    updateStatusItemLimits();
+    if (m_efficientMode) {
+        const int width = taskbarWidth();
+        m_window->setGeometry(base::Rect(output->bounds.right() - width,
+            output->bounds.bottom() - DockSettings::taskbarHeight, width, DockSettings::taskbarHeight));
+        m_window->setExclusiveZone(wm::ScreenEdge::Bottom, DockSettings::taskbarHeight);
+        taskbarWidthChanged(width);
+    } else {
+        m_window->setGeometry(base::Rect(output->bounds.x(), output->bounds.y(), output->bounds.width(), kHeight));
+        m_window->setExclusiveZone(wm::ScreenEdge::Top, kHeight);
+    }
+    updateGlass(); updateStatusItemLimits();
+    m_geometryUpdating = false;
 }
 
 void StatusBarWindow::updateStatusItemLimits()
@@ -252,7 +298,8 @@ void StatusBarWindow::updateStatusItemLimits()
     // An item may take up to a third of the bar.
     const base::Rect geometry = m_window->geometry();
     items->setBarOrigin(geometry.topLeft());
-    items->setLimits(kHeight, std::max(kHeight, geometry.width() / 3));
+    items->setLimits(m_efficientMode ? DockSettings::taskbarHeight : kHeight,
+                     std::max(kHeight, geometry.width() / 3));
 }
 
 void StatusBarWindow::setWallpaper(Wallpaper *wallpaper)
@@ -264,6 +311,7 @@ void StatusBarWindow::setWallpaper(Wallpaper *wallpaper)
 
 bool StatusBarWindow::lightContentsAt(const ui::RectF& rect) const
 {
+    if (m_efficientMode) return ui::Theme::current().darkMode;
     if(!m_wallpaper || !m_window || rect.width<=0 || rect.height<=0)return lightContents();
     const auto geometry=m_window->geometry();
     const auto sample=m_wallpaper->sampleBehind({rect.x+geometry.x(),rect.y+geometry.y(),rect.width,rect.height});
@@ -273,6 +321,7 @@ bool StatusBarWindow::lightContentsAt(const ui::RectF& rect) const
 
 bool StatusBarWindow::lightContents() const
 {
+    if (m_efficientMode) return ui::Theme::current().darkMode;
     return m_lightContents;
 }
 
@@ -292,7 +341,8 @@ void StatusBarWindow::updateLook()
 {
     // What is behind the bar decides; the system's dark mode while nothing
     // has been judged.
-    const bool light = m_backdrop->isValid() ? m_backdrop->useLightForeground() : ui::Theme::current().darkMode;
+    const bool light = m_efficientMode ? ui::Theme::current().darkMode
+            : m_backdrop->isValid() ? m_backdrop->useLightForeground() : ui::Theme::current().darkMode;
     m_lightContents = light;
     if (m_menuBar)
         m_menuBar->barChanged();
@@ -301,7 +351,7 @@ void StatusBarWindow::updateLook()
     if (wm::StatusItems *items = m_shell->windowManager() ? m_shell->windowManager()->statusItems() : nullptr) {
         items->setAppearance(light, textColor().argb());
     }
-    for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control})
+    for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control, m_notification})
         icon->updateLook();
     m_clock->updateLook();
     m_recording->updateLook();
@@ -474,10 +524,11 @@ void StatusBarWindow::layoutRow()
     preferred(m_statusItems, m_statusItems->preferredWidth());
     m_tray->setVisible(m_tray->count() > 0);
     preferred(m_tray, m_tray->preferredWidth());
-    for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control})
+    for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control, m_notification})
         preferred(icon, icon->preferredWidth());
     preferred(m_clock, m_clock->preferredWidth());
     m_root->requestLayout();
+    if (m_efficientMode) updateGeometry();
 }
 
 void StatusBarWindow::updateClock()
@@ -485,7 +536,8 @@ void StatusBarWindow::updateClock()
     const auto now = std::chrono::system_clock::now();
     const int64_t seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
     const base::Locale locale(m_statusBar->timeLocale());
-    m_clock->setText(locale.toString(base::DateTime::fromSecondsSinceEpoch(seconds), m_statusBar->timeFormat()));
+    m_clock->setText(locale.toString(base::DateTime::fromSecondsSinceEpoch(seconds), m_efficientMode ? (m_statusBar->twentyFourTime() ? "HH:mm" : "h:mm AP") : m_statusBar->timeFormat()));
+    m_clock->setDate(m_efficientMode ? locale.toString(base::DateTime::fromSecondsSinceEpoch(seconds), "yyyy/MM/dd") : std::string());
     armClock();
 }
 
@@ -541,13 +593,15 @@ BarItem *StatusBarWindow::itemFor(Panel panel) const
     case Panel::Battery:
         return m_battery;
     case Panel::NotificationCenter:
-        return m_clock;
+        return m_efficientMode ? static_cast<BarItem *>(m_notification) : m_clock;
     }
     return nullptr;
 }
 
 void StatusBarWindow::updateChecked()
 {
+    m_clock->setChecked(false);
+    m_notification->setChecked(false);
     for (Panel panel : {Panel::ControlCenter, Panel::Network, Panel::Volume, Panel::Battery,
                         Panel::NotificationCenter}) {
         StatusBarPanels *panels = panelsFor(panel);

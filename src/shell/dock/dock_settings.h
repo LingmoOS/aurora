@@ -39,29 +39,33 @@ public:
 
     bool isReady() const { return m_ready; }
 
-    int iconSize() const { return m_iconSize; }
+    bool efficientMode() const { return m_efficientMode; }
+    void setEfficientMode(bool enabled);
+    base::Signal<> efficientModeChanged;
+    static constexpr int taskbarHeight = 52;
+    int iconSize() const { return m_efficientMode ? 32 : m_iconSize; }
     // Written once the size has stopped changing for a moment, as a slider
     // drags it.
     void setIconSize(int iconSize);
-    Direction direction() const { return m_direction; }
+    Direction direction() const { return m_efficientMode ? Bottom : m_direction; }
     void setDirection(Direction direction);
-    Visibility visibility() const { return m_visibility; }
+    Visibility visibility() const { return m_efficientMode ? AlwaysShow : m_visibility; }
     void setVisibility(Visibility visibility);
-    int edgeMargins() const { return m_edgeMargins; }
+    int edgeMargins() const { return m_efficientMode ? 0 : m_edgeMargins; }
     double glassTint() const { return m_glassTint; }
     // Clamped to 0..1; not a number is the default.
     void setGlassTint(double tint);
-    bool minimizedArea() const { return m_minimizedArea; }
+    bool minimizedArea() const { return !m_efficientMode && m_minimizedArea; }
     void setMinimizedArea(bool enabled);
 
     // The icons grow under the pointer, as macOS magnification.
-    bool magnification() const { return m_magnification; }
+    bool magnification() const { return !m_efficientMode && m_magnification; }
     void setMagnification(bool enabled);
     // The largest scale the pointer brings an icon to; 1 to 2.
     double magnificationFactor() const { return m_magnificationFactor; }
     void setMagnificationFactor(double factor);
     // An application that is starting hops a few times.
-    bool bounceOnLaunch() const { return m_bounceOnLaunch; }
+    bool bounceOnLaunch() const { return !m_efficientMode && m_bounceOnLaunch; }
     void setBounceOnLaunch(bool enabled);
 
     base::Signal<> ready;
@@ -76,6 +80,7 @@ public:
 
 private:
     struct Values {
+        bool efficientMode = false;
         int iconSize = kBaseIconSize;
         Direction direction = Bottom;
         Visibility visibility = AlwaysShow;
@@ -92,6 +97,8 @@ private:
 
     std::string m_path;
     bool m_ready = false;
+    bool m_efficientMode = false;
+    bool m_modeSet = false;
     int m_iconSize = kBaseIconSize;
     Direction m_direction = Bottom;
     Visibility m_visibility = AlwaysShow;

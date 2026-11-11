@@ -204,6 +204,8 @@ ClockItem::ClockItem(BarContext *bar)
     setInsets(BarContext::kHighlightGap / 2,
               BarContext::kEdgeMargin - (BarContext::kItemGap - BarContext::kHighlightGap) / 2);
     m_label = addChild<BarLabel>();
+    m_date = addChild<BarLabel>();
+    m_date->setVisible(false);
     updateLook();
 }
 
@@ -218,14 +220,24 @@ void ClockItem::setText(const std::string &text)
         onPreferredWidthChanged();
 }
 
+void ClockItem::setDate(const std::string &text)
+{
+    if (m_date->text() == text) return;
+    m_date->setText(text); m_date->setVisible(!text.empty());
+    requestLayout();
+    if (onPreferredWidthChanged) onPreferredWidthChanged();
+}
+
 double ClockItem::preferredWidth() const
 {
-    return BarContext::kItemGap / 2 + m_label->sizeHint().width + BarContext::kSmallSpacing * 2
+    return BarContext::kItemGap / 2 + std::max(m_label->sizeHint().width, m_date->sizeHint().width) + BarContext::kSmallSpacing * 2
             + BarContext::kEdgeMargin;
 }
 
 void ClockItem::updateLook()
 {
+    m_date->setTextColor(bar()->textColor());
+    m_date->setDropShadow(bar()->lightContents());
     m_label->setTextColor(bar()->textColor());
     m_label->setDropShadow(bar()->lightContents());
     barChanged();
@@ -233,7 +245,13 @@ void ClockItem::updateLook()
 
 void ClockItem::layout()
 {
-    m_label->setGeometry(centred(m_label->sizeHint()));
+    auto rect = centred(m_label->sizeHint());
+    if (m_date->isVisible()) {
+        rect.y -= 9;
+        auto date = centred(m_date->sizeHint()); date.y += 9;
+        m_date->setGeometry(date);
+    }
+    m_label->setGeometry(rect);
 }
 
 StopItem::StopItem(BarContext *bar)

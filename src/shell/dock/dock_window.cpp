@@ -162,6 +162,8 @@ protected:
 
     void paint(ui::Painter &painter) override
     {
+        if (m_dock->dock().settings().efficientMode())
+            painter.fillRect(localRect(), ui::Theme::current().background);
         const ui::Color line = ui::color(toolkit::CompositorColor::DockDivider);
         const base::Rect panel = m_dock->panelRect();
         const auto draw = [&](const base::RectF &rect, double opacity) {
@@ -173,8 +175,10 @@ protected:
                                      rect.height()},
                                     {0, 0, ui::Corners::Circular}, color);
         };
-        draw(m_dock->divider(), 0.18);
-        draw(m_dock->trailingDivider(), m_dock->m_trailingOpacity);
+        if (!m_dock->dock().settings().efficientMode()) {
+            draw(m_dock->divider(), 0.18);
+            draw(m_dock->trailingDivider(), m_dock->m_trailingOpacity);
+        }
     }
 
     // The whole window takes drags: the application area, and the icons
@@ -313,6 +317,13 @@ DockWindow::DockWindow(Shell *shell, std::unique_ptr<Dock> dock)
         m_minimized->setAnimationsEnabled(true);
     }));
     DockSettings &settings = m_dock->settings();
+    m_subscriptions.push_back(settings.efficientModeChanged.connect([this] {
+        hideTooltip();
+        if (m_shell->seat()->drag()->busy()) m_shell->seat()->drag()->cancel();
+        if (m_menu) m_menu->close();
+        m_bounce->clear(); m_attentionBounce->clear();
+        configureMagnification(); resize(false);
+    }));
     m_subscriptions.push_back(settings.ready.connect([this] { resize(false); }));
     m_subscriptions.push_back(settings.iconSizeChanged.connect([this] {
         resize(false);
@@ -399,6 +410,14 @@ DockWindow::~DockWindow()
     m_dock.reset();
 }
 
+void DockWindow::setTaskbarRightWidth(int width)
+{
+    width = std::max(0, width);
+    if (width == m_taskbarRightWidth) return;
+    m_taskbarRightWidth = width;
+    if (m_dock->settings().efficientMode()) resize(false);
+}
+
 double DockWindow::pixelRatio() const
 {
     return m_window->scale();
@@ -411,6 +430,7 @@ base::Rect DockWindow::primaryGeometry() const
 
 double DockWindow::cornerRadius() const
 {
+    if (m_dock->settings().efficientMode()) return 0;
     // From the panel as drawn, which is between two sizes while it resizes;
     // magnification keeps the bar's base thickness, so its corners come from
     // that thickness.
@@ -427,6 +447,9 @@ base::Rect DockWindow::baseWindowRect(int thickness) const
     if (!output)
         return {};
     const base::Rect screen = output->bounds;
+    if (m_dock->settings().efficientMode())
+        return base::Rect(screen.x(), screen.bottom() - DockSettings::taskbarHeight,
+                          std::max(1, screen.width() - m_taskbarRightWidth), DockSettings::taskbarHeight);
     const base::Rect available = m_shell->workArea(*output);
     const DockSettings &settings = m_dock->settings();
     const int margins = edgeGap();
@@ -472,6 +495,7 @@ base::Rect DockWindow::windowRect(int thickness) const
 
 int DockWindow::magnificationHeadroom() const
 {
+    if (m_dock->settings().efficientMode()) return 0;
     const DockSettings &settings = m_dock->settings();
     const int iconSize = DockMetrics::forIconSize(settings.iconSize()).iconSize;
     const double grows = settings.magnification() ? iconSize * (settings.magnificationFactor() - 1.0) : 0.0;
@@ -627,7 +651,8 @@ void DockWindow::updateMetrics(bool animate)
     const Shell::Output *output = m_shell->output({});
     const bool bottom = settings.direction() == DockSettings::Bottom;
     const int itemCount = applications.count() + 1 + m_dock->minimizedWindows().count();
-    const int maxLength = output ? (bottom ? output->bounds.width()
+    const int maxLength = m_dock->settings().efficientMode() && output
+            ? std::max(1, output->bounds.width() - m_taskbarRightWidth) : output ? (bottom ? output->bounds.width()
                                            : m_shell->workArea(*output).height())
                                          - settings.edgeMargins()
                                  : 0;
@@ -716,7 +741,7 @@ void DockWindow::updateLayoutStart()
             : std::abs(distance) < 1e-9 ? 1
                                         : std::clamp((m_length - m_fromLength) / distance, 0.0, 1.0);
     m_bias = m_fromBias + (m_toBias - m_fromBias) * progress;
-    m_start = (m_surfaceLength - m_length) / 2 + m_bias;
+    m_start = m_dock->settings().efficientMode() ? 0 : (m_surfaceLength - m_length) / 2 + m_bias;
     if (resize >= 1)
         m_fromEnds = -1;
 }
@@ -734,15 +759,16 @@ void DockWindow::layoutItems()
     // Everything between two sizes while icons come or go on a full dock.
     m_drawn = DrawnDockMetrics::blend(m_fromMetrics, DrawnDockMetrics::of(m_metrics),
                                       m_applications->resizeProgress());
-    const double drawnThickness = std::round(m_drawn.thickness);
+    const double drawnThickness = m_dock->settings().efficientMode() ? DockSettings::taskbarHeight : std::round(m_drawn.thickness);
     const double farPadding = m_drawn.outerPadding + drawnThickness - m_drawn.thickness;
     const double dotArea = m_drawn.edgePadding + m_drawn.dotSize + m_drawn.dotGap;
     const double itemSize = m_metrics.iconSize;
     const double itemScale = m_drawn.iconSize / itemSize;
     const double itemGrowth = (m_drawn.iconSize - itemSize) / 2;
 
-    const int panelStart = int(std::floor(m_start + 0.5));
-    const int panelEnd = int(std::floor(m_start + m_length + 0.5));
+    const bool efficient = m_dock->settings().efficientMode();
+    const int panelStart = efficient ? 0 : int(std::floor(m_start + 0.5));
+    const int panelEnd = efficient ? m_windowRect.width() : int(std::floor(m_start + m_length + 0.5));
     const int gap = edgeGap();
     const int farSide = (bottom ? m_windowRect.height() : m_windowRect.width()) - gap;
     const base::Rect panel = bottom
@@ -754,7 +780,7 @@ void DockWindow::layoutItems()
     // The content's origin along the dock, and an item's across from the panel's far side.
     const double origin = m_drawn.lengthPadding + m_start - panelStart;
     const double layoutOrigin = m_start + m_drawn.lengthPadding;
-    const double settledStart = std::floor((m_surfaceLength - m_restingLength) / 2);
+    const double settledStart = m_dock->settings().efficientMode() ? 0 : std::floor((m_surfaceLength - m_restingLength) / 2);
     const double settled = settledStart + m_metrics.lengthPadding;
     const auto along = [&](double position, double rest) {
         return place(layoutOrigin + position, settled + rest) - layoutOrigin;
@@ -883,10 +909,12 @@ void DockWindow::layoutItems()
         it = m_minimizedIcons.erase(it);
     }
 
-    place(m_trash,
-          along(minimizedStart + m_minimized->length(), settledMinimizedStart + m_minimized->targetLength())
-                  + itemGrowth,
-          1, 1);
+    m_trash->setVisible(!efficient);
+    if (!efficient)
+        place(m_trash,
+              along(minimizedStart + m_minimized->length(), settledMinimizedStart + m_minimized->targetLength())
+                      + itemGrowth,
+              1, 1);
 
     // The row as it rests, for the magnification: every icon's centre along
     // the dock and its width. Storage order need not match spatial order.
@@ -1120,6 +1148,7 @@ void DockWindow::iconRunningChanged(DockIcon *icon, bool running)
 
 void DockWindow::attentionChanged(uint64_t window)
 {
+    if (m_dock->settings().efficientMode()) return;
     TaskWindows &windows = m_shell->taskWindows();
     const TaskWindow *info = windows.window(window);
     if (!info)
@@ -1162,6 +1191,10 @@ void DockWindow::updateStrut()
         return;
     // The reserved strip runs from the screen edge to the far side of the
     // dock, so it covers the dock plus its edge gap.
+    if (settings.efficientMode()) {
+        m_window->setExclusiveZone(wm::ScreenEdge::Bottom, DockSettings::taskbarHeight);
+        return;
+    }
     constexpr int kStrutExtraPixels = 2;
     const base::Rect screen = output->bounds;
     const base::Rect dock = baseWindowRect(m_metrics.thickness());
@@ -1216,7 +1249,7 @@ base::Rect DockWindow::minimizedSlot(int index, int count) const
 
 base::Rect DockWindow::applicationSlot(double position) const
 {
-    const double settledStart = std::floor((m_surfaceLength - m_restingLength) / 2);
+    const double settledStart = m_dock->settings().efficientMode() ? 0 : std::floor((m_surfaceLength - m_restingLength) / 2);
     const double alongStart = settledStart + m_metrics.lengthPadding + position;
     const DockSettings::Direction direction = m_dock->settings().direction();
     const int thickness = m_metrics.thickness();

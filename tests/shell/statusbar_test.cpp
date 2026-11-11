@@ -580,3 +580,21 @@ TEST(VpnNotifierTest, TellsAFailedVpnAndOpensItsPage)
     notifications.emitSignal("ActionInvoked", uint32_t(7), std::string("default"));
     EXPECT_TRUE(test::runUntil([&] { return opened == 1; }));
 }
+
+TEST(AppMenuRegistrarTest, EfficientModeReleasesAndRestoresTheRegistrarName)
+{
+    shell::AppMenuRegistrar registrar(sessionBus());
+    ASSERT_TRUE(registrar.registerService());
+    test::DBusTestClient client;
+    const auto owned = [&] {
+        return client.call("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
+                           "NameHasOwner", std::string("com.canonical.AppMenu.Registrar")).value<bool>().value_or(false);
+    };
+    EXPECT_TRUE(owned());
+    registrar.setEnabled(false);
+    EXPECT_FALSE(owned());
+    EXPECT_TRUE(registrar.registerService());
+    EXPECT_FALSE(owned());
+    registrar.setEnabled(true);
+    EXPECT_TRUE(owned());
+}

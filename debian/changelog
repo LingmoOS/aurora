@@ -1,3 +1,13 @@
+lingmo-compositor (5.0.10+lingmo5u1) unstable; urgency=medium
+
+  * Add Efficient desktop mode with a bottom taskbar, right-side tray,
+    notification entry and two-line time/date; preserve Normal Dock settings.
+  * Release global menu registration in Efficient mode and restore it on exit.
+  * Update work areas and popup positioning during live mode switches.
+  * Add mode, menu lifecycle and taskbar layout regression coverage.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 12 Nov 2026 01:30:17 +0800
+
 lingmo-compositor (5.0.9+lingmo5u1) unstable; urgency=medium
 
   * Route screenshot and notification sounds through the session sound service.

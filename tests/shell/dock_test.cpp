@@ -374,3 +374,40 @@ TEST_F(DockTest, WatchesOnlyVolumesThatCanHoldATrash)
     EXPECT_TRUE(state.entries.contains(stick));
     EXPECT_TRUE(state.entries.contains(data));
 }
+
+TEST_F(DockTest, EfficientModePreservesNormalDockSettings)
+{
+    start("[Dock]\nIconSize=64\nDirection=0\nVisibility=2\nMagnification=true\nBounceOnLaunch=true\nMinimizedArea=true\n");
+    auto &settings = dock->settings();
+    settings.setEfficientMode(true);
+    EXPECT_TRUE(settings.efficientMode());
+    EXPECT_EQ(settings.direction(), shell::DockSettings::Bottom);
+    EXPECT_EQ(settings.visibility(), shell::DockSettings::AlwaysShow);
+    EXPECT_EQ(settings.iconSize(), 32);
+    EXPECT_EQ(settings.edgeMargins(), 0);
+    EXPECT_FALSE(settings.magnification());
+    EXPECT_FALSE(settings.bounceOnLaunch());
+    EXPECT_FALSE(settings.minimizedArea());
+    shell::waitForFileThread();
+    EXPECT_EQ(base::Settings(directory.filePath("shell.conf")).intValue("Desktop/Mode"), 1);
+    settings.setEfficientMode(false);
+    EXPECT_EQ(settings.direction(), shell::DockSettings::Left);
+    EXPECT_EQ(settings.visibility(), shell::DockSettings::IntellHide);
+    EXPECT_EQ(settings.iconSize(), 64);
+    EXPECT_TRUE(settings.magnification());
+    EXPECT_TRUE(settings.bounceOnLaunch());
+    EXPECT_TRUE(settings.minimizedArea());
+}
+
+TEST_F(DockTest, EfficientModeLoadsAndChangesThroughDBus)
+{
+    start("[Desktop]\nMode=1\n[Dock]\nIconSize=72\nDirection=2\n");
+    EXPECT_TRUE(dock->settings().efficientMode());
+    ASSERT_TRUE(dock->registerService());
+    test::DBusTestClient client;
+    const auto reply = client.call("org.lingmo.Dock", "/Dock", "org.lingmo.Dock", "setEfficientMode", false);
+    EXPECT_FALSE(reply.isError());
+    EXPECT_FALSE(dock->settings().efficientMode());
+    EXPECT_EQ(dock->settings().iconSize(), 72);
+    EXPECT_EQ(dock->settings().direction(), shell::DockSettings::Right);
+}

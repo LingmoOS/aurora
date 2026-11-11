@@ -4,6 +4,7 @@
 # The desktop background: the shared wallpaper decode, one node per output
 # and the status bar's backdrop rules.
 find_package(LingmoClients REQUIRED COMPONENTS appearance)
+target_link_libraries(lingmo-shell PUBLIC Lingmo::AppearanceClient)
 add_library(lingmo-shell-wallpaper STATIC
     src/shell/wallpaper/bar_backdrop.cpp
     src/shell/wallpaper/bar_backdrop.h

@@ -32,6 +32,7 @@ public:
     AppMenuRegistrar &operator=(const AppMenuRegistrar &) = delete;
 
     bool registerService();
+    void setEnabled(bool enabled);
 
     // The newest registration of the process: an application that opened a
     // second window registers again, and the last is the one in front.
@@ -64,6 +65,9 @@ private:
     void removeAt(size_t index);
     void serviceUnregistered(const std::string &service);
 
+    bool m_enabled = true;
+    bool m_requested = false;
+    uint64_t m_generation = 0;
     base::dbus::Connection *m_bus;
     std::unique_ptr<base::dbus::Object> m_object;
     PendingCalls m_calls;

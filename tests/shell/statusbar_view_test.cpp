@@ -26,6 +26,8 @@
 #include "scene/node.h"
 #include "scene/scene.h"
 #include "shell/shell.h"
+#include "shell/dock/dock.h"
+#include "shell/dock/dock_window.h"
 #include "shell/shell_data.h"
 #include "shell/shell_window.h"
 #include "shell/statusbar/bar_item.h"
@@ -82,7 +84,8 @@ public:
 class FakePanels final : public shell::StatusBarPanels
 {
 public:
-    bool hasPanel(Panel panel) const override { return panel != Panel::NotificationCenter; }
+    bool notifications = false;
+    bool hasPanel(Panel panel) const override { return notifications || panel != Panel::NotificationCenter; }
 
     void openPanel(Panel panel, shell::ShellWindow *bar, const base::Rect &anchor) override
     {
@@ -311,13 +314,13 @@ TEST_F(StatusBarViewTest, IndicatorsPickTheIcons)
     frame();
     EXPECT_TRUE(bar->volumeIcon()->isVisible());
     EXPECT_EQ("audio-volume-medium-symbolic", bar->volumeIcon()->iconName());
-    EXPECT_EQ("network-wireless-connected-66", bar->networkIcon()->glyph());
+    EXPECT_EQ("network-wireless-connected-75", bar->networkIcon()->iconName());
 
     indicators.m_audio = {true, false, 0.2};
     indicators.m_network = {true, true, false, "", ""};
     indicators.changed();
     EXPECT_EQ("audio-volume-low-symbolic", bar->volumeIcon()->iconName());
-    EXPECT_EQ("network-wireless-connected-00", bar->networkIcon()->glyph());
+    EXPECT_EQ("network-wireless-connected-00", bar->networkIcon()->iconName());
 
     indicators.m_audio = {true, true, 0.9};
     indicators.m_network = {true, false, false, "", ""};
@@ -350,6 +353,10 @@ TEST_F(StatusBarViewTest, IndicatorsPickTheIcons)
 
 TEST_F(StatusBarViewTest, AnIconTogglesItsPanelUnderItsPlate)
 {
+    ASSERT_TRUE(test::runUntil([&] { return bar->statusBar().statusSettings().isReady(); }));
+    // Exercise plate-only blur explicitly; normal startup now blurs the bar.
+    bar->statusBar().statusSettings().setOpacity(0.0);
+    frame();
     FakePanels panels;
     bar->addPanels(&panels);
     const ui::RectF control = onScreen(bar->controlIcon());
@@ -716,4 +723,75 @@ TEST(DBusMenuPopupTest, LabelsLoseTheirMnemonics)
     EXPECT_EQ("File", shell::DBusMenuPopup::plainLabel("_File"));
     EXPECT_EQ("Save_As", shell::DBusMenuPopup::plainLabel("Save__As"));
     EXPECT_EQ("Tom & Jerry", shell::DBusMenuPopup::plainLabel("Tom & Jerry"));
+}
+
+TEST_F(StatusBarViewTest, EfficientModeMovesSystemItemsBesideTheDockAndRestoresTopBar)
+{
+    auto &applications = static_cast<test::FakeApplications &>(shell->applications());
+    applications.addSimple("files", "Files", "system-file-manager");
+    applications.addSimple("terminal", "Terminal", "utilities-terminal");
+    applications.addSimple("settings", "Settings", "preferences-system");
+    applications.scan();
+    directory.write("shell.conf", "[Dock]\nPinned=files,terminal,settings\n");
+    auto backend = std::make_unique<shell::Dock>(sessionBus(), shell->tasks(), shell->launcher(),
+        directory.filePath("shell.conf"));
+    auto *dock = shell->addComponent(std::make_unique<shell::DockWindow>(shell.get(), std::move(backend)));
+    ASSERT_TRUE(test::runUntil([&] { return dock->dock().settings().isReady(); }));
+    bar->followDesktopMode(dock->dock().settings());
+    auto connection = bar->taskbarWidthChanged.connect([&](int width) { dock->setTaskbarRightWidth(width); });
+    dock->setTaskbarRightWidth(bar->taskbarWidth());
+    FakeIndicators indicators;
+    indicators.m_audio = {true, false, 0.5};
+    indicators.m_network = {true, true, false, "Test network", "network-wireless-connected-66"};
+    bar->setIndicators(&indicators);
+    FakePanels panels;
+    panels.notifications = true;
+    bar->addPanels(&panels);
+    for (int repeat = 0; repeat < 3; ++repeat) {
+        dock->dock().settings().setEfficientMode(true);
+        frame();
+        const auto left = dock->window()->geometry();
+        const auto right = bar->window()->geometry();
+        EXPECT_EQ(left.y(), 960 - shell::DockSettings::taskbarHeight);
+        EXPECT_EQ(right.y(), left.y());
+        EXPECT_EQ(left.height(), shell::DockSettings::taskbarHeight);
+        EXPECT_EQ(left.x(), 0);
+        EXPECT_EQ(left.right(), right.x());
+        EXPECT_EQ(right.right(), 1440);
+        EXPECT_EQ(dock->panelRect().width(), left.width());
+        EXPECT_EQ(dock->cornerRadius(), 0);
+        EXPECT_EQ(shell->workArea(*shell->output({})), base::Rect(0, 0, 1440, 908));
+        EXPECT_TRUE(bar->clock()->isVisible());
+        EXPECT_TRUE(bar->notificationIcon()->isVisible());
+        bar->togglePanel(Panel::NotificationCenter);
+        EXPECT_EQ(panels.opened.back(), Panel::NotificationCenter);
+        EXPECT_EQ(panels.lastAnchor.height(), shell::DockSettings::taskbarHeight);
+        EXPECT_TRUE(bar->notificationIcon()->isChecked());
+        const char *captures = std::getenv("LINGMO_TASKBAR_CAPTURES");
+        if (captures && repeat == 0) {
+            std::filesystem::create_directories(captures);
+            EXPECT_TRUE(dock->window()->window()->grab().savePng(std::string(captures) + "/taskbar-apps.png"));
+            EXPECT_TRUE(bar->window()->window()->grab().savePng(std::string(captures) + "/taskbar-status.png"));
+            const auto apps = dock->window()->window()->grab();
+            const auto status = bar->window()->window()->grab();
+            ui::Image combined(apps.width() + status.width(), apps.height());
+            for (int y = 0; y < combined.height(); ++y)
+                for (int x = 0; x < combined.width(); ++x)
+                    combined.setPixel(x, y, x < apps.width() ? apps.pixel(x, y) : status.pixel(x - apps.width(), y));
+            EXPECT_TRUE(combined.savePng(std::string(captures) + "/taskbar.png"));
+        }
+        dock->dock().settings().setEfficientMode(false);
+        frame();
+        EXPECT_FALSE(panels.isOpen(Panel::NotificationCenter));
+        EXPECT_FALSE(bar->notificationIcon()->isVisible());
+        EXPECT_EQ(bar->window()->geometry(), base::Rect(0, 0, 1440, 32));
+        EXPECT_EQ(shell->workArea(*shell->output({})).y(), 32);
+    }
+    dock->dock().settings().setEfficientMode(true);
+    manager.setOutputBounds({0, 0, 1280, 800});
+    test::runFor(std::chrono::milliseconds(20)); frame();
+    EXPECT_EQ(bar->window()->geometry().bottom(), 800);
+    EXPECT_EQ(dock->window()->geometry().right(), bar->window()->geometry().x());
+    bar->setIndicators(nullptr);
+    bar->removePanels(&panels);
 }

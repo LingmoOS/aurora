@@ -80,6 +80,7 @@ public:
     explicit ClockItem(BarContext *bar);
 
     void setText(const std::string &text);
+    void setDate(const std::string &text);
     double preferredWidth() const;
     void updateLook();
     std::function<void()> onPreferredWidthChanged;
@@ -89,6 +90,7 @@ protected:
 
 private:
     BarLabel *m_label;
+    BarLabel *m_date;
 };
 
 // The stop buttons of a screen recording and of an agent's control: a

@@ -37,7 +37,7 @@ lingmo_add_shell_test(launcher_window_test DBUS lingmo-shell-launcher-view)
 lingmo_add_shell_test(wallpaper_test lingmo-shell-wallpaper)
 lingmo_add_shell_test(controlcenter_test lingmo-shell-controlcenter lingmo-shell-statusbar-view)
 target_compile_definitions(controlcenter_test PRIVATE LINGMO_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
-lingmo_add_shell_test(statusbar_view_test DBUS lingmo-shell-statusbar-view)
+lingmo_add_shell_test(statusbar_view_test DBUS lingmo-shell-statusbar-view lingmo-shell-dock-view)
 target_compile_definitions(statusbar_view_test PRIVATE LINGMO_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 lingmo_add_shell_test(menubar_test DBUS lingmo-shell-menubar)
 

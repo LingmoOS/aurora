@@ -50,6 +50,7 @@ public:
     DockWindow(Shell *shell, std::unique_ptr<Dock> dock);
     ~DockWindow() override;
 
+    void setTaskbarRightWidth(int width);
     Dock &dock() { return *m_dock; }
     ShellWindow *window() const { return m_window.get(); }
     // The panel in the window's coordinates, and on the screen.
@@ -194,6 +195,7 @@ private:
     void retire(DockIcon *icon);
     void popupMenu(DockIcon *icon, std::unique_ptr<ui::Menu> menu);
 
+    int m_taskbarRightWidth = 360;
     Shell *m_shell;
     std::unique_ptr<Dock> m_dock;
     std::unique_ptr<ShellWindow> m_window;

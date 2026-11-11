@@ -1,3 +1,5 @@
+add_compile_options(-include${CMAKE_CURRENT_SOURCE_DIR}/namespace_compat.h)
+
 find_package(GTest)
 if(NOT GTest_FOUND)
     message(FATAL_ERROR "BUILD_TESTING=ON needs GoogleTest (Debian: libgtest-dev)")

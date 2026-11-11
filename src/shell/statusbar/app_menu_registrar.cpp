@@ -29,8 +29,25 @@ AppMenuRegistrar::~AppMenuRegistrar()
         m_bus->releaseName(kService);
 }
 
+void AppMenuRegistrar::setEnabled(bool enabled)
+{
+    if (m_enabled == enabled) return;
+    m_enabled = enabled;
+    ++m_generation;
+    if (!enabled) {
+        if (m_object && m_bus) m_bus->releaseName(kService);
+        m_object.reset();
+        m_watches.clear();
+        while (!m_registrations.empty()) removeAt(m_registrations.size() - 1);
+    } else if (m_requested) {
+        registerService();
+    }
+}
+
 bool AppMenuRegistrar::registerService()
 {
+    m_requested = true;
+    if (!m_enabled) return true;
     if (m_object)
         return true;
     if (!m_bus)
@@ -143,10 +160,12 @@ void AppMenuRegistrar::registerWindow(const std::string &sender, uint32_t window
     // The process id comes back from the bus; the registration is announced
     // with it in place.
     const dbus::Proxy bus(m_bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus");
+    const uint64_t generation = m_generation;
     m_calls.track([&](std::function<void()> finished) {
         return bus.callAsync(
                 "GetConnectionUnixProcessID",
-                [this, sender, windowId, path, finished](const dbus::Reply &reply) {
+                [this, sender, windowId, path, finished, generation](const dbus::Reply &reply) {
+                    if (generation != m_generation || !m_enabled) { finished(); return; }
                     for (auto it = m_registrations.rbegin(); it != m_registrations.rend(); ++it) {
                         if (it->windowId != windowId || it->service != sender || it->path != path)
                             continue;

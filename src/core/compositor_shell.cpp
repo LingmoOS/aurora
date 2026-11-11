@@ -705,6 +705,10 @@ void CompositorShell::initShell()
     auto *bar = m_shell->addComponent(
             std::make_unique<shell::StatusBarWindow>(m_shell.get(), std::move(statusBar)));
     bar->setWallpaper(wallpaper);
+    bar->followDesktopMode(dockService->settings());
+    dockWindow->setTaskbarRightWidth(bar->taskbarWidth());
+    m_shellSubscriptions.push_back(bar->taskbarWidthChanged.connect(
+        [dockWindow](int width) { dockWindow->setTaskbarRightWidth(width); }));
     if (m_computerControl) {
         bar->setAgentControl(m_computerControl->isActive());
         bar->onStopAgentControl = [this] { m_computerControl->stop(); };
