@@ -26,7 +26,7 @@ namespace {
 
 std::optional<core::CompositorOptions> parse(std::vector<std::string> arguments)
 {
-    arguments.insert(arguments.begin(), "lingmo-compositor");
+    arguments.insert(arguments.begin(), "lingmo-aurora");
     std::vector<char *> argv;
     for (std::string &argument : arguments)
         argv.push_back(argument.data());

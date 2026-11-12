@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     // The user's locale from the start, not only once the embedded toolkit
     // sets it when the lock screen first appears.
     Lingmo::base::Locale::setProcessLocale();
-    Lingmo::i18n::setDomain("lingmo-compositor");
+    Lingmo::i18n::setDomain("lingmo-aurora");
     const Lingmo::ScopedFd signalFdOwner(createSignalFd());
     const int signalFd = signalFdOwner.get();
     // Outlives the shell, whose objects may watch, time or post on it.
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
         LM_WARNING(lingmoWayland) << "Failed to create signalfd; Ctrl-C will not shut down cleanly";
     }
 
-    LM_INFO(lingmoWayland) << "lingmo-compositor started, WAYLAND_DISPLAY=" + shell->socketName();
+    LM_INFO(lingmoWayland) << "lingmo-aurora started, WAYLAND_DISPLAY=" + shell->socketName();
 
     if (!shell->notifyReady())
         return 1;

@@ -69,7 +69,7 @@ void SessionController::setState(SessionState state)
         else
             m_delegate->onSessionUnblocked();
     }
-    LM_INFO(lingmoCompositor) << "Session state" << toString(state);
+    LM_INFO(lingmoAurora) << "Session state" << toString(state);
 
     const auto observers = m_observers;
     for (SessionObserver *observer : observers)

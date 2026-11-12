@@ -26,7 +26,7 @@ extern const Lingmo::Core::LogCategory lingmoSession;
 extern const Lingmo::Core::LogCategory lingmoDrm;
 extern const Lingmo::Core::LogCategory lingmoRender;
 extern const Lingmo::Core::LogCategory lingmoScene;
-extern const Lingmo::Core::LogCategory lingmoCompositor;
+extern const Lingmo::Core::LogCategory lingmoAurora;
 extern const Lingmo::Core::LogCategory lingmoInput;
 // Opt-in button/capture transitions; no pointer-motion or keyboard text logging.
 extern const Lingmo::Core::LogCategory lingmoInputTransitions;

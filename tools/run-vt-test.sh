@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Development-only harness for running lingmo-compositor against real DRM/KMS
+# Development-only harness for running lingmo-aurora against real DRM/KMS
 # hardware from an SSH session, and pointing a Wayland test client at it.
 #
 # It picks a free virtual terminal, starts the compositor there under
@@ -19,7 +19,7 @@
 #
 # Options:
 #   --socket NAME          Wayland socket name (default: lingmo-vt-test)
-#   --compositor PATH      compositor binary (default: build/lingmo-compositor)
+#   --compositor PATH      compositor binary (default: build/lingmo-aurora)
 #   --compositor-arg ARG   extra argument for the compositor; repeatable
 #   --drm-device PATH      passed through as --drm-device
 #   --vt N                 force a VT instead of searching for a free one
@@ -37,7 +37,7 @@
 set -uo pipefail
 
 SOCKET="lingmo-vt-test"
-COMPOSITOR="$(dirname "$(readlink -f "$0")")/../build/lingmo-compositor"
+COMPOSITOR="$(dirname "$(readlink -f "$0")")/../build/lingmo-aurora"
 DRM_DEVICE=""
 FORCED_VT=""
 COMPOSITOR_ARGS=()

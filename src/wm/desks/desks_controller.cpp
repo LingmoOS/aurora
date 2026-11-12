@@ -500,7 +500,7 @@ void DesksController::activateDeskInternal(Desk *desk, bool updateWindowActivati
     desk->activate(updateWindowActivation);
     old->deactivate(updateWindowActivation);
 
-    LM_DEBUG(lingmoCompositor) << "desk" << deskIndex(desk) << "active";
+    LM_DEBUG(lingmoAurora) << "desk" << deskIndex(desk) << "active";
     notify([desk, old](DesksObserver *observer) {
         observer->onDeskActivationChanged(desk, old);
     });

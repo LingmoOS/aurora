@@ -38,15 +38,15 @@ target_compile_definitions(core_test PRIVATE
     LINGMO_SCREEN_RECORDER="${CMAKE_INSTALL_FULL_LIBEXECDIR}/lingmo-screenrecorder"
     LINGMO_BINDIR="${CMAKE_INSTALL_FULL_BINDIR}")
 
-lingmo_add_test(image_capture_test lingmo-compositor-core lingmo-session PkgConfig::WaylandClient)
+lingmo_add_test(image_capture_test lingmo-aurora-core lingmo-session PkgConfig::WaylandClient)
 lingmo_add_test(serial_tracker_test lingmo-wayland)
 lingmo_add_test(client_tracker_test lingmo-wayland)
 lingmo_add_test(wayland_server_test lingmo-wayland PkgConfig::WaylandClient)
 lingmo_add_test(scene_test lingmo-scene)
-lingmo_add_test(shm_pool_test lingmo-compositor-core)
-lingmo_add_test(buffer_test lingmo-compositor-core)
-lingmo_add_test(surface_test lingmo-compositor-core)
-lingmo_add_test(wayland_protocol_test lingmo-compositor-core lingmo-wayland-dmabuf
+lingmo_add_test(shm_pool_test lingmo-aurora-core)
+lingmo_add_test(buffer_test lingmo-aurora-core)
+lingmo_add_test(surface_test lingmo-aurora-core)
+lingmo_add_test(wayland_protocol_test lingmo-aurora-core lingmo-wayland-dmabuf
     PkgConfig::WaylandClient)
 lingmo_add_test(xkb_tracker_test lingmo-input)
 lingmo_add_test(key_translator_test lingmo-input)
@@ -87,9 +87,9 @@ lingmo_add_test(libseat_session_test lingmo-backend)
 add_executable(lingmo-shm-demo manual/shm_client.cpp)
 target_link_libraries(lingmo-shm-demo PRIVATE PkgConfig::WaylandClient)
 
-lingmo_add_test(sub_surface_test lingmo-compositor-core)
+lingmo_add_test(sub_surface_test lingmo-aurora-core)
 lingmo_add_test(wm_test lingmo-wm)
-lingmo_add_test(subsurface_output_protocol_test lingmo-compositor-core PkgConfig::WaylandClient)
+lingmo_add_test(subsurface_output_protocol_test lingmo-aurora-core PkgConfig::WaylandClient)
 lingmo_add_test(seat_protocol_test lingmo-wayland-input lingmo-wm
     PkgConfig::WaylandClient PkgConfig::Xkbcommon)
 lingmo_add_test(xdg_positioner_test lingmo-wayland-shell)
@@ -121,7 +121,7 @@ lingmo_add_test(xdg_foreign_protocol_test lingmo-wayland-shell lingmo-wayland-in
 lingmo_add_test(xdg_toplevel_drag_protocol_test lingmo-wayland-shell lingmo-wayland-input
     PkgConfig::WaylandClient)
 lingmo_add_test(foreign_toplevel_list_test lingmo-wayland-private-shell lingmo-input
-    lingmo-compositor-core PkgConfig::WaylandClient)
+    lingmo-aurora-core PkgConfig::WaylandClient)
 lingmo_add_test(private_shell_protocol_test lingmo-wayland-private-shell
     lingmo-wayland-shell lingmo-wayland-input PkgConfig::WaylandClient)
 lingmo_add_test(work_area_test lingmo-wm)
@@ -157,14 +157,14 @@ target_compile_definitions(subsurface_output_protocol_test PRIVATE
     SUBSURFACE_DEMO_PATH="$<TARGET_FILE:lingmo-subsurface-demo>")
 add_dependencies(subsurface_output_protocol_test lingmo-subsurface-demo)
 
-lingmo_add_test(output_scheduler_test lingmo-output-scheduler lingmo-compositor-core lingmo-decoration)
+lingmo_add_test(output_scheduler_test lingmo-output-scheduler lingmo-aurora-core lingmo-decoration)
 
 lingmo_add_test(clipboard_protocol_test lingmo-wayland-input PkgConfig::WaylandClient)
 set_tests_properties(clipboard_protocol_test PROPERTIES TIMEOUT 30)
 
 lingmo_add_test(selection_test lingmo-input)
 
-lingmo_add_test(dmabuf_test lingmo-wayland-dmabuf lingmo-compositor-core
+lingmo_add_test(dmabuf_test lingmo-wayland-dmabuf lingmo-aurora-core
     PkgConfig::WaylandClient PkgConfig::Libdrm)
 
 lingmo_add_test(shadow_test lingmo-decoration)
@@ -190,14 +190,14 @@ lingmo_add_test(output_cursor_router_test lingmo-cursor)
 # path, explicit synchronization and the hardware cursor.
 lingmo_add_test(overlay_candidate_test lingmo-scene)
 lingmo_add_test(plane_assignment_test lingmo-backend PkgConfig::Libdrm)
-lingmo_add_test(sync_fence_test lingmo-sync lingmo-compositor-core)
-lingmo_add_test(commit_readiness_test lingmo-sync lingmo-compositor-core)
+lingmo_add_test(sync_fence_test lingmo-sync lingmo-aurora-core)
+lingmo_add_test(commit_readiness_test lingmo-sync lingmo-aurora-core)
 
 add_library(lingmo-fake-drm STATIC fake_drm_device.cpp fake_drm_device.h)
 target_include_directories(lingmo-fake-drm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(lingmo-fake-drm PUBLIC lingmo-backend PkgConfig::Libdrm)
 
-lingmo_add_test(scanout_test lingmo-fake-drm lingmo-compositor-core)
+lingmo_add_test(scanout_test lingmo-fake-drm lingmo-aurora-core)
 lingmo_add_test(hardware_cursor_test lingmo-fake-drm lingmo-cursor lingmo-session)
 
 lingmo_add_test(window_hints_protocol_test lingmo-wayland-shell PkgConfig::WaylandClient)
@@ -215,17 +215,17 @@ set_tests_properties(dnd_toolkit_test PROPERTIES TIMEOUT 70)
 
 set_tests_properties(private_shell_protocol_test PROPERTIES TIMEOUT 60)
 
-lingmo_add_test(viewporter_test lingmo-compositor-core)
-lingmo_add_test(viewporter_protocol_test lingmo-compositor-core PkgConfig::WaylandClient)
+lingmo_add_test(viewporter_test lingmo-aurora-core)
+lingmo_add_test(viewporter_protocol_test lingmo-aurora-core PkgConfig::WaylandClient)
 set_tests_properties(viewporter_protocol_test PROPERTIES TIMEOUT 30)
-lingmo_add_test(viewporter_pixel_test lingmo-compositor-core lingmo-input lingmo-render
+lingmo_add_test(viewporter_pixel_test lingmo-aurora-core lingmo-input lingmo-render
     PkgConfig::Gbm PkgConfig::Libdrm)
 set_tests_properties(viewporter_pixel_test PROPERTIES ENVIRONMENT "LIBGL_ALWAYS_SOFTWARE=1;EGL_PLATFORM=surfaceless")
 
-lingmo_add_test(fractional_scale_protocol_test lingmo-compositor-core PkgConfig::WaylandClient)
+lingmo_add_test(fractional_scale_protocol_test lingmo-aurora-core PkgConfig::WaylandClient)
 set_tests_properties(fractional_scale_protocol_test PROPERTIES TIMEOUT 30)
 
-lingmo_add_test(fractional_scale_pixel_test lingmo-compositor-core lingmo-render)
+lingmo_add_test(fractional_scale_pixel_test lingmo-aurora-core lingmo-render)
 set_tests_properties(fractional_scale_pixel_test PROPERTIES ENVIRONMENT "LIBGL_ALWAYS_SOFTWARE=1;EGL_PLATFORM=surfaceless")
 
 lingmo_add_test(output_scale_test lingmo-input)
@@ -250,12 +250,12 @@ lingmo_add_test(display_config_service_test DBUS lingmo-display-ipc)
 target_sources(display_config_service_test PRIVATE
     fake_native_display_delegate.cpp fake_native_display_delegate.h)
 
-lingmo_add_test(presentation_test lingmo-compositor-core)
-lingmo_add_test(presentation_protocol_test lingmo-compositor-core PkgConfig::WaylandClient)
+lingmo_add_test(presentation_test lingmo-aurora-core)
+lingmo_add_test(presentation_protocol_test lingmo-aurora-core PkgConfig::WaylandClient)
 add_executable(lingmo-presentation-client manual/presentation_client.cpp)
 target_link_libraries(lingmo-presentation-client PRIVATE lingmo-protocols PkgConfig::WaylandClient)
 
-lingmo_add_test(drm_output_test lingmo-backend lingmo-compositor-core PkgConfig::WaylandClient)
+lingmo_add_test(drm_output_test lingmo-backend lingmo-aurora-core PkgConfig::WaylandClient)
 target_sources(drm_output_test PRIVATE fake_drm_device.cpp)
 set_tests_properties(drm_output_test PROPERTIES TIMEOUT 60 ENVIRONMENT "LIBGL_ALWAYS_SOFTWARE=1;EGL_PLATFORM=surfaceless")
 
@@ -301,7 +301,7 @@ set_tests_properties(wallpaper_pixel_test PROPERTIES ENVIRONMENT "LIBGL_ALWAYS_S
 set_tests_properties(image_capture_test PROPERTIES TIMEOUT 15)
 
 
-lingmo_add_test(damage_test lingmo-compositor-core)
+lingmo_add_test(damage_test lingmo-aurora-core)
 lingmo_add_test(damage_pixel_test lingmo-scene lingmo-render)
 set_tests_properties(damage_pixel_test PROPERTIES ENVIRONMENT "LIBGL_ALWAYS_SOFTWARE=1;EGL_PLATFORM=surfaceless")
 lingmo_add_test(damage_gbm_test lingmo-scene lingmo-render PkgConfig::Gbm)

@@ -713,7 +713,7 @@ void ShellSurface::onWindowStateTypeChanged(Window *window, WindowStateType oldT
 {
     if (window != m_window)
         return;
-    LM_DEBUG(lingmoCompositor) << "xdg toplevel state:" << m_applicationId << toString(oldType) << "->"
+    LM_DEBUG(lingmoAurora) << "xdg toplevel state:" << m_applicationId << toString(oldType) << "->"
                          << toString(window->stateType()) << window->bounds();
     const base::Size targetSize = window->contentBounds().size();
     const auto targetState = window->presentedStateType();
@@ -817,7 +817,7 @@ void ShellSurface::configure()
 
     m_pendingConfigs.push_back(Config {serial, originOffset, resizeEdge, state});
     if (m_pendingConfigs.size() > 100) {
-        LM_WARNING(lingmoCompositor) << "Outstanding xdg configure acknowledgements:"
+        LM_WARNING(lingmoAurora) << "Outstanding xdg configure acknowledgements:"
                                 << m_pendingConfigs.size();
     }
 }
@@ -937,7 +937,7 @@ void ShellSurface::mapToplevel()
     m_configuredContentBounds = m_window->contentBounds();
     updateChildPopupPositions();
 
-    LM_DEBUG(lingmoCompositor) << "xdg toplevel mapped:" << m_applicationId << m_title
+    LM_DEBUG(lingmoAurora) << "xdg toplevel mapped:" << m_applicationId << m_title
                          << (m_window->isDecorated() ? "ssd" : "csd") << "outer"
                          << m_window->bounds() << "content"
                          << m_window->contentBounds();
@@ -948,7 +948,7 @@ void ShellSurface::unmapToplevel()
     unmapChildPopups();
     // Before the window goes, so the children's windows move to the new parent.
     releaseTransientChildren();
-    LM_DEBUG(lingmoCompositor) << "xdg toplevel unmapped:" << m_applicationId << m_title;
+    LM_DEBUG(lingmoAurora) << "xdg toplevel unmapped:" << m_applicationId << m_title;
     Window *window = m_window;
     m_window = nullptr;
     window->removeObserver(this);
@@ -972,7 +972,7 @@ void ShellSurface::mapPopup()
     m_window->addObserver(this);
     updatePopupPosition();
 
-    LM_DEBUG(lingmoCompositor) << "xdg popup mapped at" << absoluteOrigin() << "grab" << m_hasGrab;
+    LM_DEBUG(lingmoAurora) << "xdg popup mapped at" << absoluteOrigin() << "grab" << m_hasGrab;
 }
 
 void ShellSurface::unmapChildPopups()
@@ -986,7 +986,7 @@ void ShellSurface::unmapChildPopups()
 void ShellSurface::unmapPopup()
 {
     unmapChildPopups();
-    LM_DEBUG(lingmoCompositor) << "xdg popup unmapped";
+    LM_DEBUG(lingmoAurora) << "xdg popup unmapped";
     m_popupMapped = false;
     if (m_window) {
         Window *window = m_window;

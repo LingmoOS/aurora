@@ -42,7 +42,7 @@ struct CompositorOptions {
     bool xwayland = true;
     bool xwaylandSoftware = false;
     std::string xwaylandReadyFile;
-    // base::logging rules, e.g. "lingmo.compositor.debug=true".
+    // base::logging rules, e.g. "lingmo.aurora.debug=true".
     std::string logRules;
 
     bool demoEnabled() const { return wmDemo || wmDemoScript; }

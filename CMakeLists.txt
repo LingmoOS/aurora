@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(lingmo-compositor
+project(lingmo-aurora
     VERSION 1.0
-    DESCRIPTION "Lingmo Wayland compositor and window manager"
+    DESCRIPTION "Lingmo Aurora Wayland compositor and window manager"
     LANGUAGES C CXX
 )
 
@@ -322,7 +322,7 @@ target_link_libraries(lingmo-scene PUBLIC lingmo-core lingmo-sync Lingmo::SDKBas
 set_target_properties(lingmo-scene PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Compositor model and the Wayland protocol implementations that drive it.
-add_library(lingmo-compositor-core STATIC
+add_library(lingmo-aurora-core STATIC
     src/compositor/buffer.cpp
     src/compositor/buffer.h
     src/compositor/dmabuf_buffer.cpp
@@ -353,11 +353,11 @@ add_library(lingmo-compositor-core STATIC
     src/wayland/protocols/wl_shm.cpp
     src/wayland/protocols/wl_shm.h
 )
-target_include_directories(lingmo-compositor-core PUBLIC src)
+target_include_directories(lingmo-aurora-core PUBLIC src)
 # Lingmo::SDK for the blur shape's ui::Path.
-target_link_libraries(lingmo-compositor-core PUBLIC lingmo-wayland lingmo-scene lingmo-protocols
+target_link_libraries(lingmo-aurora-core PUBLIC lingmo-wayland lingmo-scene lingmo-protocols
     Lingmo::SDK)
-set_target_properties(lingmo-compositor-core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(lingmo-aurora-core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Compositor-side input: seat, pointer, keyboard, xkb. Free of libinput and of
 # the Wayland protocol so it stays testable.
@@ -435,7 +435,7 @@ add_library(lingmo-input STATIC
     src/input/input_manager.h
 )
 target_include_directories(lingmo-input PUBLIC src)
-target_link_libraries(lingmo-input PUBLIC lingmo-display lingmo-compositor-core Lingmo::SDKBase
+target_link_libraries(lingmo-input PUBLIC lingmo-display lingmo-aurora-core Lingmo::SDKBase
     PkgConfig::Xkbcommon)
 set_target_properties(lingmo-input PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -528,7 +528,7 @@ add_library(lingmo-wm STATIC
     src/wm/demo_controller.h
 )
 target_include_directories(lingmo-wm PUBLIC src)
-target_link_libraries(lingmo-wm PUBLIC lingmo-input lingmo-compositor-core lingmo-display
+target_link_libraries(lingmo-wm PUBLIC lingmo-input lingmo-aurora-core lingmo-display
     lingmo-core Lingmo::SDKBase)
 set_target_properties(lingmo-wm PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -563,7 +563,7 @@ set_target_properties(lingmo-decoration PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # The wl_seat protocol adapters live with the other protocol code but need the
 # input model, so they are a separate target rather than part of
-# lingmo-compositor-core.
+# lingmo-aurora-core.
 add_library(lingmo-wayland-input STATIC
     src/wayland/protocols/input_method.cpp
     src/wayland/protocols/input_method.h
@@ -629,7 +629,7 @@ add_library(lingmo-session STATIC
     src/session/window_debug_service.h
 )
 target_include_directories(lingmo-session PUBLIC src)
-target_link_libraries(lingmo-session PUBLIC lingmo-compositor-core lingmo-wm Lingmo::SDK)
+target_link_libraries(lingmo-session PUBLIC lingmo-aurora-core lingmo-wm Lingmo::SDK)
 set_target_properties(lingmo-session PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # An agent driving the seat once the user agrees, over
@@ -744,7 +744,7 @@ add_library(lingmo-wayland-dmabuf STATIC
 )
 target_include_directories(lingmo-wayland-dmabuf PUBLIC src)
 target_link_libraries(lingmo-wayland-dmabuf
-    PUBLIC lingmo-compositor-core lingmo-wayland lingmo-protocols lingmo-sync
+    PUBLIC lingmo-aurora-core lingmo-wayland lingmo-protocols lingmo-sync
     PRIVATE PkgConfig::Libdrm)
 set_property(TARGET lingmo-wayland-dmabuf PROPERTY POSITION_INDEPENDENT_CODE ON)
 
@@ -909,8 +909,8 @@ target_include_directories(lingmo-shell PUBLIC src)
 target_link_libraries(lingmo-shell PUBLIC ${CMAKE_DL_LIBS} lingmo-wm lingmo-input lingmo-display
     lingmo-decoration lingmo-sdk-host lingmo-shell-common PRIVATE lingmo-wayland-shell)
 target_compile_definitions(lingmo-shell PRIVATE
-    LINGMO_SHELL_DATA_DIR="${CMAKE_INSTALL_FULL_DATADIR}/lingmo-compositor/shell")
-install(DIRECTORY data/shell/ DESTINATION ${CMAKE_INSTALL_DATADIR}/lingmo-compositor/shell)
+    LINGMO_SHELL_DATA_DIR="${CMAKE_INSTALL_FULL_DATADIR}/lingmo-aurora/shell")
+install(DIRECTORY data/shell/ DESTINATION ${CMAKE_INSTALL_DATADIR}/lingmo-aurora/shell)
 
 # The synthetic display: outputs and a presentation clock with no hardware.
 add_library(lingmo-headless STATIC
@@ -918,7 +918,7 @@ add_library(lingmo-headless STATIC
     src/backend/headless/headless_backend.h
 )
 target_include_directories(lingmo-headless PUBLIC src)
-target_link_libraries(lingmo-headless PUBLIC lingmo-compositor-core)
+target_link_libraries(lingmo-headless PUBLIC lingmo-aurora-core)
 set_target_properties(lingmo-headless PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Global registration. Sits above every protocol library, which is why it cannot
@@ -931,13 +931,13 @@ add_library(lingmo-wayland-globals STATIC
 )
 target_include_directories(lingmo-wayland-globals PUBLIC src)
 target_link_libraries(lingmo-wayland-globals
-    PUBLIC lingmo-wayland lingmo-compositor-core lingmo-wayland-input
+    PUBLIC lingmo-wayland lingmo-aurora-core lingmo-wayland-input
            lingmo-wayland-shell lingmo-wayland-private-shell lingmo-wm
            lingmo-input lingmo-input-method-settings lingmo-computer-control
 )
 set_target_properties(lingmo-wayland-globals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-add_executable(lingmo-compositor
+add_executable(lingmo-aurora
     src/main.cpp
     src/core/compositor_options.cpp
     src/core/compositor_options.h
@@ -946,16 +946,16 @@ add_executable(lingmo-compositor
     src/core/compositor_shell.cpp
     src/core/compositor_shell.h
 )
-target_link_libraries(lingmo-compositor PRIVATE lingmo-display-runtime
+target_link_libraries(lingmo-aurora PRIVATE lingmo-display-runtime
     lingmo-auth lingmo-switcher lingmo-shell lingmo-wayland-globals lingmo-headless)
 # The portal backend streams outputs to PipeWire through the capture globals and
 # is allowlisted by its installed path; lingmo-core's screen recorder is started
 # by the shell on a capture connection of its own.
-target_compile_definitions(lingmo-compositor PRIVATE
+target_compile_definitions(lingmo-aurora PRIVATE
     LINGMO_PORTAL_BACKEND="${CMAKE_INSTALL_FULL_LIBEXECDIR}/xdg-desktop-portal-lingmo"
     LINGMO_SCREEN_RECORDER="${CMAKE_INSTALL_FULL_LIBEXECDIR}/lingmo-screenrecorder")
-target_link_libraries(lingmo-compositor
-    PRIVATE lingmo-wayland lingmo-compositor-core lingmo-backend lingmo-scene
+target_link_libraries(lingmo-aurora
+    PRIVATE lingmo-wayland lingmo-aurora-core lingmo-backend lingmo-scene
             lingmo-input lingmo-wayland-input lingmo-wm
             lingmo-wayland-shell lingmo-decoration lingmo-wayland-dmabuf
             lingmo-wayland-private-shell lingmo-display-ipc lingmo-input-method-settings
@@ -989,20 +989,20 @@ if(LINGMO_ENABLE_XWAYLAND)
     target_include_directories(lingmo-xwayland PUBLIC src ${LINGMO_PROTOCOL_DIR})
     target_link_libraries(lingmo-xwayland PUBLIC lingmo-wayland-private-shell PkgConfig::Xcb Threads::Threads
         Lingmo::SDKBase)
-    target_link_libraries(lingmo-compositor PRIVATE lingmo-xwayland)
-    target_compile_definitions(lingmo-compositor PRIVATE LINGMO_ENABLE_XWAYLAND)
+    target_link_libraries(lingmo-aurora PRIVATE lingmo-xwayland)
+    target_compile_definitions(lingmo-aurora PRIVATE LINGMO_ENABLE_XWAYLAND)
     install(FILES ${WAYLAND_PROTOCOLS_DATADIR}/staging/xwayland-shell/xwayland-shell-v1.xml
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-compositor)
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-aurora)
 endif()
 
-install(TARGETS lingmo-compositor lingmo-displayctl lingmo-screenshot RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS lingmo-aurora lingmo-displayctl lingmo-screenshot RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES
     ${LINGMO_PRIVATE_PROTOCOL_DIR}/input-method-unstable-v2.xml
     ${LINGMO_PRIVATE_PROTOCOL_DIR}/virtual-keyboard-unstable-v1.xml
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-compositor)
-install(FILES LICENSE LICENSE.chromium LICENSE.sommelier DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-compositor)
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-aurora)
+install(FILES LICENSE LICENSE.chromium LICENSE.sommelier DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/lingmo-aurora)
 install(FILES ${DISPLAY_CONFIG_XML} DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/interfaces)
-lingmo_add_translations(lingmo-compositor SOURCES src/shell src/auth src/wm/overview
+lingmo_add_translations(lingmo-aurora SOURCES src/shell src/auth src/wm/overview
     DESKTOP_FILES data/lingmo-screenshot.desktop data/lingmo-screen-keyboard.desktop)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lingmo-screenshot.desktop ${CMAKE_CURRENT_BINARY_DIR}/lingmo-screen-keyboard.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 
@@ -1013,7 +1013,7 @@ add_library(lingmo-cursor STATIC src/cursor/theme.cpp src/cursor/cursor.cpp
 target_include_directories(lingmo-cursor PUBLIC src)
 target_sources(lingmo-cursor PRIVATE src/cursor/preferences.cpp src/cursor/preferences.h)
 target_link_libraries(lingmo-cursor PUBLIC lingmo-input lingmo-display Lingmo::SDK)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-cursor)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-cursor)
 
 # The shell's backends: models and D-Bus services without views.
 include(src/shell/backends.cmake)

@@ -14,7 +14,7 @@ add_library(lingmo-shell-wallpaper STATIC
     src/shell/wallpaper/wallpaper_cache.h
 )
 target_link_libraries(lingmo-shell-wallpaper PUBLIC lingmo-shell Lingmo::AppearanceClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-wallpaper)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-wallpaper)
 
 # The on-screen display: org.lingmo.Osd and its level panel.
 add_library(lingmo-shell-osd STATIC
@@ -26,7 +26,7 @@ add_library(lingmo-shell-osd STATIC
 )
 target_link_libraries(lingmo-shell-osd PUBLIC lingmo-shell lingmo-shell-statusbar
     Lingmo::AudioClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-osd)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-osd)
 
 # The dock: its view, window and input on the dock's backend.
 add_library(lingmo-shell-dock-view STATIC
@@ -45,7 +45,7 @@ add_library(lingmo-shell-dock-view STATIC
     src/shell/dock/dock_window.h
 )
 target_link_libraries(lingmo-shell-dock-view PUBLIC lingmo-shell lingmo-shell-dock)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-dock-view)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-dock-view)
 
 # The clipboard history's picker on the clipboard backend.
 add_library(lingmo-shell-clipboard-view STATIC
@@ -55,7 +55,7 @@ add_library(lingmo-shell-clipboard-view STATIC
     src/shell/clipboard/clipboard_picker_view.h
 )
 target_link_libraries(lingmo-shell-clipboard-view PUBLIC lingmo-shell lingmo-shell-clipboard)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-clipboard-view)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-clipboard-view)
 
 # The sheets offering force quit for applications that stopped responding.
 add_library(lingmo-shell-notresponding STATIC
@@ -63,7 +63,7 @@ add_library(lingmo-shell-notresponding STATIC
     src/shell/notresponding/not_responding_sheets.h
 )
 target_link_libraries(lingmo-shell-notresponding PUBLIC lingmo-shell)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-notresponding)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-notresponding)
 # The screen capture interface: org.lingmo.Screenshot, its overlays,
 # toolbar and Options, pictures and recordings.
 add_library(lingmo-shell-screenshot STATIC
@@ -86,7 +86,7 @@ add_library(lingmo-shell-screenshot STATIC
 )
 target_link_libraries(lingmo-shell-screenshot PUBLIC lingmo-shell lingmo-shell-common
     lingmo-wayland lingmo-wayland-private-shell Lingmo::AudioClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-screenshot)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-screenshot)
 # The session's secret agents (NetworkManager, BlueZ) and their prompts.
 find_package(LingmoClients REQUIRED COMPONENTS networkmanager bluez)
 add_library(lingmo-shell-secrets STATIC
@@ -107,7 +107,7 @@ add_library(lingmo-shell-secrets STATIC
 )
 target_link_libraries(lingmo-shell-secrets PUBLIC lingmo-shell
     Lingmo::NetworkManagerClient Lingmo::BluezClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-secrets)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-secrets)
 # The notification banners and the notification centre on their backend.
 add_library(lingmo-shell-notification-view STATIC
     src/shell/notification/notification_card.cpp
@@ -124,7 +124,7 @@ add_library(lingmo-shell-notification-view STATIC
     src/shell/notification/notification_ui.h
 )
 target_link_libraries(lingmo-shell-notification-view PUBLIC lingmo-shell lingmo-shell-notification)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-notification-view)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-notification-view)
 # The launcher: its window, grid, search and paging on the launcher's backend.
 add_library(lingmo-shell-launcher-view STATIC
     src/shell/launcher/launcher_cell.cpp
@@ -143,7 +143,7 @@ add_library(lingmo-shell-launcher-view STATIC
 )
 target_link_libraries(lingmo-shell-launcher-view PUBLIC lingmo-shell lingmo-shell-launcher
     lingmo-shell-wallpaper)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-launcher-view)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-launcher-view)
 # The control centre, the status panels and the power dialog.
 find_package(LingmoClients REQUIRED COMPONENTS networkmanager bluez audio)
 add_library(lingmo-shell-controlcenter STATIC
@@ -169,7 +169,7 @@ add_library(lingmo-shell-controlcenter STATIC
 target_link_libraries(lingmo-shell-controlcenter PUBLIC lingmo-shell lingmo-shell-osd
     lingmo-shell-statusbar lingmo-shell-notification Lingmo::NetworkManagerClient
     Lingmo::BluezClient Lingmo::AudioClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-controlcenter)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-controlcenter)
 # The status bar's items, which the lock screen shows too.
 add_library(lingmo-shell-bar-items STATIC
     src/shell/statusbar/bar_item.cpp
@@ -199,7 +199,7 @@ add_library(lingmo-shell-statusbar-view STATIC
 )
 target_link_libraries(lingmo-shell-statusbar-view PUBLIC lingmo-shell lingmo-shell-bar-items
     lingmo-shell-statusbar lingmo-shell-wallpaper Lingmo::AudioClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-statusbar-view)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-statusbar-view)
 # The status bar's menu bar.
 include(src/shell/menubar/menubar.cmake)
 
@@ -209,7 +209,7 @@ add_library(lingmo-shell-keyboard STATIC
     src/shell/keyboard/keyboard_view.cpp
     src/shell/keyboard/screen_keyboard.cpp)
 target_link_libraries(lingmo-shell-keyboard PUBLIC lingmo-shell)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-keyboard)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-keyboard)
 
 add_executable(lingmo-screen-keyboard src/shell/keyboard/main.cpp)
 target_link_libraries(lingmo-screen-keyboard PRIVATE Lingmo::SDKBase)

@@ -1,4 +1,4 @@
-Source: lingmo-compositor
+Source: lingmo-aurora
 Section: x11
 Priority: optional
 Maintainer: Lingmo OS Team <team@lingmo.org>
@@ -34,8 +34,11 @@ Build-Depends: cmake (>= 3.22),
 Standards-Version: 4.7.2
 Homepage: https://github.com/LingmoOS/lingmo-compositor
 
-Package: lingmo-compositor
+Package: lingmo-aurora
 Architecture: any
+Provides: lingmo-compositor
+Breaks: lingmo-compositor (<< 5.0.15+lingmo5u1)
+Replaces: lingmo-compositor (<< 5.0.15+lingmo5u1)
 Depends: lingmo-sdk,
          lingmo-framework,
          ${misc:Depends},
@@ -43,7 +46,7 @@ Depends: lingmo-sdk,
 Recommends: lingmo-filemanager,
             xwayland,
             pipewire-bin
-Description: Lingmo OS Wayland compositor and desktop shell
+Description: Lingmo Aurora Wayland compositor and desktop shell
  The Lingmo desktop's display server: DRM/KMS output, input, window
  management, server-side decorations, animations and the lock screen, with
  the status bar, dock, launcher, notifications and screen capture built in.

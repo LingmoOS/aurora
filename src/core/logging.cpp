@@ -18,7 +18,7 @@ const Lingmo::Core::LogCategory lingmoSession("lingmo.session");
 const Lingmo::Core::LogCategory lingmoDrm("lingmo.drm");
 const Lingmo::Core::LogCategory lingmoRender("lingmo.render");
 const Lingmo::Core::LogCategory lingmoScene("lingmo.scene");
-const Lingmo::Core::LogCategory lingmoCompositor("lingmo.compositor");
+const Lingmo::Core::LogCategory lingmoAurora("lingmo.aurora");
 const Lingmo::Core::LogCategory lingmoInput("lingmo.input");
 const Lingmo::Core::LogCategory lingmoInputTransitions("lingmo.input.transitions");
 const Lingmo::Core::LogCategory lingmoCursorTransitions("lingmo.cursor.transitions");

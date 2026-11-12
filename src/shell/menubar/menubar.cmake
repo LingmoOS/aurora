@@ -10,4 +10,4 @@ add_library(lingmo-shell-menubar STATIC
 )
 target_link_libraries(lingmo-shell-menubar PUBLIC lingmo-shell lingmo-shell-statusbar
     lingmo-shell-statusbar-view Lingmo::AccountsClient)
-target_link_libraries(lingmo-compositor PRIVATE lingmo-shell-menubar)
+target_link_libraries(lingmo-aurora PRIVATE lingmo-shell-menubar)

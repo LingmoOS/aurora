@@ -119,7 +119,7 @@ bool ToplevelEventHandler::beginDrag(Window *window, ResizeEdge edge,
     window->setResizingInternal(edge != ResizeEdge::None);
     if (edge == ResizeEdge::None)
         m_snapController->begin(window, pointerPosition);
-    LM_DEBUG(lingmoCompositor) << "drag started:" << toString(edge) << "from"
+    LM_DEBUG(lingmoAurora) << "drag started:" << toString(edge) << "from"
                           << window->bounds();
     if (auto *seat = m_manager->seat()) {
         if (touchId) {

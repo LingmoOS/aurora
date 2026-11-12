@@ -25,7 +25,7 @@ class TemporaryDirectory
 public:
     TemporaryDirectory()
     {
-        char directory[] = "/tmp/lingmo-compositor-test-XXXXXX";
+        char directory[] = "/tmp/lingmo-aurora-test-XXXXXX";
         if (mkdtemp(directory))
             m_path = directory;
     }

@@ -305,7 +305,7 @@ void Window::updateFrame()
     updateSurfacePlacement();
     // Mapping logs the initial state; this is for a mode change later on.
     if (!m_bounds.isEmpty()) {
-        LM_DEBUG(lingmoCompositor) << "decoration" << (m_frame ? "on:" : "off:") << m_applicationId
+        LM_DEBUG(lingmoAurora) << "decoration" << (m_frame ? "on:" : "off:") << m_applicationId
                              << m_title << "outer" << m_bounds << "content"
                              << contentBounds();
     }

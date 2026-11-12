@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: lingmo-compositor
+Upstream-Name: lingmo-aurora
 Source: https://github.com/LingmoOS/lingmo-compositor
 
 Files: *

@@ -823,7 +823,7 @@ ConfigurationResult DisplayRuntime::configure(const DisplayConfiguration &config
                     bindFrames();
                     ++resources;
                     ++testRounds;
-                    LM_INFO(lingmoCompositor)
+                    LM_INFO(lingmoAurora)
                             << "Retrying native route/buffer allocation, round" << testRounds;
                     last = exact(selected, NativeDisplayDelegate::ConfigureMode::TestOnly);
                 }
@@ -833,7 +833,7 @@ ConfigurationResult DisplayRuntime::configure(const DisplayConfiguration &config
                 diagnostics.push_back(
                         std::format("round {} [{}]: {}", testRounds, base::strings::join(keys, ","),
                                     last.succeeded ? std::string("passed") : last.error.message));
-                LM_INFO(lingmoCompositor) << "Display recovery" << diagnostics.back();
+                LM_INFO(lingmoAurora) << "Display recovery" << diagnostics.back();
                 if (!current())
                     last = {false,
                             false,
@@ -880,7 +880,7 @@ ConfigurationResult DisplayRuntime::configure(const DisplayConfiguration &config
             if (checked.succeeded) {
                 selected = checked.normalized;
                 ++testRounds;
-                LM_WARNING(lingmoCompositor) << "Testing single-output rescue on" << survivor.value();
+                LM_WARNING(lingmoAurora) << "Testing single-output rescue on" << survivor.value();
                 last = exact(selected, NativeDisplayDelegate::ConfigureMode::TestOnly);
                 if (!displayManager.hardware()
                     || displayManager.hardware()->topologyGeneration != hardware.topologyGeneration

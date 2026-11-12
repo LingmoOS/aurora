@@ -15,7 +15,7 @@ namespace Lingmo::Core {
 std::optional<CompositorOptions> CompositorOptions::parse(int argc, char **argv)
 {
     base::CommandLineParser parser;
-    parser.setApplicationDescription("Lingmo Wayland compositor");
+    parser.setApplicationDescription("Lingmo Aurora Wayland compositor");
     parser.setApplicationVersion("1.0");
     parser.addHelpOption();
     parser.addVersionOption();
@@ -62,7 +62,7 @@ std::optional<CompositorOptions> CompositorOptions::parse(int argc, char **argv)
                       "Stretch every animation by this factor, to judge motion slowly.", "factor",
                       "1"});
     parser.addOption({"log-rules",
-                      "Logging rules, e.g. \"lingmo.compositor.debug=true;lingmo.drm=true\".",
+                      "Logging rules, e.g. \"lingmo.aurora.debug=true;lingmo.drm=true\".",
                       "rules"});
     parser.process(argc, argv);
 

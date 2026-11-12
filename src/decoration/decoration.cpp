@@ -426,7 +426,7 @@ void Decoration::runButtonAction(CaptionButtonType type)
     // client's process.
     switch (type) {
     case CaptionButtonType::Close:
-        LM_DEBUG(lingmoCompositor) << "decoration: close" << m_window->title();
+        LM_DEBUG(lingmoAurora) << "decoration: close" << m_window->title();
         m_window->requestClose();
         break;
     case CaptionButtonType::Minimize:
