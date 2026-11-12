@@ -151,6 +151,17 @@ TEST_F(LauncherTest, CreatesPersistsAndSearchesFolders)
     ASSERT_TRUE(model().removeFromFolder(folderId, "alpha"));
     EXPECT_EQ(-1, model().findById(folderId));
     EXPECT_GE(model().findById("mid"), 0);
+    EXPECT_GE(model().findById("alpha"), 0);
+
+    ASSERT_TRUE(model().makeFolder("alpha", "mid"));
+    const auto nested = std::find_if(model().allItems().begin(), model().allItems().end(),
+                                     [](const shell::LauncherItem &item) { return item.folder; });
+    ASSERT_NE(model().allItems().end(), nested);
+    const std::string nestedId = nested->id;
+    ASSERT_TRUE(model().makeFolder("zeta", nestedId));
+    EXPECT_EQ(3u, model().folderItems(nestedId).size());
+    ASSERT_TRUE(model().removeFromFolder(nestedId, "alpha"));
+    EXPECT_EQ(2u, model().folderItems(nestedId).size());
 }
 
 TEST_F(LauncherTest, PagesFollowTheList)

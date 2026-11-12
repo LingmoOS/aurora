@@ -509,6 +509,8 @@ bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &t
         } while (m_folders.contains(folderId));
         const size_t targetIndex = size_t(std::distance(m_items.begin(), target));
         const std::string targetMember = target->id;
+        const std::string targetIcon = target->iconName;
+        const std::string sourceIcon = source->iconName;
         m_items.erase(std::remove_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
                           return item.id == sourceId || item.id == targetId;
                       }), m_items.end());
@@ -517,7 +519,7 @@ bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &t
         folder.name = "Folder";
         folder.folder = true;
         folder.members = {targetMember, sourceId};
-        folder.memberIcons = {target->iconName, source->iconName};
+        folder.memberIcons = {targetIcon, sourceIcon};
         m_folders[folderId] = {folder.name, folder.members};
         m_items.insert(m_items.begin() + std::min(targetIndex, m_items.size()), std::move(folder));
     }
@@ -535,6 +537,9 @@ bool LauncherModel::removeFromFolder(const std::string &folderId, const std::str
     const auto member = std::find(members.begin(), members.end(), memberId);
     if (member == members.end())
         return false;
+    if (!m_appItems.contains(memberId))
+        return false;
+    LauncherItem extracted = m_appItems.at(memberId);
     members.erase(member);
     const auto top = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
         return item.id == folderId;
@@ -542,16 +547,21 @@ bool LauncherModel::removeFromFolder(const std::string &folderId, const std::str
     if (top == m_items.end())
         return false;
     if (members.size() < 2) {
-        if (!members.empty() && m_appItems.contains(members.front()))
+        if (!members.empty() && m_appItems.contains(members.front())) {
             *top = m_appItems.at(members.front());
-        else
+            m_items.insert(std::next(top), std::move(extracted));
+        } else {
+            const auto index = std::distance(m_items.begin(), top);
             m_items.erase(top);
+            m_items.insert(m_items.begin() + index, std::move(extracted));
+        }
         m_folders.erase(folder);
     } else {
         top->members = members;
         top->memberIcons.clear();
         for (const std::string &id : members)
             top->memberIcons.push_back(m_appItems.contains(id) ? m_appItems.at(id).iconName : "");
+        m_items.insert(std::next(top), std::move(extracted));
     }
     updateRows();
     delaySave();
