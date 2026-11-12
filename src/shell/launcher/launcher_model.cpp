@@ -44,7 +44,8 @@ LauncherModel::LauncherModel(Applications &applications, ApplicationLauncher &la
     , m_rows(*this, [](const LauncherItem &item) { return item.id; },
              [](const LauncherItem &a, const LauncherItem &b) {
                  return a.name == b.name && a.genericName == b.genericName && a.comment == b.comment
-                         && a.iconName == b.iconName && a.newInstalled == b.newInstalled;
+                         && a.iconName == b.iconName && a.newInstalled == b.newInstalled
+                         && a.folder == b.folder && a.members == b.members;
              })
 {
     m_saveTimer.setSingleShot(true);
@@ -55,6 +56,7 @@ LauncherModel::LauncherModel(Applications &applications, ApplicationLauncher &la
                              [this](Stored stored) {
                                  m_firstLoad = !stored.valid;
                                  m_usage = std::move(stored.usage);
+                                 m_folders = std::move(stored.folders);
                                  if (stored.valid) {
                                      m_items = std::move(stored.items);
                                      for (LauncherItem &item : m_items)
@@ -103,6 +105,12 @@ LauncherModel::Stored LauncherModel::load(const std::string &path)
     }
     stored.valid = true;
     stored.newAppIds = settings.stringListValue("Launcher/newAppIds");
+    for (const std::string &id : settings.childGroups("LauncherFolders")) {
+        const std::string key = "LauncherFolders/" + id;
+        const auto members = settings.stringListValue(key + "/members");
+        if (!members.empty())
+            stored.folders.emplace(id, std::pair {settings.stringValue(key + "/name", "Folder"), members});
+    }
     return stored;
 }
 
@@ -122,14 +130,20 @@ void LauncherModel::save()
     }
 
     std::map<std::string, LaunchUsage> usage = m_usage;
-    fileThread().post([path = m_path, order, newAppIds, usage] {
+    const auto folders = m_folders;
+    fileThread().post([path = m_path, order, newAppIds, usage, folders] {
         base::Settings settings(path);
         settings.remove("Launcher");
+        settings.remove("LauncherFolders");
         // Rewritten whole, so the entries of applications that are gone do
         // not stay behind.
         settings.remove("LauncherUsage");
         settings.setValue("Launcher/order", order);
         settings.setValue("Launcher/newAppIds", newAppIds);
+        for (const auto &[id, folder] : folders) {
+            settings.setValue("LauncherFolders/" + id + "/name", folder.first);
+            settings.setValue("LauncherFolders/" + id + "/members", folder.second);
+        }
         for (const auto &[id, entry] : usage)
             settings.setValue("LauncherUsage/" + id,
                               std::to_string(entry.count) + ' ' + std::to_string(entry.lastUsed));
@@ -208,8 +222,17 @@ void LauncherModel::updateRows()
 
     std::vector<Ranked> ranked;
     ranked.reserve(m_items.size());
-    for (size_t i = 0; i < m_items.size(); ++i) {
-        const LauncherItem &item = m_items[i];
+    std::vector<LauncherItem> searchable;
+    for (const LauncherItem &item : m_items) {
+        if (item.folder) {
+            auto members = folderItems(item.id);
+            searchable.insert(searchable.end(), members.begin(), members.end());
+        } else {
+            searchable.push_back(item);
+        }
+    }
+    for (size_t i = 0; i < searchable.size(); ++i) {
+        const LauncherItem &item = searchable[i];
         // The name says the most about which application was meant; the rest
         // are there for the searches the name cannot answer.
         const int match = std::max({fuzzyMatchScore(item.name, m_searchKey),
@@ -373,9 +396,50 @@ void LauncherModel::onApplicationsChanged()
         byPath.emplace(absolutePath(entry->path), entry);
     }
 
+    m_appItems.clear();
+    for (const DesktopEntryPtr &entry : available) {
+        if (entry->terminal)
+            continue;
+        LauncherItem item;
+        updateItem(&item, *entry);
+        m_appItems.emplace(item.id, std::move(item));
+    }
+
+    for (auto it = m_folders.begin(); it != m_folders.end();) {
+        auto &members = it->second.second;
+        std::erase_if(members, [&](const std::string &id) { return !m_appItems.contains(id); });
+        if (members.size() >= 2) {
+            ++it;
+            continue;
+        }
+        const auto top = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
+            return item.id == it->first;
+        });
+        if (top != m_items.end()) {
+            if (!members.empty())
+                *top = m_appItems.at(members.front());
+            else
+                m_items.erase(top);
+        }
+        it = m_folders.erase(it);
+    }
+
     std::vector<LauncherItem> updated;
     std::set<std::string> seen;
     for (LauncherItem item : m_items) {
+        if (const auto folder = m_folders.find(item.id); folder != m_folders.end()) {
+            item.folder = true;
+            item.name = folder->second.first;
+            item.members.clear();
+            for (const std::string &member : folder->second.second) {
+                if (m_appItems.contains(member))
+                    item.members.push_back(member);
+                seen.insert(member);
+            }
+            if (!item.members.empty())
+                updated.push_back(std::move(item));
+            continue;
+        }
         DesktopEntryPtr entry;
         if (const auto it = byId.find(item.id); it != byId.end())
             entry = it->second;
@@ -409,6 +473,93 @@ void LauncherModel::onApplicationsChanged()
     m_items = std::move(updated);
     updateRows();
     delaySave();
+}
+
+bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &targetId)
+{
+    if (sourceId == targetId || !m_searchKey.empty())
+        return false;
+    auto source = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
+        return item.id == sourceId;
+    });
+    auto target = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
+        return item.id == targetId;
+    });
+    if (source == m_items.end() || target == m_items.end())
+        return false;
+    if (source->folder)
+        return false;
+    if (target->folder) {
+        auto &members = m_folders[targetId].second;
+        if (std::find(members.begin(), members.end(), sourceId) != members.end())
+            return false;
+        members.push_back(sourceId);
+        target->members = members;
+        m_items.erase(source);
+    } else {
+        static uint64_t serial = 0;
+        std::string folderId;
+        do {
+            folderId = "folder-" + std::to_string(std::time(nullptr)) + "-" + std::to_string(++serial);
+        } while (m_folders.contains(folderId));
+        const size_t targetIndex = size_t(std::distance(m_items.begin(), target));
+        const std::string targetMember = target->id;
+        m_items.erase(std::remove_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
+                          return item.id == sourceId || item.id == targetId;
+                      }), m_items.end());
+        LauncherItem folder;
+        folder.id = folderId;
+        folder.name = "Folder";
+        folder.folder = true;
+        folder.members = {targetMember, sourceId};
+        m_folders[folderId] = {folder.name, folder.members};
+        m_items.insert(m_items.begin() + std::min(targetIndex, m_items.size()), std::move(folder));
+    }
+    updateRows();
+    delaySave();
+    return true;
+}
+
+bool LauncherModel::removeFromFolder(const std::string &folderId, const std::string &memberId)
+{
+    auto folder = m_folders.find(folderId);
+    if (folder == m_folders.end())
+        return false;
+    auto &members = folder->second.second;
+    const auto member = std::find(members.begin(), members.end(), memberId);
+    if (member == members.end())
+        return false;
+    members.erase(member);
+    const auto top = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
+        return item.id == folderId;
+    });
+    if (top == m_items.end())
+        return false;
+    if (members.size() < 2) {
+        if (!members.empty() && m_appItems.contains(members.front()))
+            *top = m_appItems.at(members.front());
+        else
+            m_items.erase(top);
+        m_folders.erase(folder);
+    } else {
+        top->members = members;
+    }
+    updateRows();
+    delaySave();
+    return true;
+}
+
+std::vector<LauncherItem> LauncherModel::folderItems(const std::string &folderId) const
+{
+    std::vector<LauncherItem> result;
+    const auto folder = m_folders.find(folderId);
+    if (folder == m_folders.end())
+        return result;
+    for (const std::string &id : folder->second.second) {
+        if (const auto item = m_appItems.find(id); item != m_appItems.end())
+            result.push_back(item->second);
+    }
+    return result;
 }
 
 LauncherPageModel::LauncherPageModel(LauncherModel &source)

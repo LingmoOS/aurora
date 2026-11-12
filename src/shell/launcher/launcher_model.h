@@ -30,6 +30,8 @@ struct LauncherItem {
     std::string iconName;
     // Installed since the launcher last looked, until it is opened.
     bool newInstalled = false;
+    bool folder = false;
+    std::vector<std::string> members;
 };
 
 // How often an application was started from the launcher, and when it was
@@ -72,6 +74,9 @@ public:
     void clearNewInstalled(const std::vector<std::string> &ids);
     // Within allItems(); not while searching.
     void move(int from, int to);
+    bool makeFolder(const std::string &sourceId, const std::string &targetId);
+    bool removeFromFolder(const std::string &folderId, const std::string &memberId);
+    std::vector<LauncherItem> folderItems(const std::string &folderId) const;
     // A drag's moves are not saved while it runs, and a drag that ends
     // without a drop puts the order back as it was.
     void beginReorder();
@@ -93,6 +98,7 @@ private:
         std::vector<LauncherItem> items;
         std::vector<std::string> newAppIds;
         std::map<std::string, LaunchUsage> usage;
+        std::map<std::string, std::pair<std::string, std::vector<std::string>>> folders;
     };
 
     static Stored load(const std::string &path);
@@ -109,6 +115,8 @@ private:
     ApplicationLauncher &m_launcher;
     std::string m_path;
     std::vector<LauncherItem> m_items;
+    std::map<std::string, LauncherItem> m_appItems;
+    std::map<std::string, std::pair<std::string, std::vector<std::string>>> m_folders;
     SyncedList<LauncherItem> m_rows;
     std::string m_searchKey;
     // Kept for the whole session, not only while the launcher is open.

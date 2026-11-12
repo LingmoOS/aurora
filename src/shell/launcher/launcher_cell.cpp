@@ -76,8 +76,9 @@ LauncherCell::~LauncherCell() = default;
 
 void LauncherCell::setItem(const LauncherItem &item)
 {
-    if (item.iconName != m_iconName) {
-        m_iconName = item.iconName;
+    const std::string iconName = item.folder ? "folder" : item.iconName;
+    if (iconName != m_iconName) {
+        m_iconName = iconName;
         m_icon->setIconName(m_iconName.empty() ? "application-x-desktop" : m_iconName);
         if (m_mask)
             m_mask->setIconName(m_icon->iconName());

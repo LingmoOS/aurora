@@ -4,6 +4,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "base/file.h"
 #include "base/settings.h"
 #include "base/strings.h"
@@ -120,6 +122,35 @@ TEST_F(LauncherTest, SearchesNamesCommentsAndIds)
     model().move(0, 1);
     model().search("");
     EXPECT_EQ(ids(), (std::vector<std::string>{"alpha", "mid", "zeta"}));
+}
+
+TEST_F(LauncherTest, CreatesPersistsAndSearchesFolders)
+{
+    start();
+    applications.scan();
+    ASSERT_TRUE(test::runUntil([&] { return model().count() == 3; }));
+    ASSERT_TRUE(model().makeFolder("alpha", "mid"));
+    ASSERT_EQ(2, model().count());
+    const auto folder = std::find_if(model().rows().begin(), model().rows().end(),
+                                     [](const shell::LauncherItem &item) { return item.folder; });
+    ASSERT_NE(model().rows().end(), folder);
+    const std::string folderId = folder->id;
+    EXPECT_EQ(2u, model().folderItems(folderId).size());
+    model().search("browser");
+    ASSERT_EQ(1, model().count());
+    EXPECT_EQ("alpha", model().rows().front().id);
+    model().search({});
+    model().save();
+    shell::waitForFileThread();
+
+    launcher.reset();
+    start();
+    applications.scan();
+    ASSERT_TRUE(test::runUntil([&] { return model().count() == 2; }));
+    EXPECT_EQ(2u, model().folderItems(folderId).size());
+    ASSERT_TRUE(model().removeFromFolder(folderId, "alpha"));
+    EXPECT_EQ(-1, model().findById(folderId));
+    EXPECT_GE(model().findById("mid"), 0);
 }
 
 TEST_F(LauncherTest, PagesFollowTheList)

@@ -936,8 +936,33 @@ void LauncherView::backgroundReleased(ui::PointF position)
 
 void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::PointF windowPosition)
 {
-    if (button == ui::MouseButton::Left)
-        m_launcher.applications().launch(cell->id());
+    const auto found = std::find_if(m_launcher.applications().rows().begin(),
+                                    m_launcher.applications().rows().end(),
+                                    [cell](const LauncherItem &item) { return item.id == cell->id(); });
+    if (button == ui::MouseButton::Left && found != m_launcher.applications().rows().end()) {
+        if (found->folder) {
+            if (m_menu)
+                m_menu->close();
+            auto menu = std::make_unique<ui::Menu>();
+            const std::string folderId = cell->id();
+            for (const LauncherItem &item : m_launcher.applications().folderItems(cell->id())) {
+                const std::string id = item.id;
+                ui::Menu *memberMenu = menu->addSubmenu(item.name);
+                memberMenu->addItem(tr("Open"), [this, id] {
+                    m_launcher.applications().launch(id);
+                });
+                memberMenu->addItem(tr("Remove from folder"), [this, folderId, id] {
+                    m_launcher.applications().removeFromFolder(folderId, id);
+                });
+            }
+            if (m_availableGeometry)
+                menu->setAvailableGeometry(m_availableGeometry);
+            m_menu = std::move(menu);
+            m_menu->popup(window(), windowPosition);
+        } else {
+            m_launcher.applications().launch(cell->id());
+        }
+    }
     else if (button == ui::MouseButton::Right)
         openMenu(cell, windowPosition);
 }
@@ -1083,6 +1108,15 @@ void LauncherView::dragLeave()
 uint32_t LauncherView::drop(const ui::DragEvent &event)
 {
     updateDragTarget(event.position);
+    if (m_reorderPending && !m_draggedId.empty() && !m_hoveredId.empty()
+        && m_hoveredId != m_draggedId) {
+        m_reorderTimer.stop();
+        m_reorderPending = false;
+        if (m_launcher.applications().makeFolder(m_draggedId, m_hoveredId)) {
+            m_hoveredId.clear();
+            return ui::MoveAction;
+        }
+    }
     m_reorderTimer.stop();
     m_edgeTimer.stop();
     m_edge = 0;
