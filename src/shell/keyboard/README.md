@@ -28,7 +28,7 @@ D-Bus 只暴露显示控制，不提供按键注入方法。组件只在已登�
 
 ## 验证
 
-独立验证项目：lingmo-compositor/tests/keyboard。编译键盘模型、SDK 视图、真实 XKB 转换和 Shell 控制器；测试单次修饰键、大小写、德语键位映射、鼠标点击、透明/实色边界和快捷键 D-Bus 协议。
+独立验证项目：aurora/tests/keyboard。编译键盘模型、SDK 视图、真实 XKB 转换和 Shell 控制器；测试单次修饰键、大小写、德语键位映射、鼠标点击、透明/实色边界和快捷键 D-Bus 协议。
 
 完整合成器测试：tests/shell/screen_keyboard_test.cpp 验证真实 Seat/WindowManager 下的焦点保持及锁屏行为；tests/accelerator_test.cpp 补充快捷键锁屏限制。应在完整合成器测试环境执行，并在桌面上验证 GTK、Qt、原生 SDK 应用、触摸屏、多屏和实际输入法。
 

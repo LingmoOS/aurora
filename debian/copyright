@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: lingmo-aurora
-Source: https://github.com/LingmoOS/lingmo-compositor
+Source: https://github.com/LingmoOS/aurora
 
 Files: *
 Copyright: 2012-2023 The Chromium Authors

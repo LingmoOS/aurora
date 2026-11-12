@@ -1,3 +1,10 @@
+lingmo-aurora (5.0.16+lingmo5u1) unstable; urgency=medium
+
+  * Upload the renamed Aurora package to OBS as laurora.
+  * Point project metadata to the Aurora GitHub repository.
+
+ -- Lingmo OS Team <team@lingmo.org>  Fri, 13 Nov 2026 18:30:00 +0800
+
 lingmo-aurora (5.0.15+lingmo5u1) unstable; urgency=medium
 
   * Rename the Wayland compositor product, executable and package to Aurora.

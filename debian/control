@@ -32,7 +32,7 @@ Build-Depends: cmake (>= 3.22),
                libxcb-shape0-dev,
                libxcb-sync-dev
 Standards-Version: 4.7.2
-Homepage: https://github.com/LingmoOS/lingmo-compositor
+Homepage: https://github.com/LingmoOS/aurora
 
 Package: lingmo-aurora
 Architecture: any

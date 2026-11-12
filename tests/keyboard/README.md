@@ -3,7 +3,7 @@
 Build this standalone CMake project against an installed SDK to test the keyboard model, SDK pointer interactions, XKB conversion and global shortcut D-Bus contract. It also compiles the real Shell controller and full-shell test source as object targets to catch API errors.
 
 ~~~sh
-cmake -S lingmo-compositor/tests/keyboard -B keyboard-build -DCMAKE_PREFIX_PATH=/path/to/sdk
+cmake -S aurora/tests/keyboard -B keyboard-build -DCMAKE_PREFIX_PATH=/path/to/sdk
 cmake --build keyboard-build
 ctest --test-dir keyboard-build --output-on-failure
 keyboard-build/screen-keyboard-capture captures
