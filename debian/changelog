@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.17+lingmo5u1) unstable; urgency=medium
+
+  * Correct the OBS package name to aurora.
+
+ -- Lingmo OS Team <team@lingmo.org>  Fri, 13 Nov 2026 18:45:00 +0800
+
 lingmo-aurora (5.0.16+lingmo5u1) unstable; urgency=medium
 
   * Upload the renamed Aurora package to OBS as laurora.
