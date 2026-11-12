@@ -91,6 +91,7 @@ private:
     int m_index = 0;
     Icon *m_icon = nullptr;
     ui::ThemeIcon *m_mask = nullptr;
+    std::vector<ui::ThemeIcon *> m_folderIcons;
     // Above the icon and its pressed look.
     CountBadge *m_countBadge = nullptr;
     ui::Label *m_label = nullptr;

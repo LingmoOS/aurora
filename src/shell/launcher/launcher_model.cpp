@@ -45,7 +45,8 @@ LauncherModel::LauncherModel(Applications &applications, ApplicationLauncher &la
              [](const LauncherItem &a, const LauncherItem &b) {
                  return a.name == b.name && a.genericName == b.genericName && a.comment == b.comment
                          && a.iconName == b.iconName && a.newInstalled == b.newInstalled
-                         && a.folder == b.folder && a.members == b.members;
+                         && a.folder == b.folder && a.members == b.members
+                         && a.memberIcons == b.memberIcons;
              })
 {
     m_saveTimer.setSingleShot(true);
@@ -431,9 +432,12 @@ void LauncherModel::onApplicationsChanged()
             item.folder = true;
             item.name = folder->second.first;
             item.members.clear();
+            item.memberIcons.clear();
             for (const std::string &member : folder->second.second) {
-                if (m_appItems.contains(member))
+                if (m_appItems.contains(member)) {
                     item.members.push_back(member);
+                    item.memberIcons.push_back(m_appItems.at(member).iconName);
+                }
                 seen.insert(member);
             }
             if (!item.members.empty())
@@ -495,6 +499,7 @@ bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &t
             return false;
         members.push_back(sourceId);
         target->members = members;
+        target->memberIcons.push_back(source->iconName);
         m_items.erase(source);
     } else {
         static uint64_t serial = 0;
@@ -512,6 +517,7 @@ bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &t
         folder.name = "Folder";
         folder.folder = true;
         folder.members = {targetMember, sourceId};
+        folder.memberIcons = {target->iconName, source->iconName};
         m_folders[folderId] = {folder.name, folder.members};
         m_items.insert(m_items.begin() + std::min(targetIndex, m_items.size()), std::move(folder));
     }
@@ -543,6 +549,9 @@ bool LauncherModel::removeFromFolder(const std::string &folderId, const std::str
         m_folders.erase(folder);
     } else {
         top->members = members;
+        top->memberIcons.clear();
+        for (const std::string &id : members)
+            top->memberIcons.push_back(m_appItems.contains(id) ? m_appItems.at(id).iconName : "");
     }
     updateRows();
     delaySave();

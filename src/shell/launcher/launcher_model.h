@@ -32,6 +32,7 @@ struct LauncherItem {
     bool newInstalled = false;
     bool folder = false;
     std::vector<std::string> members;
+    std::vector<std::string> memberIcons;
 };
 
 // How often an application was started from the launcher, and when it was

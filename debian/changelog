@@ -1,3 +1,10 @@
+lingmo-compositor (5.0.13+lingmo5u1) unstable; urgency=medium
+
+  * Improve launcher folders with app icon previews and easier member actions.
+  * Persist folder membership and keep search results accessible by app.
+
+ -- Lingmo OS Team <team@lingmo.org>  Fri, 13 Nov 2026 16:00:00 +0800
+
 lingmo-compositor (5.0.12+lingmo5u1) unstable; urgency=medium
 
   * Add four-finger pinch to open Launcher and spread to show the desktop,

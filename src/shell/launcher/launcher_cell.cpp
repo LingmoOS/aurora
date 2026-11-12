@@ -89,6 +89,24 @@ void LauncherCell::setItem(const LauncherItem &item)
         m_newInstalled = item.newInstalled;
         requestPaint();
     }
+    if (item.folder) {
+        while (m_folderIcons.size() < std::min<size_t>(4, item.memberIcons.size()))
+            m_folderIcons.push_back(addChild<ui::ThemeIcon>());
+        for (size_t i = 0; i < m_folderIcons.size(); ++i) {
+            const bool visible = i < item.memberIcons.size() && i < 4;
+            m_folderIcons[i]->setVisible(visible);
+            if (visible)
+                m_folderIcons[i]->setIconName(item.memberIcons[i].empty()
+                                                      ? "application-x-desktop"
+                                                      : item.memberIcons[i]);
+        }
+        m_icon->setVisible(false);
+        requestLayout();
+    } else {
+        m_icon->setVisible(!m_dragging);
+        for (ui::ThemeIcon *icon : m_folderIcons)
+            icon->setVisible(false);
+    }
 }
 
 void LauncherCell::setCount(int64_t count)
@@ -118,6 +136,8 @@ void LauncherCell::setMetrics(const LauncherMetrics &metrics)
         return;
     m_metrics = metrics;
     m_icon->setSize(metrics.iconSize);
+    for (ui::ThemeIcon *icon : m_folderIcons)
+        icon->setSize(metrics.iconSize * 0.38);
     if (m_mask)
         m_mask->setSize(metrics.iconSize);
     m_label->setFontSize(metrics.labelPixelSize);
@@ -256,6 +276,15 @@ void LauncherCell::layout()
 {
     const ui::RectF icon = iconRect();
     m_icon->setGeometry(icon);
+    const double mini = m_metrics.iconSize * 0.38;
+    const double gap = m_metrics.iconSize * 0.08;
+    const double startX = icon.x + (icon.width - mini * 2 - gap) / 2;
+    const double startY = icon.y + (icon.height - mini * 2 - gap) / 2;
+    for (size_t i = 0; i < m_folderIcons.size(); ++i) {
+        const int column = int(i % 2);
+        const int row = int(i / 2);
+        m_folderIcons[i]->setGeometry({startX + column * (mini + gap), startY + row * (mini + gap), mini, mini});
+    }
     if (m_mask)
         m_mask->setGeometry(icon);
     updateCountBadge();
