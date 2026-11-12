@@ -63,6 +63,41 @@ bool ShowDesktopController::isMovedAside(const Window *window) const
     return std::find(m_windows.begin(), m_windows.end(), window) != m_windows.end();
 }
 
+bool ShowDesktopController::beginGesture()
+{
+    if (m_active || m_tracking || !m_manager->allowsActivation() || m_manager->overview()->isActive()) return false;
+    m_gestureStart = m_progress;
+    m_gestureActiveWindow = m_manager->activation()->activeWindow() ? m_manager->activation()->activeWindow()->id() : 0;
+    enter();
+    if (!m_active) return false;
+    m_tracking = true; m_sliding = false;
+    m_progress = m_gestureStart; present();
+    return true;
+}
+
+void ShowDesktopController::updateGesture(double progress)
+{
+    if (!m_tracking || !std::isfinite(progress)) return;
+    m_progress = std::clamp(progress, 0.0, 1.0);
+    present(); requestFrame();
+}
+
+void ShowDesktopController::endGesture(bool cancelled)
+{
+    if (!m_tracking) return;
+    m_tracking = false;
+    m_active = !cancelled && m_progress >= 0.5;
+    slideTo(m_active ? 1 : 0);
+    if (!m_active && m_gestureActiveWindow) {
+        for (auto *window : m_manager->windows()) {
+            if (window->id() == m_gestureActiveWindow && window->isVisible()) {
+                m_manager->activation()->activate(window); break;
+            }
+        }
+    }
+    m_gestureActiveWindow = 0;
+}
+
 void ShowDesktopController::toggle()
 {
     if (m_active)
@@ -101,6 +136,7 @@ void ShowDesktopController::exit(Window *activate)
 {
     if (!m_active)
         return;
+    m_tracking = false;
     m_active = false;
     slideTo(0);
     if (activate)
@@ -109,6 +145,7 @@ void ShowDesktopController::exit(Window *activate)
 
 void ShowDesktopController::exitImmediately()
 {
+    m_tracking = false;
     m_active = false;
     m_sliding = false;
     m_progress = 0;

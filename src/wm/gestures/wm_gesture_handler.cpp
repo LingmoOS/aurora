@@ -38,6 +38,12 @@ WmGestureHandler::WmGestureHandler(DesksController *desks, std::function<bool()>
 bool WmGestureHandler::claimGesture(input::Timestamp timestamp, input::GestureType type,
                                     uint32_t fingers)
 {
+    if (type == input::GestureType::Pinch && fingers == 4 && m_pinchActions.begin) {
+        m_pinch = true; m_pinchDirection = 0; m_pinchStarted = false;
+        m_pinchIgnored = m_dragging && m_dragging();
+        return true;
+    }
+    m_pinch = false;
     if (type != input::GestureType::Swipe || fingers != kDeskSwitchFingers)
         return false;
     m_scroll = {};
@@ -52,6 +58,22 @@ bool WmGestureHandler::claimGesture(input::Timestamp timestamp, input::GestureTy
 void WmGestureHandler::onGestureUpdate(input::Timestamp timestamp,
                                        const input::GestureUpdate &update)
 {
+    if (m_pinch) {
+        if (m_pinchIgnored || !std::isfinite(update.scale) || update.scale <= 0) return;
+        if (!m_pinchDirection) {
+            if (std::abs(update.scale - 1) < 0.04) return;
+            m_pinchDirection = update.scale < 1 ? -1 : 1;
+            if ((m_dragging && m_dragging()) || !m_pinchActions.begin(m_pinchDirection < 0)) {
+                m_pinchIgnored = true; return;
+            }
+            m_pinchStarted = true;
+        }
+        // Absolute libinput scale: reversing immediately reverses progress.
+        const double progress = std::clamp(m_pinchDirection < 0
+                ? (1 - update.scale) / 0.45 : (update.scale - 1) / 0.55, 0.0, 1.0);
+        if (m_pinchActions.update) m_pinchActions.update(progress);
+        return;
+    }
     if (m_scroll.ignored)
         return;
     // The fingers left the start at the previous event: a started animation
@@ -131,8 +153,12 @@ double WmGestureHandler::catchUp(double delta)
     return delta + madeUp(m_scroll.owedTravel) - before;
 }
 
-void WmGestureHandler::onGestureEnd(input::Timestamp timestamp, bool)
+void WmGestureHandler::onGestureEnd(input::Timestamp timestamp, bool cancelled)
 {
+    if (std::exchange(m_pinch, false)) {
+        if (m_pinchStarted && m_pinchActions.end) m_pinchActions.end(cancelled);
+        m_pinchStarted = false; return;
+    }
     const bool horizontal = m_scroll.horizontalContinuousGestureStarted;
     const bool vertical = m_scroll.verticalContinuousGestureStarted;
     m_scroll = {};

@@ -502,3 +502,51 @@ TEST_F(LauncherWindowTest, AnApplicationsCountSitsOnItsIconsCorner)
     client.sendLauncherEntry("application://terminal.desktop", dbus::VariantMap {{"count", dbus::Variant(int64_t(0))}});
     ASSERT_TRUE(test::runUntil([badge] { return !badge->isVisible(); }));
 }
+
+TEST_F(LauncherWindowTest, PinchTracksBothDirectionsAndSettlesOrCancels)
+{
+    open();
+    ASSERT_TRUE(launcherWindow->beginGesture());
+    launcherWindow->updateGesture(0.3);
+    frame();
+    EXPECT_NEAR(view()->opacity(), 0.3, 0.001);
+    EXPECT_GT(view()->transform().scale, 1);
+    EXPECT_FALSE(view()->isEnabled());
+    launcherWindow->updateGesture(0.8);
+    EXPECT_NEAR(view()->opacity(), 0.8, 0.001);
+    launcherWindow->updateGesture(0.2);
+    EXPECT_NEAR(view()->opacity(), 0.2, 0.001);
+    launcherWindow->endGesture(false);
+    ASSERT_TRUE(test::runUntil([&] { frame(); return !launcher().isShown(); }));
+    ASSERT_TRUE(launcherWindow->beginGesture());
+    launcherWindow->updateGesture(0.9);
+    launcherWindow->endGesture(true);
+    ASSERT_TRUE(test::runUntil([&] { frame(); return !launcher().isShown(); }));
+    ASSERT_TRUE(launcherWindow->beginGesture());
+    launcherWindow->updateGesture(0.7);
+    launcherWindow->endGesture(false);
+    ASSERT_TRUE(test::runUntil([&] { frame(); return view()->isEnabled(); }));
+    EXPECT_TRUE(launcher().isShown());
+    EXPECT_DOUBLE_EQ(view()->opacity(), 1);
+    EXPECT_TRUE(view()->transform().isIdentity());
+    launcher().hide();
+    launcher().show();
+    EXPECT_TRUE(view()->isEnabled());
+}
+
+TEST_F(LauncherWindowTest, SpreadingClosesAnOpenLauncherContinuouslyAndCanCancel)
+{
+    open(); launcher().show(); frame();
+    ASSERT_TRUE(launcherWindow->beginGesture(false));
+    launcherWindow->updateGesture(0.4);
+    EXPECT_NEAR(view()->opacity(), 0.6, 0.001);
+    launcherWindow->updateGesture(0.1);
+    EXPECT_NEAR(view()->opacity(), 0.9, 0.001);
+    launcherWindow->endGesture(true);
+    ASSERT_TRUE(test::runUntil([&] { frame(); return view()->isEnabled(); }));
+    EXPECT_TRUE(launcher().isShown());
+    ASSERT_TRUE(launcherWindow->beginGesture(false));
+    launcherWindow->updateGesture(0.8);
+    launcherWindow->endGesture(false);
+    ASSERT_TRUE(test::runUntil([&] { frame(); return !launcher().isShown(); }));
+}

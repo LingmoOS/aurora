@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "base/signal.h"
+#include "base/timer.h"
 #include "shell/shell.h"
 
 namespace Lingmo::Shell {
@@ -34,6 +35,10 @@ public:
     LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher, Dock *dock, Wallpaper *wallpaper);
     ~LauncherWindow() override;
 
+    bool beginGesture(bool opening = true);
+    void updateGesture(double progress);
+    void endGesture(bool cancelled);
+    double gestureProgress() const { return m_gestureProgress; }
     Launcher &launcher() { return *m_launcher; }
     ShellWindow *window() const { return m_window.get(); }
     LauncherView *view() const { return m_view; }
@@ -46,6 +51,15 @@ private:
     void activeChanged();
     bool keepsShownWhileInactive() const;
 
+    void presentGesture();
+    void settleGesture();
+    bool m_gestureActive = false;
+    bool m_gestureOpening = true;
+    double m_gestureProgress = 0;
+    double m_gestureFrom = 0;
+    double m_gestureTarget = 0;
+    std::chrono::steady_clock::time_point m_gestureTime;
+    base::Timer m_gestureTimer;
     Shell *m_shell;
     std::unique_ptr<Launcher> m_launcher;
     Dock *m_dock;

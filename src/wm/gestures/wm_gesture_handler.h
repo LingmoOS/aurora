@@ -60,6 +60,12 @@ public:
     // the first frame it brings would meet an idle GPU otherwise.
     void setWarmUp(std::function<void()> warmUp) { m_warmUp = std::move(warmUp); }
 
+    struct PinchActions {
+        std::function<bool(bool inward)> begin;
+        std::function<void(double progress)> update;
+        std::function<void(bool cancelled)> end;
+    };
+    void setPinchActions(PinchActions actions) { m_pinchActions = std::move(actions); }
     bool claimGesture(input::Timestamp timestamp, input::GestureType type,
                       uint32_t fingers) override;
     void onGestureUpdate(input::Timestamp timestamp, const input::GestureUpdate &update) override;
@@ -91,6 +97,11 @@ private:
     OverviewController *m_overview = nullptr;
     std::function<void()> m_warmUp;
     ScrollData m_scroll;
+    PinchActions m_pinchActions;
+    bool m_pinch = false;
+    int m_pinchDirection = 0;
+    bool m_pinchStarted = false;
+    bool m_pinchIgnored = false;
 };
 
 } // namespace Lingmo::WM

@@ -479,6 +479,7 @@ void InputManager::onPointerGestureBegin(Timestamp timestamp, GestureType type, 
     // when focus leaves its surface, lock screen included.
     if (auto *gate = m_seat->sessionGate(); gate && gate->restrictsInput())
         return;
+    m_gestureCancelled = false;
     m_gestureClaimed = m_gestureFilter && m_gestureFilter->claimGesture(timestamp, type, fingers);
     if (m_gestureClaimed)
         return;
@@ -493,6 +494,12 @@ void InputManager::onPointerGestureUpdate(Timestamp timestamp, GestureType type,
     const base::PointF logicalDelta = m_topology.empty() ? delta / m_deviceScale : delta;
     const GestureUpdate update {logicalDelta, unacceleratedDelta, scale, rotation};
     if (m_gestureClaimed) {
+        if (m_gestureCancelled) return;
+        if (auto *gate = m_seat->sessionGate(); gate && gate->restrictsInput()) {
+            m_gestureCancelled = true;
+            if (m_gestureFilter) m_gestureFilter->onGestureEnd(timestamp, true);
+            return;
+        }
         if (m_gestureFilter)
             m_gestureFilter->onGestureUpdate(timestamp, update);
         return;
@@ -504,6 +511,7 @@ void InputManager::onPointerGestureEnd(Timestamp timestamp, GestureType type, bo
 {
     userActivity();
     if (std::exchange(m_gestureClaimed, false)) {
+        if (std::exchange(m_gestureCancelled, false)) return;
         if (m_gestureFilter)
             m_gestureFilter->onGestureEnd(timestamp, cancelled);
         return;

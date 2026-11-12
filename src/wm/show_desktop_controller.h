@@ -43,6 +43,9 @@ public:
     // Between 0, every window in place, and 1, all of them aside.
     double progress() const { return m_progress; }
 
+    bool beginGesture();
+    void updateGesture(double progress);
+    void endGesture(bool cancelled);
     void toggle();
     void enter();
     // Slides the windows back. `activate`, one of them, becomes active.
@@ -76,6 +79,9 @@ private:
 
     WindowManager *m_manager = nullptr;
     bool m_active = false;
+    bool m_tracking = false;
+    double m_gestureStart = 0;
+    uint64_t m_gestureActiveWindow = 0;
     // The windows moved aside, bottom to top.
     std::vector<Window *> m_windows;
     double m_progress = 0;

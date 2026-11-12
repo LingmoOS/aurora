@@ -30,6 +30,7 @@ function(lingmo_add_test name)
 endfunction()
 
 lingmo_add_test(main_loop_test lingmo-sdk-host)
+lingmo_add_test(four_finger_pinch_test lingmo-wm)
 lingmo_add_test(core_test)
 target_sources(core_test PRIVATE ${PROJECT_SOURCE_DIR}/src/core/compositor_options.cpp)
 target_compile_definitions(core_test PRIVATE

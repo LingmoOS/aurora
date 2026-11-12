@@ -18,3 +18,6 @@ namespace Lingmo::Shell {
 namespace ClockFormat {}
 namespace clock_format = ClockFormat;
 }
+namespace Lingmo {
+namespace Wm = WM;
+}

@@ -178,6 +178,7 @@ private:
     GestureFilter *m_gestureFilter = nullptr;
     // The gesture in progress went to the filter.
     bool m_gestureClaimed = false;
+    bool m_gestureCancelled = false;
     std::set<uint32_t> m_secureKeys;
     // Physical key to the code it went down as, so that its release matches
     // whatever convention is in force by then.

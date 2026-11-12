@@ -15,6 +15,9 @@
 #include "shell/shell_window.h"
 #include "ui/embedded_window.h"
 #include "wm/window.h"
+#include "scene/window_animation.h"
+#include "wm/overview/overview_controller.h"
+#include "wm/show_desktop_controller.h"
 #include "wm/window_manager.h"
 
 namespace Lingmo::Shell {
@@ -54,6 +57,7 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
 LauncherWindow::~LauncherWindow()
 {
     *m_alive = false;
+    m_gestureTimer.stop();
     m_subscriptions.clear();
     m_launcher->showWindow = nullptr;
     m_launcher->hideWindow = nullptr;
@@ -99,6 +103,67 @@ void LauncherWindow::updateGeometry()
                                             double(available.width()), double(available.height())});
 }
 
+bool LauncherWindow::beginGesture(bool opening)
+{
+    if (m_gestureActive || m_launcher->isShown() == opening || m_shell->windowManager()->overview()->isActive()) return false;
+    if (opening) m_shell->windowManager()->showDesktop()->exitImmediately();
+    m_gestureTimer.stop();
+    m_gestureActive = true; m_gestureOpening = opening;
+    m_gestureProgress = opening ? 0 : 1;
+    // Opening is rendered by gesture progress, not a second timed animation.
+    m_view->setOpacity(m_gestureProgress);
+    m_view->setEnabled(false);
+    if (opening) m_launcher->show();
+    if (auto *animation = dynamic_cast<scene::WindowAnimation *>(m_window->wmWindow() ? m_window->wmWindow()->node() : nullptr)) {
+        animation->finish(); animation->setStyle(scene::WindowAnimation::Style::None);
+    }
+    presentGesture();
+    return true;
+}
+
+void LauncherWindow::updateGesture(double progress)
+{
+    if (!m_gestureActive || !std::isfinite(progress)) return;
+    m_gestureProgress = std::clamp(m_gestureOpening ? progress : 1 - progress, 0.0, 1.0);
+    presentGesture();
+}
+
+void LauncherWindow::presentGesture()
+{
+    const double scale = 1.08 - 0.08 * m_gestureProgress;
+    const auto rect = m_view->geometry();
+    m_view->setTransform({{rect.width * (1 - scale) / 2, rect.height * (1 - scale) / 2}, scale});
+    m_view->setOpacity(m_gestureProgress);
+}
+
+void LauncherWindow::endGesture(bool cancelled)
+{
+    if (!m_gestureActive) return;
+    const bool shown = m_gestureOpening ? m_gestureProgress >= 0.5 : m_gestureProgress > 0.5;
+    m_gestureTarget = cancelled ? (m_gestureOpening ? 0 : 1) : (shown ? 1 : 0);
+    m_gestureFrom = m_gestureProgress;
+    m_gestureTime = std::chrono::steady_clock::now();
+    m_gestureTimer.setInterval(std::chrono::milliseconds(16));
+    m_gestureTimer.onTimeout = [this] { settleGesture(); };
+    m_gestureTimer.start();
+}
+
+void LauncherWindow::settleGesture()
+{
+    const double elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - m_gestureTime).count();
+    const double t = std::clamp(elapsed / 180, 0.0, 1.0);
+    m_gestureProgress = m_gestureFrom + (m_gestureTarget - m_gestureFrom) * (1 - std::pow(1 - t, 3));
+    presentGesture();
+    if (t < 1) return;
+    m_gestureTimer.stop(); m_gestureActive = false;
+    if (m_gestureTarget == 0) m_launcher->hide();
+    else m_window->activate();
+    m_view->setEnabled(true);
+    m_view->setTransform({}); m_view->setOpacity(1);
+    if (auto *window = m_window->wmWindow())
+        if (auto *animation = dynamic_cast<scene::WindowAnimation *>(window->node())) animation->setStyle(scene::WindowAnimation::Style::Launcher);
+}
+
 void LauncherWindow::showWindow()
 {
     updateGeometry();
@@ -107,17 +172,25 @@ void LauncherWindow::showWindow()
     // The trusted shell needs no activation token: the window manager's own
     // activation, as lingmo_shell_surface_v1.activate.
     m_window->activate();
+    if (!m_gestureActive) {
+        m_view->setOpacity(1); m_view->setTransform({}); m_view->setEnabled(true);
+        if (auto *window = m_window->wmWindow())
+            if (auto *animation = dynamic_cast<scene::WindowAnimation *>(window->node())) animation->setStyle(scene::WindowAnimation::Style::Launcher);
+    }
 }
 
 void LauncherWindow::hideWindow()
 {
+    m_gestureTimer.stop(); m_gestureActive = false;
     m_view->setShown(false);
     m_window->hide();
+    m_view->setEnabled(true);
+    m_view->setOpacity(1); m_view->setTransform({});
 }
 
 bool LauncherWindow::keepsShownWhileInactive() const
 {
-    if (m_launcher->isDragging() || m_view->isMenuOpen())
+    if (m_gestureActive || m_launcher->isDragging() || m_view->isMenuOpen())
         return true;
     // The capture tools take the keyboard to picture the launcher, not to close it.
     const auto &windows = m_shell->windowManager()->windows();

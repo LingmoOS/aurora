@@ -94,6 +94,7 @@
 #include "wm/desks/desk_preferences.h"
 #include "wm/desks/desks_controller.h"
 #include "wm/gestures/wm_gesture_handler.h"
+#include "wm/show_desktop_controller.h"
 #include "wm/mru_window_tracker.h"
 #include "wm/overview/overview_controller.h"
 #include "wm/quit_all.h"
@@ -690,8 +691,38 @@ void CompositorShell::initShell()
     auto launcher = std::make_unique<shell::Launcher>(environment.bus, m_shell->tasks(), m_shell->launcher(),
                                                       dockService, preferencesFile("shell"));
     shell::Launcher *launcherService = launcher.get();
-    m_shell->addComponent(std::make_unique<shell::LauncherWindow>(m_shell.get(), std::move(launcher),
+    auto *launcherWindow = m_shell->addComponent(std::make_unique<shell::LauncherWindow>(m_shell.get(), std::move(launcher),
                                                                   dockService, wallpaper));
+    if (m_gestureHandler) {
+        auto inward = std::make_shared<bool>(false);
+        auto dismissLauncher = std::make_shared<bool>(false);
+        m_gestureHandler->setPinchActions({
+            [this, launcherWindow, launcherService, inward, dismissLauncher](bool pinchIn) {
+                *inward = pinchIn;
+                *dismissLauncher = false;
+                if (pinchIn) return launcherWindow->beginGesture();
+                if (launcherService->isShown()) {
+                    *dismissLauncher = launcherWindow->beginGesture(false);
+                    if (!*dismissLauncher) return false;
+                }
+                const bool desktop = m_windowManager.showDesktop()->beginGesture();
+                return desktop || *dismissLauncher;
+            },
+            [this, launcherWindow, inward, dismissLauncher](double progress) {
+                if (*inward) launcherWindow->updateGesture(progress);
+                else {
+                    if (*dismissLauncher) launcherWindow->updateGesture(progress);
+                    m_windowManager.showDesktop()->updateGesture(progress);
+                }
+            },
+            [this, launcherWindow, inward, dismissLauncher](bool cancelled) {
+                if (*inward) launcherWindow->endGesture(cancelled);
+                else {
+                    m_windowManager.showDesktop()->endGesture(cancelled);
+                    if (*dismissLauncher) launcherWindow->endGesture(cancelled);
+                }
+            }});
+    }
     // The dock and the accelerators reach the launcher directly.
     dockService->applications().hideLauncher = [launcherService] { launcherService->hide(); };
     dockService->applications().toggleLauncher = [launcherService] { launcherService->toggle(); };
@@ -1340,6 +1371,7 @@ CompositorShell::~CompositorShell()
     // textures before the renderer.
     m_secureScene.setPictureLoader({});
     m_wallpaper = nullptr;
+    if (m_gestureHandler) m_gestureHandler->setPinchActions({});
     m_shell.reset();
     m_windowCycle.reset();
     m_inputManager.setGestureFilter(nullptr);

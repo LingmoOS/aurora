@@ -247,3 +247,32 @@ TEST_F(ShowDesktopTest, MinimizingOrClosingWhileAsideReleasesTheWindow)
 }
 
 } // namespace
+
+TEST_F(ShowDesktopTest, SpreadGestureTracksReversesAndCancels)
+{
+    auto *window = makeWindow({200, 100, 400, 300});
+    manager.activation()->activate(window);
+    ASSERT_TRUE(showDesktop->beginGesture());
+    showDesktop->updateGesture(0.6);
+    EXPECT_DOUBLE_EQ(showDesktop->progress(), 0.6);
+    const auto moved = window->presentationOffset();
+    EXPECT_NE(moved, base::Point());
+    showDesktop->updateGesture(0.2);
+    EXPECT_DOUBLE_EQ(showDesktop->progress(), 0.2);
+    showDesktop->endGesture(false); finishSlide();
+    EXPECT_FALSE(showDesktop->isActive());
+    EXPECT_DOUBLE_EQ(showDesktop->progress(), 0);
+    EXPECT_EQ(window->presentationOffset(), base::Point());
+    EXPECT_EQ(manager.activation()->activeWindow(), window);
+    ASSERT_TRUE(showDesktop->beginGesture());
+    showDesktop->updateGesture(0.9);
+    showDesktop->endGesture(true); finishSlide();
+    EXPECT_FALSE(showDesktop->isActive());
+    EXPECT_EQ(window->presentationOffset(), base::Point());
+    ASSERT_TRUE(showDesktop->beginGesture());
+    showDesktop->updateGesture(0.7);
+    showDesktop->endGesture(false); finishSlide();
+    EXPECT_TRUE(showDesktop->isActive());
+    EXPECT_DOUBLE_EQ(showDesktop->progress(), 1);
+    showDesktop->exitImmediately();
+}

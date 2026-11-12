@@ -1,3 +1,13 @@
+lingmo-compositor (5.0.12+lingmo5u1) unstable; urgency=medium
+
+  * Add four-finger pinch to open Launcher and spread to show the desktop,
+    with animations following gesture progress and direction reversals.
+  * Settle or cancel gestures smoothly, restore window focus on rollback,
+    and cancel claimed gestures when session input becomes restricted.
+  * Add gesture, Launcher and show-desktop regression coverage and docs.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 12 Nov 2026 17:21:53 +0800
+
 lingmo-compositor (5.0.11+lingmo5u1) unstable; urgency=medium
 
   * Add shake-to-locate cursor detection, temporary enlargement and smooth
