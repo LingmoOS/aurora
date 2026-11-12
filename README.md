@@ -6,7 +6,7 @@ Chromium's Exo and Ash.
 
 ## Dependencies
 
-lingmo-toolkit, the lingmo-framework clients and libwayland 1.23 or newer.
+lingmo-sdk, the lingmo-framework clients and libwayland 1.23 or newer.
 At runtime it needs `adwaita-icon-theme` and `xwayland`. Tests also need
 `libgtest-dev`.
 
