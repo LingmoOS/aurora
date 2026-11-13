@@ -76,7 +76,8 @@ LauncherCell::~LauncherCell() = default;
 
 void LauncherCell::setItem(const LauncherItem &item)
 {
-    const std::string iconName = item.folder ? "folder" : item.iconName;
+    m_isFolder = item.folder;
+    const std::string iconName = item.folder ? std::string() : item.iconName;
     if (iconName != m_iconName) {
         m_iconName = iconName;
         m_icon->setIconName(m_iconName.empty() ? "application-x-desktop" : m_iconName);
@@ -172,6 +173,29 @@ void LauncherCell::setMenuOpen(bool open)
         return;
     m_menuOpen = open;
     updateMask();
+}
+
+void LauncherCell::setDropPreview(bool active, const std::string &iconName)
+{
+    if (active && !m_dropIcon) {
+        m_dropIcon = addChild<ui::ThemeIcon>();
+        m_dropIcon->setOpacity(0.85);
+    }
+    if (active && m_dropIcon) {
+        m_dropIcon->setIconName(iconName.empty() ? "application-x-desktop" : iconName);
+        m_dropIcon->setVisible(true);
+    }
+    const double target = active ? 1.0 : 0.0;
+    if (m_dropTween.target() == target && !m_dropTween.isRunning())
+        return;
+    m_dropTween.start(window(), m_dropProgress, target, std::chrono::milliseconds(180), easing::outCubic,
+                      [this](double value) {
+                          m_dropProgress = value;
+                          requestLayout();
+                          requestPaint();
+                      });
+    if (!active && m_dropIcon)
+        m_dropIcon->setVisible(false);
 }
 
 void LauncherCell::setBackdrop(ui::Color color)
@@ -274,8 +298,20 @@ ui::RectF LauncherCell::newMarkRect() const
 
 void LauncherCell::layout()
 {
-    const ui::RectF icon = iconRect();
+    ui::RectF icon = iconRect();
+    if (m_dropProgress > 0 && !m_icon->isVisible())
+        icon = {};
+    if (m_dropProgress > 0 && m_icon->isVisible()) {
+        const double scale = 1.0 - 0.28 * m_dropProgress;
+        const double size = icon.width * scale;
+        icon = {icon.x + (icon.width - size) / 2, icon.y + (icon.height - size) / 2, size, size};
+    }
     m_icon->setGeometry(icon);
+    if (m_dropIcon) {
+        const ui::RectF base = iconRect();
+        const double size = base.width * 0.34 * m_dropProgress;
+        m_dropIcon->setGeometry({base.x + base.width - size * 0.8, base.y + base.height - size * 0.8, size, size});
+    }
     const double mini = m_metrics.iconSize * 0.38;
     const double gap = m_metrics.iconSize * 0.08;
     const double startX = icon.x + (icon.width - mini * 2 - gap) / 2;
@@ -298,6 +334,17 @@ void LauncherCell::layout()
 
 void LauncherCell::paint(ui::Painter &painter)
 {
+    if (m_isFolder && !m_dragging) {
+        const ui::RectF icon = iconRect();
+        const double radius = std::max(6.0, icon.width * 0.18);
+        const ui::Color backdrop = m_backdrop;
+        const ui::Color background {
+            uint8_t(std::min(255, int(backdrop.r * 0.72 + 255 * 0.28))),
+            uint8_t(std::min(255, int(backdrop.g * 0.72 + 255 * 0.28))),
+            uint8_t(std::min(255, int(backdrop.b * 0.72 + 255 * 0.28))),
+            220};
+        painter.drawRoundedRect(icon, {radius, radius, ui::themeCorners()}, background);
+    }
     const ui::RectF selection = selectionRect();
     if (selection.width > 0)
         painter.drawRoundedRect(selection,

@@ -50,6 +50,7 @@ public:
     // Its icon and name hide while it is dragged.
     void setDragging(bool dragging);
     void setMenuOpen(bool open);
+    void setDropPreview(bool active, const std::string &iconName = {});
     bool isPressDimmed() const { return (m_pressed || m_menuOpen) && !m_dragging; }
     // The colour the selection is inked against.
     void setBackdrop(ui::Color color);
@@ -85,12 +86,14 @@ private:
     LauncherView *m_view;
     std::string m_id;
     std::string m_iconName;
+    bool m_isFolder = false;
     bool m_newInstalled = false;
     LauncherMetrics m_metrics;
     int m_page = 0;
     int m_index = 0;
     Icon *m_icon = nullptr;
     ui::ThemeIcon *m_mask = nullptr;
+    ui::ThemeIcon *m_dropIcon = nullptr;
     std::vector<ui::ThemeIcon *> m_folderIcons;
     // Above the icon and its pressed look.
     CountBadge *m_countBadge = nullptr;
@@ -105,6 +108,8 @@ private:
     ui::PointF m_pressPoint;
     LauncherSpring m_moveX;
     LauncherSpring m_moveY;
+    LauncherTween m_dropTween;
+    double m_dropProgress = 0;
 };
 
 } // namespace Lingmo::Shell

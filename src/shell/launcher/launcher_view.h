@@ -30,6 +30,7 @@ class Launcher;
 class LauncherCell;
 class LauncherSearchField;
 class LauncherWallpaper;
+class FolderOverlay;
 
 // The launcher's content: the blurred wallpaper, the search field, the
 // application grid in pages that slide sideways, the page dots and "Not
@@ -110,6 +111,7 @@ protected:
     uint32_t drop(const ui::DragEvent &event) override;
 
 private:
+    friend class FolderOverlay;
     class Pages;
     class Page;
     class Indicator;
@@ -149,6 +151,7 @@ private:
     void updateBackdrop();
     void retranslate();
     void retire(std::unique_ptr<ui::View> view);
+    void closeFolderOverlay();
 
     // Pages: the background's press, flick and click.
     void backgroundPressed(ui::PointF position);
@@ -168,6 +171,8 @@ private:
     LauncherSearchField *m_search = nullptr;
     Indicator *m_indicator = nullptr;
     ui::Label *m_notFound = nullptr;
+    FolderOverlay *m_folderOverlay = nullptr;
+    LauncherTween m_folderTween;
 
     int m_currentPage = -1;
     double m_contentX = 0;

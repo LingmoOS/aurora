@@ -76,6 +76,7 @@ public:
     // Within allItems(); not while searching.
     void move(int from, int to);
     bool makeFolder(const std::string &sourceId, const std::string &targetId);
+    bool renameFolder(const std::string &folderId, std::string name);
     bool removeFromFolder(const std::string &folderId, const std::string &memberId);
     bool dissolveFolder(const std::string &folderId);
     std::vector<LauncherItem> folderItems(const std::string &folderId) const;

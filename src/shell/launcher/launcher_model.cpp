@@ -5,6 +5,7 @@
 #include "shell/launcher/launcher_model.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
@@ -483,6 +484,11 @@ bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &t
 {
     if (sourceId == targetId || !m_searchKey.empty())
         return false;
+    // A folder is represented by its top-level item. Its members are not
+    // draggable source rows, so never allow a folder id to be inserted into
+    // another folder through a stale drag/drop request.
+    if (m_folders.contains(sourceId))
+        return false;
     auto source = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
         return item.id == sourceId;
     });
@@ -526,6 +532,26 @@ bool LauncherModel::makeFolder(const std::string &sourceId, const std::string &t
     updateRows();
     delaySave();
     return true;
+}
+
+bool LauncherModel::renameFolder(const std::string &folderId, std::string name)
+{
+    auto folder = m_folders.find(folderId);
+    if (folder == m_folders.end() || name.empty()
+        || std::all_of(name.begin(), name.end(), [](unsigned char c) { return std::isspace(c); }))
+        return false;
+    if (folder->second.first == name)
+        return false;
+    folder->second.first = std::move(name);
+    for (LauncherItem &item : m_items) {
+        if (item.id == folderId) {
+            item.name = folder->second.first;
+            updateRows();
+            delaySave();
+            return true;
+        }
+    }
+    return false;
 }
 
 bool LauncherModel::removeFromFolder(const std::string &folderId, const std::string &memberId)

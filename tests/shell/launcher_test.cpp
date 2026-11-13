@@ -136,6 +136,13 @@ TEST_F(LauncherTest, CreatesPersistsAndSearchesFolders)
     ASSERT_NE(model().rows().end(), folder);
     const std::string folderId = folder->id;
     EXPECT_EQ(2u, model().folderItems(folderId).size());
+    EXPECT_TRUE(model().renameFolder(folderId, "Work"));
+    const auto renamed = std::find_if(model().rows().begin(), model().rows().end(),
+                                      [&](const shell::LauncherItem &item) { return item.id == folderId; });
+    ASSERT_NE(model().rows().end(), renamed);
+    EXPECT_EQ("Work", renamed->name);
+    EXPECT_FALSE(model().renameFolder(folderId, "   "));
+    EXPECT_FALSE(model().makeFolder(folderId, "zeta"));
     model().search("browser");
     ASSERT_EQ(1, model().count());
     EXPECT_EQ("alpha", model().rows().front().id);
