@@ -5,11 +5,13 @@
 
 
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 
 #include "shell/statusbar/bar_item.h"
 #include "shell/statusbar/status_bar_panels.h"
+#include "ui/animation.h"
 
 namespace Lingmo::ui {
 class RowLayout;
@@ -81,20 +83,26 @@ public:
 
     void setText(const std::string &text);
     void setDate(const std::string &text);
+    void setRecording(bool recording);
+    bool isRecording() const { return m_recording; }
     double preferredWidth() const;
     void updateLook();
     std::function<void()> onPreferredWidthChanged;
 
 protected:
     void layout() override;
+    void paint(ui::Painter &painter) override;
 
 private:
     BarLabel *m_label;
     BarLabel *m_date;
+    std::unique_ptr<ui::Animation> m_recordingAnimation;
+    double m_recordingPulse = 0;
+    bool m_recording = false;
 };
 
-// The stop buttons of a screen recording and of an agent's control: a
-// single-colour glyph in the bar's colour.
+// The stop button of an agent's control: a single-colour glyph in the bar's
+// colour.
 class StopItem : public BarItem
 {
 public:

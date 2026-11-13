@@ -10,7 +10,10 @@
 #include "shell/statusbar/battery.h"
 #include "ui/painter.h"
 #include "ui/cell_layout.h"
+#include "ui/theme.h"
 #include "ui/window.h"
+
+#include <chrono>
 
 namespace Lingmo::Shell {
 
@@ -228,6 +231,36 @@ void ClockItem::setDate(const std::string &text)
     if (onPreferredWidthChanged) onPreferredWidthChanged();
 }
 
+void ClockItem::setRecording(bool recording)
+{
+    if (recording == m_recording)
+        return;
+    m_recording = recording;
+    if (!recording) {
+        if (m_recordingAnimation)
+            m_recordingAnimation->stop();
+        m_recordingPulse = 0;
+        updateLook();
+        return;
+    }
+
+    m_label->setTextColor(ui::Color::rgb(0xFFFFFF));
+    m_label->setDropShadow(false);
+    if (ui::Window *surface = window()) {
+        m_recordingAnimation = std::make_unique<ui::Animation>(surface);
+        m_recordingAnimation->setDuration(std::chrono::milliseconds(1400));
+        m_recordingAnimation->setEasing(ui::Animation::Easing::InOutQuad);
+        m_recordingAnimation->setLoops(ui::Animation::Infinite);
+        m_recordingAnimation->setAlternating(true);
+        m_recordingAnimation->onUpdate = [this](double value) {
+            m_recordingPulse = value;
+            requestPaint();
+        };
+        m_recordingAnimation->start();
+    }
+    requestPaint();
+}
+
 double ClockItem::preferredWidth() const
 {
     return BarContext::kItemGap / 2 + std::max(m_label->sizeHint().width, m_date->sizeHint().width) + BarContext::kSmallSpacing * 2
@@ -238,8 +271,8 @@ void ClockItem::updateLook()
 {
     m_date->setTextColor(bar()->textColor());
     m_date->setDropShadow(bar()->lightContents());
-    m_label->setTextColor(bar()->textColor());
-    m_label->setDropShadow(bar()->lightContents());
+    m_label->setTextColor(m_recording ? ui::Color::rgb(0xFFFFFF) : bar()->textColor());
+    m_label->setDropShadow(!m_recording && bar()->lightContents());
     barChanged();
 }
 
@@ -252,6 +285,23 @@ void ClockItem::layout()
         m_date->setGeometry(date);
     }
     m_label->setGeometry(rect);
+}
+
+void ClockItem::paint(ui::Painter &painter)
+{
+    if (m_recording) {
+        const ui::RectF text = centred(m_label->sizeHint());
+        const ui::RectF capsule {text.x - 8, 4, text.width + 16, geometry().height - 8};
+        const ui::Color red = ui::Color::rgb(0xE53935);
+        const ui::Color darkRed = ui::Color::rgb(0x8B0000);
+        const auto channel = [this](uint8_t from, uint8_t to) {
+            return uint8_t(std::lround(from + (to - from) * m_recordingPulse));
+        };
+        const ui::Color color {channel(red.r, darkRed.r), channel(red.g, darkRed.g),
+                               channel(red.b, darkRed.b), 255};
+        painter.drawRoundedRect(capsule, {capsule.height / 2, 0, ui::Corners::Circular}, color);
+    }
+    BarItem::paint(painter);
 }
 
 StopItem::StopItem(BarContext *bar)

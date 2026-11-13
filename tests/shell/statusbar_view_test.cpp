@@ -283,6 +283,22 @@ TEST_F(StatusBarViewTest, ItemsAbutTheEdgeAndEachOther)
     EXPECT_EQ(bar->statusBar().battery().isAvailable(), bar->batteryIcon()->isVisible());
 }
 
+TEST_F(StatusBarViewTest, RecordingUsesAnAnimatedClockCapsuleAndCanBeStoppedThere)
+{
+    int stopRequests = 0;
+    bar->onStopRecording = [&] { ++stopRequests; };
+
+    bar->setRecording(true);
+    EXPECT_TRUE(bar->clock()->isRecording());
+    frame();
+    click(onScreen(bar->clock()).x + onScreen(bar->clock()).width / 2, 16);
+    EXPECT_EQ(1, stopRequests);
+
+    bar->setRecording(false);
+    EXPECT_FALSE(bar->clock()->isRecording());
+    frame();
+}
+
 TEST_F(StatusBarViewTest, AnUnchangedClockDrawsNoFrame)
 {
     // Not across a minute's end.

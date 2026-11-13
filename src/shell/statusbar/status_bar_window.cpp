@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #include "base/dbus.h"
+#include "base/i18n.h"
 #include "base/locale.h"
 #include "core/main_loop.h"
 #include "shell/shell_window.h"
@@ -122,14 +123,6 @@ StatusBarWindow::StatusBarWindow(Shell *shell, std::unique_ptr<StatusBar> status
     m_menuSlot->setLayoutHints(fill);
     m_menuSlot->setClipsChildren(true);
 
-    m_recording = m_root->addChild<StopItem>(this);
-    m_recording->setName("recording");
-    m_recording->setVisible(false);
-    m_recording->onClicked = [this](const ui::PointerEvent &) {
-        closePopups();
-        if (onStopRecording)
-            onStopRecording();
-    };
     m_agentControl = m_root->addChild<StopItem>(this);
     m_agentControl->setName("agent-control");
     m_agentControl->setVisible(false);
@@ -177,7 +170,15 @@ StatusBarWindow::StatusBarWindow(Shell *shell, std::unique_ptr<StatusBar> status
     m_notification->setIconName("notifications");
     m_notification->setVisible(false);
     m_clock = m_root->addChild<ClockItem>(this);
-    m_clock->onClicked = [this](const ui::PointerEvent &) { togglePanel(Panel::NotificationCenter); };
+    m_clock->onClicked = [this](const ui::PointerEvent &) {
+        if (m_recordingActive) {
+            closePopups();
+            if (onStopRecording)
+                onStopRecording();
+        } else {
+            togglePanel(Panel::NotificationCenter);
+        }
+    };
     m_clock->onPreferredWidthChanged = [this] { layoutRow(); };
 
     m_window->setContentView(std::move(root));
@@ -354,7 +355,6 @@ void StatusBarWindow::updateLook()
     for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control, m_notification})
         icon->updateLook();
     m_clock->updateLook();
-    m_recording->updateLook();
     m_agentControl->updateLook();
 }
 
@@ -496,8 +496,9 @@ void StatusBarWindow::setDeviceUsage(std::unique_ptr<DeviceUsage> usage)
 
 void StatusBarWindow::setRecording(bool recording)
 {
-    m_recording->setVisible(recording);
-    layoutRow();
+    m_recordingActive = recording;
+    m_clock->setRecording(recording);
+    m_clock->setToolTip(recording ? Lingmo::i18n::tr("Stop Screen Recording") : std::string());
 }
 
 void StatusBarWindow::setAgentControl(bool active)
@@ -518,7 +519,6 @@ void StatusBarWindow::layoutRow()
         if (view->layoutHints().preferredWidth != width || !view->layoutHints().fillHeight)
             view->setLayoutHints(hints);
     };
-    preferred(m_recording, m_recording->preferredWidth());
     preferred(m_agentControl, m_agentControl->preferredWidth());
     m_statusItems->setVisible(m_statusItems->count() > 0);
     preferred(m_statusItems, m_statusItems->preferredWidth());

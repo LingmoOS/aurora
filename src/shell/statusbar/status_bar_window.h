@@ -40,7 +40,7 @@ class Wallpaper;
 // from the work area. Its background is the user's Gaussian blur from
 // shell.conf (status_bar_settings.h), so what shows through is softened rather
 // than hidden; with no blur it is clear. Left to right: the menu bar, the stop
-// buttons of a recording and of an agent's control, the items applications
+// button of an agent's control, the items applications
 // draw, the tray, the volume, Wi-Fi, battery and control centre icons, and the
 // clock. Its contents are light or dark by what the wallpaper shows behind it.
 class StatusBarWindow : public Component, public BarContext
@@ -146,7 +146,6 @@ private:
     // The slot's placeholder, or the menu bar.
     ui::View *m_menuSlot = nullptr;
     StatusBarMenuBar *m_menuBar = nullptr;
-    StopItem *m_recording = nullptr;
     StopItem *m_agentControl = nullptr;
     StatusItemsView *m_statusItems = nullptr;
     SystemTrayView *m_tray = nullptr;
@@ -165,6 +164,7 @@ private:
     int m_clockFd = -1;
     int m_clockWatch = 0;
     bool m_lightContents = false;
+    bool m_recordingActive = false;
     // The plate the blur is behind, in window coordinates; empty for none.
     ui::RectF m_blurPlate;
     // The bar's own blur: applied while shell.conf gives it some, and what was

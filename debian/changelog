@@ -1,3 +1,11 @@
+lingmo-aurora (5.0.20+lingmo5u1) unstable; urgency=medium
+
+  * Replace the recording status icon with an animated red clock capsule.
+  * Keep stop-recording available from the clock while recording.
+  * Synchronize the Aurora version metadata.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 14 Nov 2026 00:00:00 +0800
+
 lingmo-aurora (5.0.19+lingmo5u1) unstable; urgency=medium
 
   * Improve launcher application folder previews and animations.
