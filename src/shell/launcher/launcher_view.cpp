@@ -955,6 +955,9 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
                     m_launcher.applications().removeFromFolder(folderId, id);
                 });
             }
+            menu->addItem(tr("Remove folder"), [this, folderId] {
+                m_launcher.applications().dissolveFolder(folderId);
+            });
             if (m_availableGeometry)
                 menu->setAvailableGeometry(m_availableGeometry);
             m_menu = std::move(menu);

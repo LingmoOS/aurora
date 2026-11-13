@@ -162,6 +162,11 @@ TEST_F(LauncherTest, CreatesPersistsAndSearchesFolders)
     EXPECT_EQ(3u, model().folderItems(nestedId).size());
     ASSERT_TRUE(model().removeFromFolder(nestedId, "alpha"));
     EXPECT_EQ(2u, model().folderItems(nestedId).size());
+    ASSERT_TRUE(model().dissolveFolder(nestedId));
+    EXPECT_EQ(-1, model().findById(nestedId));
+    EXPECT_GE(model().findById("alpha"), 0);
+    EXPECT_GE(model().findById("mid"), 0);
+    EXPECT_GE(model().findById("zeta"), 0);
 }
 
 TEST_F(LauncherTest, PagesFollowTheList)

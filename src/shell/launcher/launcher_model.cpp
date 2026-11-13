@@ -539,13 +539,13 @@ bool LauncherModel::removeFromFolder(const std::string &folderId, const std::str
         return false;
     if (!m_appItems.contains(memberId))
         return false;
-    LauncherItem extracted = m_appItems.at(memberId);
-    members.erase(member);
     const auto top = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
         return item.id == folderId;
     });
     if (top == m_items.end())
         return false;
+    LauncherItem extracted = m_appItems.at(memberId);
+    members.erase(member);
     if (members.size() < 2) {
         if (!members.empty() && m_appItems.contains(members.front())) {
             *top = m_appItems.at(members.front());
@@ -563,6 +563,36 @@ bool LauncherModel::removeFromFolder(const std::string &folderId, const std::str
             top->memberIcons.push_back(m_appItems.contains(id) ? m_appItems.at(id).iconName : "");
         m_items.insert(std::next(top), std::move(extracted));
     }
+    updateRows();
+    delaySave();
+    return true;
+}
+
+bool LauncherModel::dissolveFolder(const std::string &folderId)
+{
+    const auto folder = m_folders.find(folderId);
+    if (folder == m_folders.end())
+        return false;
+    const auto top = std::find_if(m_items.begin(), m_items.end(), [&](const LauncherItem &item) {
+        return item.id == folderId;
+    });
+    if (top == m_items.end())
+        return false;
+
+    std::vector<LauncherItem> members;
+    for (const std::string &id : folder->second.second) {
+        if (const auto item = m_appItems.find(id); item != m_appItems.end())
+            members.push_back(item->second);
+    }
+    if (members.empty()) {
+        m_items.erase(top);
+    } else {
+        const auto index = std::distance(m_items.begin(), top);
+        m_items.erase(top);
+        m_items.insert(m_items.begin() + index,
+                       std::make_move_iterator(members.begin()), std::make_move_iterator(members.end()));
+    }
+    m_folders.erase(folder);
     updateRows();
     delaySave();
     return true;

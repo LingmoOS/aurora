@@ -77,6 +77,7 @@ public:
     void move(int from, int to);
     bool makeFolder(const std::string &sourceId, const std::string &targetId);
     bool removeFromFolder(const std::string &folderId, const std::string &memberId);
+    bool dissolveFolder(const std::string &folderId);
     std::vector<LauncherItem> folderItems(const std::string &folderId) const;
     // A drag's moves are not saved while it runs, and a drag that ends
     // without a drop puts the order back as it was.
