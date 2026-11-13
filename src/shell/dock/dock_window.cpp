@@ -597,6 +597,7 @@ void DockWindow::rebuild()
             icon->setIcon(item.iconName.empty() ? "application-x-desktop" : item.iconName);
         icon->setToolTip(item.visibleName);
         icon->setRunning(!item.windows.empty());
+        icon->setActive(item.isActive);
         icon->setCount(m_shell->badges().count(item.id));
         icons[item.id] = icon;
     }
@@ -1424,7 +1425,9 @@ void DockWindow::iconMenuRequested(DockIcon *icon)
         }
         if (!windows.empty())
             menu->addSeparator();
-        if (windows.empty())
+        if (model.canOpenNewInstance(id))
+            menu->addItem(tr("New Window"), [&model, id] { model.openNewInstance(id); });
+        else if (windows.empty())
             menu->addItem(tr("Open"), [&model, id] { model.openNewInstance(id); });
         if (item.pinnable()) {
             const bool pinned = item.isPinned;

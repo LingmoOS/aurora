@@ -114,6 +114,7 @@ public:
     std::vector<WindowInfo> windows(const std::string &id) const;
 
     bool openNewInstance(const std::string &id);
+    bool canOpenNewInstance(const std::string &id) const;
     void quit(const std::string &id);
     void pin(const std::string &id);
     void unPin(const std::string &id);

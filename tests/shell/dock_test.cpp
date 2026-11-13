@@ -61,6 +61,8 @@ protected:
         applications.addSimple("files", "Files", "files-icon");
         applications.addSimple("terminal", "Terminal", "terminal-icon");
         applications.addSimple("editor", "Editor", "editor-icon");
+        applications.addSimple("lingmo-settings", "Settings", "settings-icon");
+        applications.addSimple("lingmo-filemanager", "Files", "files-icon");
         applications.scan();
     }
 
@@ -155,12 +157,16 @@ TEST_F(DockTest, FollowsRunningApplications)
     windows.setActive(second);
     EXPECT_TRUE(model().at(1).isActive);
 
-    // Clicks cycle through the windows.
+    // Clicking the active application's icon minimizes that window.
     windows.requests.clear();
     model().clicked("files");
+    EXPECT_EQ(windows.requests, (std::vector<std::string>{"minimize " + std::to_string(second)}));
+
+    // With no active window, the next click restores the same window.
+    windows.setActive(0);
+    windows.requests.clear();
     model().clicked("files");
-    EXPECT_EQ(windows.requests,
-              (std::vector<std::string>{"activate " + std::to_string(first), "activate " + std::to_string(second)}));
+    EXPECT_EQ(windows.requests, (std::vector<std::string>{"activate " + std::to_string(second)}));
 
     // A hidden application comes back whole.
     windows.change(first, [](shell::TaskWindow &w) { w.hidden = true; }, shell::kStateChange);
@@ -194,6 +200,33 @@ TEST_F(DockTest, LaunchesAndQuitsThroughTheRuntime)
     const uint64_t window = open("editor");
     model().quit("editor");
     EXPECT_EQ(windows.requests.back(), "quit " + std::to_string(window));
+}
+
+TEST_F(DockTest, ClickingTheActiveApplicationMinimizesAndNewInstancePolicyIsEnforced)
+{
+    start("[Dock]\nPinned=terminal, lingmo-settings, lingmo-filemanager\n");
+    const uint64_t first = open("terminal", "Terminal");
+    const uint64_t second = open("terminal", "Terminal 2");
+    windows.setActive(first);
+
+    model().clicked("terminal");
+    EXPECT_EQ(windows.requests.back(), "minimize " + std::to_string(first));
+
+    windows.setActive(0);
+    windows.requests.clear();
+    model().clicked("terminal");
+    EXPECT_EQ(windows.requests.back(), "activate " + std::to_string(first));
+
+    EXPECT_TRUE(model().canOpenNewInstance("terminal"));
+    EXPECT_FALSE(model().canOpenNewInstance("lingmo-settings"));
+    EXPECT_FALSE(model().canOpenNewInstance("lingmo-filemanager"));
+    EXPECT_TRUE(model().openNewInstance("lingmo-settings"));
+    EXPECT_TRUE(model().openNewInstance("lingmo-filemanager"));
+
+    open("lingmo-settings", "Settings");
+    open("lingmo-filemanager", "Files");
+    EXPECT_FALSE(model().openNewInstance("lingmo-settings"));
+    EXPECT_FALSE(model().openNewInstance("lingmo-filemanager"));
 }
 
 TEST_F(DockTest, PinsMovesAndDrops)

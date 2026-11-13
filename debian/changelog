@@ -1,3 +1,11 @@
+lingmo-aurora (5.0.21+lingmo5u1) unstable; urgency=medium
+
+  * Toggle the active application window from the dock and expose new-window actions.
+  * Animate the running indicator when an application becomes active.
+  * Synchronize the Aurora version metadata.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 14 Nov 2026 00:00:00 +0800
+
 lingmo-aurora (5.0.20+lingmo5u1) unstable; urgency=medium
 
   * Replace the recording status icon with an animated red clock capsule.

@@ -213,8 +213,19 @@ void DockModel::clicked(const std::string &id)
     if (item->windows.empty()) {
         // A pinned application that is not running starts.
         openNewInstance(item->id);
+    } else if (const uint64_t active = m_windows.activeWindow();
+               std::find(item->windows.begin(), item->windows.end(), active) != item->windows.end()) {
+        // Clicking the active application's icon toggles its current window
+        // away; the next click restores and activates it again.
+        m_windows.minimize(active);
     } else if (unhide(item)) {
         // A hidden application comes back whole, to the window it was on.
+        if (item->currentActive >= item->windows.size())
+            item->currentActive = 0;
+        m_windows.activate(item->windows[item->currentActive]);
+    } else if (m_windows.activeWindow() == 0) {
+        // No application is active after the previous click minimized one;
+        // restore that same window instead of cycling to the next.
         if (item->currentActive >= item->windows.size())
             item->currentActive = 0;
         m_windows.activate(item->windows[item->currentActive]);
@@ -286,7 +297,7 @@ bool DockModel::unhide(DockItem *item)
 bool DockModel::openNewInstance(const std::string &id)
 {
     DockItem *item = findById(id);
-    if (!item)
+    if (!item || (!item->windows.empty() && !canOpenNewInstance(id)))
         return false;
 
     if (item->id == kLauncherId) {
@@ -305,6 +316,15 @@ bool DockModel::openNewInstance(const std::string &id)
         return false;
     m_launcher.launch(*entry);
     return true;
+}
+
+bool DockModel::canOpenNewInstance(const std::string &id) const
+{
+    if (id == kLauncherId)
+        return true;
+    // These applications are single-window by design: a second launch would
+    // only activate the existing window through their application runtime.
+    return id != "lingmo-filemanager" && id != "lingmo-settings";
 }
 
 void DockModel::quit(const std::string &id)

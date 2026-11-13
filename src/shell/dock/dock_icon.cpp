@@ -218,6 +218,26 @@ void DockIcon::setRunning(bool running)
     requestPaint();
 }
 
+void DockIcon::setActive(bool active)
+{
+    if (active == m_active)
+        return;
+    m_active = active;
+    if (!m_activeAnimation)
+        m_activeAnimation = std::make_unique<ui::Animation>(m_dock->window()->window());
+    m_activeAnimation->stop();
+    const double from = m_activeProgress;
+    const double to = active ? 1.0 : 0.0;
+    m_activeAnimation->setDuration(std::chrono::milliseconds(160));
+    m_activeAnimation->setEasing(ui::Animation::Easing::OutCubic);
+    m_activeAnimation->onUpdate = [this, from, to](double value) {
+        m_activeProgress = from + (to - from) * value;
+        requestPaint();
+    };
+    m_activeAnimation->start();
+    requestPaint();
+}
+
 void DockIcon::setThumbnail(const ui::Bitmap *thumbnail, double aspect)
 {
     m_thumbnailAspect = aspect > 0 ? aspect : 1;
@@ -481,7 +501,9 @@ void DockIcon::paint(ui::Painter &painter)
     if (!m_thumbnail.isNull())
         paintThumbnail(painter);
     if (isDotShown() && m_dotRect.width > 0) {
-        painter.drawSmoothRectangle(m_dotRect, m_dotRect.width / 2, ui::Theme::current().text);
+        const double width = m_dotRect.width * (1 + 1.5 * m_activeProgress);
+        const ui::RectF rect {m_dotRect.x + (m_dotRect.width - width) / 2, m_dotRect.y, width, m_dotRect.height};
+        painter.drawSmoothRectangle(rect, rect.height / 2, ui::Theme::current().text);
     }
 }
 

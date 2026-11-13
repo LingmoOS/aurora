@@ -54,6 +54,8 @@ public:
     const std::string &toolTipText() const { return m_toolTip; }
     void setRunning(bool running);
     bool isRunning() const { return m_running; }
+    void setActive(bool active);
+    bool isActive() const { return m_active; }
     // The running dot: not while the icon appears, only once it is whole.
     bool isDotShown() const { return m_running && m_opacity == 1; }
     // A minimized window's image; null shows the icon.
@@ -132,6 +134,9 @@ private:
     bool m_iconIsFile = false;
     std::string m_toolTip;
     bool m_running = false;
+    bool m_active = false;
+    double m_activeProgress = 0;
+    std::unique_ptr<ui::Animation> m_activeAnimation;
     // The icon: a theme icon, or the launcher's artwork.
     ui::ThemeIcon *m_themeFace = nullptr;
     SvgFace *m_svgFace = nullptr;
