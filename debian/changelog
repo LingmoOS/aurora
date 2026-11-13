@@ -1,6 +1,8 @@
-lingmo-aurora (5.0.18+lingmo5u1) unstable; urgency=medium
+lingmo-aurora (5.0.19+lingmo5u1) unstable; urgency=medium
 
-  * Correct the documented SDK dependency name to lingmo-sdk.
+  * Improve launcher application folder previews and animations.
+  * Add an animated expanded folder view.
+  * Synchronize the Aurora version metadata.
 
  -- Lingmo OS Team <team@lingmo.org>  Fri, 13 Nov 2026 19:00:00 +0800
 
