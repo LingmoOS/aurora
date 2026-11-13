@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.22)
 
 project(lingmo-aurora
-    VERSION 1.0
+    VERSION 1.0.0
     DESCRIPTION "Lingmo Aurora Wayland compositor and window manager"
     LANGUAGES C CXX
 )
+
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h" AURORA_VERSION_HEADER)
+string(REGEX MATCH "LINGMO_AURORA_VERSION[ \t]+\"([^\"]+)\"" _ "${AURORA_VERSION_HEADER}")
+if(NOT CMAKE_MATCH_1 STREQUAL PROJECT_VERSION)
+    message(FATAL_ERROR "CMake version ${PROJECT_VERSION} does not match LINGMO_AURORA_VERSION ${CMAKE_MATCH_1}")
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -996,6 +1002,10 @@ if(LINGMO_ENABLE_XWAYLAND)
 endif()
 
 install(TARGETS lingmo-aurora lingmo-displayctl lingmo-screenshot RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES src/version.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lingmo-aurora)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/aurora-version" "${PROJECT_VERSION}\n")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/aurora-version"
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/lingmo-aurora)
 install(FILES
     ${LINGMO_PRIVATE_PROTOCOL_DIR}/input-method-unstable-v2.xml
     ${LINGMO_PRIVATE_PROTOCOL_DIR}/virtual-keyboard-unstable-v1.xml
