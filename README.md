@@ -1,5 +1,9 @@
 # Lingmo Aurora
 
+<p align="center">
+  <img src="aurora.png" alt="Aurora logo" width="180">
+</p>
+
 The Lingmo Aurora Wayland compositor, with window management, the desktop shell,
 the lock screen and Xwayland in one process. Much of it is ported from
 Chromium's Exo and Ash.
