@@ -203,7 +203,7 @@ protected:
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
         const double radius = std::max(26.0, std::min(m_panel.width, m_panel.height) * 0.065);
-        painter.drawRoundedRect(m_panel, {radius, radius, ui::Corners::Circular}, ui::Color {25, 25, 30, 232});
+        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, ui::Color {25, 25, 30, 232});
     }
     void pointerPress(const ui::PointerEvent &) override { }
     void pointerRelease(const ui::PointerEvent &event) override

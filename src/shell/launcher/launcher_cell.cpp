@@ -362,7 +362,7 @@ void LauncherCell::paint(ui::Painter &painter)
             188};
         // Launcher folders use circular corners regardless of the window
         // corner preference, matching the compact icon material.
-        painter.drawRoundedRect(icon, {radius, radius, ui::Corners::Circular}, background);
+        painter.drawRoundedRect(icon, {radius, 0, ui::Corners::Circular}, background);
     }
     const ui::RectF selection = selectionRect();
     if (selection.width > 0)
