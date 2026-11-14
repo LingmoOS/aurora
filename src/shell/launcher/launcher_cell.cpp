@@ -101,9 +101,14 @@ void LauncherCell::setItem(const LauncherItem &item)
                                                       ? "application-x-desktop"
                                                       : item.memberIcons[i]);
         }
-        m_icon->setVisible(false);
+        // Keep the primary icon view as a transparent hit target. Folder
+        // member icons are visual-only; without this target a click falls
+        // through to the page background and dismisses the launcher.
+        m_icon->setVisible(true);
+        m_icon->setOpacity(0);
         requestLayout();
     } else {
+        m_icon->setOpacity(1);
         m_icon->setVisible(!m_dragging);
         for (ui::ThemeIcon *icon : m_folderIcons)
             icon->setVisible(false);
@@ -186,16 +191,23 @@ void LauncherCell::setDropPreview(bool active, const std::string &iconName)
         m_dropIcon->setVisible(true);
     }
     const double target = active ? 1.0 : 0.0;
-    if (m_dropTween.target() == target && !m_dropTween.isRunning())
+    if (!active && m_dropIcon)
+        m_dropIcon->setVisible(false);
+    if (m_dropTween.target() == target && !m_dropTween.isRunning()) {
+        if (!active)
+            m_dropProgress = 0;
+        requestLayout();
+        requestPaint();
         return;
+    }
     m_dropTween.start(window(), m_dropProgress, target, std::chrono::milliseconds(180), easing::outCubic,
                       [this](double value) {
                           m_dropProgress = value;
+                          if (value <= 0 && m_dropIcon)
+                              m_dropIcon->setVisible(false);
                           requestLayout();
                           requestPaint();
                       });
-    if (!active && m_dropIcon)
-        m_dropIcon->setVisible(false);
 }
 
 void LauncherCell::setBackdrop(ui::Color color)
@@ -309,8 +321,11 @@ void LauncherCell::layout()
     m_icon->setGeometry(icon);
     if (m_dropIcon) {
         const ui::RectF base = iconRect();
-        const double size = base.width * 0.34 * m_dropProgress;
-        m_dropIcon->setGeometry({base.x + base.width - size * 0.8, base.y + base.height - size * 0.8, size, size});
+        const double size = base.width * 0.46 * m_dropProgress;
+        m_dropIcon->setGeometry({base.x + (base.width - size) / 2,
+                                 base.y + (base.height - size) / 2,
+                                 size,
+                                 size});
     }
     const double mini = m_metrics.iconSize * 0.36;
     const double gap = m_metrics.iconSize * 0.10;
