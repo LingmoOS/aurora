@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <utility>
 
 #include "base/i18n.h"
 #include "core/main_loop.h"
@@ -101,6 +102,11 @@ public:
     {
         setName("launcher-folder-overlay");
         setOpacity(0);
+        m_title = addChild<ui::Label>();
+        m_title->setColor(kWhite);
+        m_title->setTextAlignment(ui::Label::TextAlignment::Center);
+        m_title->setVerticallyCentered(true);
+        m_title->setWeight(500);
     }
 
     bool acceptsPointer() const override { return true; }
@@ -114,7 +120,16 @@ public:
             m_icons[i]->setIconName(items[i].iconName.empty() ? "application-x-desktop" : items[i].iconName);
             m_icons[i]->setVisible(true);
         }
+        m_ids.clear();
+        m_ids.reserve(items.size());
+        for (const LauncherItem &item : items)
+            m_ids.push_back(item.id);
         m_count = items.size();
+        requestLayout();
+    }
+    void setTitle(std::string title)
+    {
+        m_title->setText(std::move(title));
         requestLayout();
     }
     void setProgress(double progress)
@@ -127,34 +142,51 @@ public:
 protected:
     void layout() override
     {
-        const double size = std::min(geometry().width, geometry().height) * (0.42 + 0.58 * m_progress);
-        const double x = (geometry().width - size) / 2;
-        const double y = (geometry().height - size) / 2;
-        m_panel = {x, y, size, size};
-        const double iconSize = std::min(96.0, size * 0.22);
-        const int columns = m_count > 4 ? 4 : std::max(1, int(m_count));
+        const double width = geometry().width * (0.66 + 0.24 * m_progress);
+        const double height = geometry().height * (0.58 + 0.18 * m_progress);
+        const double x = (geometry().width - width) / 2;
+        const double y = (geometry().height - height) / 2;
+        m_panel = {x, y, width, height};
+        m_title->setGeometry({x + 24, y + 16, width - 48, std::max(28.0, height * 0.1)});
+        const int columns = std::min(7, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.7))))));
+        const int rows = std::max(1, int((m_count + size_t(columns) - 1) / size_t(columns)));
+        const double iconSize = std::min({110.0, width / 9.5, height * 0.76 / (rows + 0.56)});
+        const double gridTop = y + height * 0.22;
+        const double gap = std::max(12.0, iconSize * 0.28);
+        const double total = columns * iconSize + (columns - 1) * gap;
         for (size_t i = 0; i < m_icons.size(); ++i) {
             if (!m_icons[i]->isVisible())
                 continue;
             const int col = int(i) % columns;
             const int row = int(i) / columns;
-            const double gap = iconSize * 0.35;
-            const double total = columns * iconSize + (columns - 1) * gap;
-            m_icons[i]->setGeometry({x + (size - total) / 2 + col * (iconSize + gap),
-                                     y + size * 0.22 + row * (iconSize + gap), iconSize, iconSize});
+            m_icons[i]->setGeometry({x + (width - total) / 2 + col * (iconSize + gap),
+                                     gridTop + row * (iconSize + gap), iconSize, iconSize});
         }
     }
     void paint(ui::Painter &painter) override
     {
         if (m_progress <= 0)
             return;
-        painter.drawRoundedRect(m_panel, {18, 18, ui::themeCorners()}, ui::Color {25, 25, 30, 235});
+        painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
+        painter.drawRoundedRect(m_panel, {24, 24, ui::themeCorners()}, ui::Color {25, 25, 30, 238});
     }
     void pointerPress(const ui::PointerEvent &) override { }
-    void pointerRelease(const ui::PointerEvent &) override { m_view->closeFolderOverlay(); }
+    void pointerRelease(const ui::PointerEvent &event) override
+    {
+        for (size_t i = 0; i < m_count && i < m_ids.size(); ++i) {
+            if (m_icons[i]->geometry().contains(event.position)) {
+                m_view->m_launcher.applications().launch(m_ids[i]);
+                m_view->closeFolderOverlay();
+                return;
+            }
+        }
+        m_view->closeFolderOverlay();
+    }
 private:
     LauncherView *m_view;
     std::vector<ui::ThemeIcon *> m_icons;
+    std::vector<std::string> m_ids;
+    ui::Label *m_title = nullptr;
     ui::RectF m_panel;
     size_t m_count = 0;
     double m_progress = 0;
@@ -858,6 +890,10 @@ bool LauncherView::searchKey(uint32_t key)
 
 bool LauncherView::keyPress(const ui::KeyEvent &event)
 {
+    if (event.key == ui::key::Escape && m_folderOverlay && m_folderOverlay->isVisible()) {
+        closeFolderOverlay();
+        return true;
+    }
     switch (event.key) {
     case ui::key::Escape:
         m_launcher.hide();
@@ -1013,6 +1049,8 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
     if (button == ui::MouseButton::Left && found != m_launcher.applications().rows().end()) {
         if (found->folder) {
             if (m_folderOverlay)
+                m_folderOverlay->setTitle(found->name);
+            if (m_folderOverlay)
                 m_folderOverlay->setItems(m_launcher.applications().folderItems(cell->id()));
             if (m_folderOverlay) {
                 m_folderOverlay->setVisible(true);
@@ -1046,17 +1084,24 @@ void LauncherView::openMenu(LauncherCell *cell, ui::PointF windowPosition)
     if (LauncherCell *previous = this->cell(m_menuId))
         previous->setMenuOpen(false);
     const std::string id = cell->id();
+    const auto row = std::find_if(m_launcher.applications().rows().begin(),
+                                  m_launcher.applications().rows().end(),
+                                  [&id](const LauncherItem &item) { return item.id == id; });
     m_menuId = id;
     auto menu = std::make_unique<ui::Menu>();
     Launcher &launcher = m_launcher;
-    menu->addItem(tr("Open"), [&launcher, id] { launcher.applications().launch(id); });
-    const size_t sendToDock = menu->addItem(tr("Send to dock"), [&launcher, id] { launcher.sendToDock(id); });
-    menu->addItem(tr("Send to desktop"), [&launcher, id] { launcher.applications().sendToDesktop(id); });
-    const size_t removeFromDock =
-            menu->addItem(tr("Remove from dock"), [&launcher, id] { launcher.removeFromDock(id); });
-    const bool pinned = m_launcher.isPinnedInDock(id);
-    menu->setItemVisible(sendToDock, !pinned);
-    menu->setItemVisible(removeFromDock, pinned);
+    if (row != m_launcher.applications().rows().end() && row->folder) {
+        menu->addItem(tr("Dissolve Folder"), [&launcher, id] { launcher.applications().dissolveFolder(id); });
+    } else {
+        menu->addItem(tr("Open"), [&launcher, id] { launcher.applications().launch(id); });
+        const size_t sendToDock = menu->addItem(tr("Send to dock"), [&launcher, id] { launcher.sendToDock(id); });
+        menu->addItem(tr("Send to desktop"), [&launcher, id] { launcher.applications().sendToDesktop(id); });
+        const size_t removeFromDock =
+                menu->addItem(tr("Remove from dock"), [&launcher, id] { launcher.removeFromDock(id); });
+        const bool pinned = m_launcher.isPinnedInDock(id);
+        menu->setItemVisible(sendToDock, !pinned);
+        menu->setItemVisible(removeFromDock, pinned);
+    }
     std::weak_ptr<bool> alive = m_alive;
     menu->onClosed = [this, alive, id] {
         if (alive.expired())
@@ -1187,8 +1232,10 @@ uint32_t LauncherView::drop(const ui::DragEvent &event)
     if (m_reorderPending && !m_draggedId.empty() && !m_hoveredId.empty()
         && m_hoveredId != m_draggedId) {
         m_reorderTimer.stop();
-        m_reorderPending = false;
         if (m_launcher.applications().makeFolder(m_draggedId, m_hoveredId)) {
+            if (LauncherCell *target = cell(m_hoveredId))
+                target->setDropPreview(false);
+            m_reorderPending = false;
             m_hoveredId.clear();
             return ui::MoveAction;
         }

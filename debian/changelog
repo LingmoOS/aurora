@@ -1,3 +1,11 @@
+lingmo-aurora (5.0.22+lingmo5u1) unstable; urgency=medium
+
+  * Restore launcher folder creation and persisted folder management.
+  * Add an animated expanded folder panel with launch and dissolve actions.
+  * Synchronize the Aurora version metadata.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 14 Nov 2026 00:00:00 +0800
+
 lingmo-aurora (5.0.21+lingmo5u1) unstable; urgency=medium
 
   * Toggle the active application window from the dock and expose new-window actions.
