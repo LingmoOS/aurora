@@ -312,8 +312,8 @@ void LauncherCell::layout()
         const double size = base.width * 0.34 * m_dropProgress;
         m_dropIcon->setGeometry({base.x + base.width - size * 0.8, base.y + base.height - size * 0.8, size, size});
     }
-    const double mini = m_metrics.iconSize * 0.38;
-    const double gap = m_metrics.iconSize * 0.08;
+    const double mini = m_metrics.iconSize * 0.36;
+    const double gap = m_metrics.iconSize * 0.10;
     const double startX = icon.x + (icon.width - mini * 2 - gap) / 2;
     const double startY = icon.y + (icon.height - mini * 2 - gap) / 2;
     for (size_t i = 0; i < m_folderIcons.size(); ++i) {
@@ -336,13 +336,15 @@ void LauncherCell::paint(ui::Painter &painter)
 {
     if (m_isFolder && !m_dragging) {
         const ui::RectF icon = iconRect();
-        const double radius = std::max(6.0, icon.width * 0.18);
+        // Folders use a translucent material plate so the wallpaper remains
+        // visible behind the four miniature application icons.
+        const double radius = std::max(10.0, icon.width * 0.24);
         const ui::Color backdrop = m_backdrop;
         const ui::Color background {
-            uint8_t(std::min(255, int(backdrop.r * 0.72 + 255 * 0.28))),
-            uint8_t(std::min(255, int(backdrop.g * 0.72 + 255 * 0.28))),
-            uint8_t(std::min(255, int(backdrop.b * 0.72 + 255 * 0.28))),
-            220};
+            uint8_t(std::min(255, int(backdrop.r * 0.55 + 255 * 0.45))),
+            uint8_t(std::min(255, int(backdrop.g * 0.55 + 255 * 0.45))),
+            uint8_t(std::min(255, int(backdrop.b * 0.55 + 255 * 0.45))),
+            188};
         painter.drawRoundedRect(icon, {radius, radius, ui::themeCorners()}, background);
     }
     const ui::RectF selection = selectionRect();

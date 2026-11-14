@@ -1,3 +1,10 @@
+lingmo-aurora (5.0.23+lingmo5u1) unstable; urgency=medium
+
+  * Refine launcher folder materials and miniature icon spacing.
+  * Synchronize the Aurora version metadata.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 14 Nov 2026 00:00:00 +0800
+
 lingmo-aurora (5.0.22+lingmo5u1) unstable; urgency=medium
 
   * Restore launcher folder creation and persisted folder management.
