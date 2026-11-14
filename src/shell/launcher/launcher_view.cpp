@@ -24,6 +24,7 @@
 #include "ui/menu.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
+#include "ui/text_field.h"
 #include "ui/window.h"
 
 namespace Lingmo::Shell {
@@ -107,6 +108,10 @@ public:
         m_title->setTextAlignment(ui::Label::TextAlignment::Center);
         m_title->setVerticallyCentered(true);
         m_title->setWeight(500);
+        m_titleField = addChild<ui::TextField>();
+        m_titleField->setHorizontallyCentered(true);
+        m_titleField->setVisible(false);
+        m_titleField->onAccepted = [this] { finishRename(true); };
     }
 
     bool acceptsPointer() const override { return true; }
@@ -116,10 +121,22 @@ public:
             icon->setVisible(false);
         while (m_icons.size() < items.size())
             m_icons.push_back(addChild<ui::ThemeIcon>());
+        while (m_names.size() < items.size()) {
+            auto *name = addChild<ui::Label>();
+            name->setColor(kWhite);
+            name->setTextAlignment(ui::Label::TextAlignment::Center);
+            name->setVerticallyCentered(true);
+            name->setElide(ui::Label::Elide::Right);
+            m_names.push_back(name);
+        }
         for (size_t i = 0; i < items.size(); ++i) {
             m_icons[i]->setIconName(items[i].iconName.empty() ? "application-x-desktop" : items[i].iconName);
             m_icons[i]->setVisible(true);
+            m_names[i]->setText(items[i].name);
+            m_names[i]->setVisible(true);
         }
+        for (size_t i = items.size(); i < m_names.size(); ++i)
+            m_names[i]->setVisible(false);
         m_ids.clear();
         m_ids.reserve(items.size());
         for (const LauncherItem &item : items)
@@ -129,8 +146,17 @@ public:
     }
     void setTitle(std::string title)
     {
+        m_folderName = title;
         m_title->setText(std::move(title));
         requestLayout();
+    }
+    void beginRename(const std::string &folderId)
+    {
+        m_folderId = folderId;
+        m_titleField->setText(m_folderName);
+        m_title->setVisible(false);
+        m_titleField->setVisible(true);
+        m_titleField->setFocus();
     }
     void setProgress(double progress)
     {
@@ -142,25 +168,33 @@ public:
 protected:
     void layout() override
     {
-        const double width = geometry().width * (0.66 + 0.24 * m_progress);
-        const double height = geometry().height * (0.58 + 0.18 * m_progress);
+        const double width = geometry().width * (0.72 + 0.20 * m_progress);
+        const double height = geometry().height * (0.62 + 0.16 * m_progress);
         const double x = (geometry().width - width) / 2;
         const double y = (geometry().height - height) / 2;
         m_panel = {x, y, width, height};
-        m_title->setGeometry({x + 24, y + 16, width - 48, std::max(28.0, height * 0.1)});
+        const ui::RectF titleRect {x + 24, y + 16, width - 48, std::max(32.0, height * 0.11)};
+        m_title->setGeometry(titleRect);
+        m_titleField->setGeometry(titleRect);
         const int columns = std::min(7, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.7))))));
         const int rows = std::max(1, int((m_count + size_t(columns) - 1) / size_t(columns)));
-        const double iconSize = std::min({110.0, width / 9.5, height * 0.76 / (rows + 0.56)});
-        const double gridTop = y + height * 0.22;
-        const double gap = std::max(12.0, iconSize * 0.28);
-        const double total = columns * iconSize + (columns - 1) * gap;
+        const double outerPadding = std::max(24.0, width * 0.045);
+        const double columnWidth = (width - 2 * outerPadding) / columns;
+        const double labelHeight = std::max(28.0, std::min(42.0, height * 0.075));
+        const double rowHeight = (height * 0.72) / rows;
+        const double iconSize = std::min({112.0, columnWidth * 0.72, rowHeight - labelHeight - 20});
+        const double gridTop = y + height * 0.20;
         for (size_t i = 0; i < m_icons.size(); ++i) {
             if (!m_icons[i]->isVisible())
                 continue;
             const int col = int(i) % columns;
             const int row = int(i) / columns;
-            m_icons[i]->setGeometry({x + (width - total) / 2 + col * (iconSize + gap),
-                                     gridTop + row * (iconSize + gap), iconSize, iconSize});
+            const double cellX = x + outerPadding + col * columnWidth;
+            const double iconX = cellX + (columnWidth - iconSize) / 2;
+            const double iconY = gridTop + row * rowHeight;
+            m_icons[i]->setGeometry({iconX, iconY, iconSize, iconSize});
+            m_names[i]->setFontSize(std::max(12.0, std::min(16.0, height * 0.026)));
+            m_names[i]->setGeometry({cellX, iconY + iconSize + 4, columnWidth, labelHeight});
         }
     }
     void paint(ui::Painter &painter) override
@@ -168,7 +202,8 @@ protected:
         if (m_progress <= 0)
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
-        painter.drawRoundedRect(m_panel, {24, 24, ui::themeCorners()}, ui::Color {25, 25, 30, 238});
+        const double radius = std::max(26.0, std::min(m_panel.width, m_panel.height) * 0.065);
+        painter.drawRoundedRect(m_panel, {radius, radius, ui::Corners::Circular}, ui::Color {25, 25, 30, 232});
     }
     void pointerPress(const ui::PointerEvent &) override { }
     void pointerRelease(const ui::PointerEvent &event) override
@@ -183,10 +218,26 @@ protected:
         m_view->closeFolderOverlay();
     }
 private:
+    void finishRename(bool save)
+    {
+        const std::string name = m_titleField->text();
+        m_titleField->setVisible(false);
+        m_title->setVisible(true);
+        if (save && !m_folderId.empty() && m_view->m_launcher.applications().renameFolder(m_folderId, name))
+            setTitle(name);
+        else
+            m_titleField->setText(m_folderName);
+        m_view->setFocus();
+    }
+
     LauncherView *m_view;
     std::vector<ui::ThemeIcon *> m_icons;
+    std::vector<ui::Label *> m_names;
     std::vector<std::string> m_ids;
     ui::Label *m_title = nullptr;
+    ui::TextField *m_titleField = nullptr;
+    std::string m_folderId;
+    std::string m_folderName;
     ui::RectF m_panel;
     size_t m_count = 0;
     double m_progress = 0;
@@ -1091,6 +1142,19 @@ void LauncherView::openMenu(LauncherCell *cell, ui::PointF windowPosition)
     auto menu = std::make_unique<ui::Menu>();
     Launcher &launcher = m_launcher;
     if (row != m_launcher.applications().rows().end() && row->folder) {
+        menu->addItem(tr("Rename Folder"), [this, id] {
+            if (!m_folderOverlay)
+                return;
+            const auto current = std::find_if(m_launcher.applications().rows().begin(),
+                                              m_launcher.applications().rows().end(),
+                                              [&id](const LauncherItem &item) { return item.id == id; });
+            if (current == m_launcher.applications().rows().end())
+                return;
+            m_folderOverlay->setTitle(current->name);
+            m_folderOverlay->beginRename(id);
+            m_folderOverlay->setVisible(true);
+            m_folderOverlay->setProgress(1);
+        });
         menu->addItem(tr("Dissolve Folder"), [&launcher, id] { launcher.applications().dissolveFolder(id); });
     } else {
         menu->addItem(tr("Open"), [&launcher, id] { launcher.applications().launch(id); });
