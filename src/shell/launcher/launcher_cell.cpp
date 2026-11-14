@@ -353,14 +353,16 @@ void LauncherCell::paint(ui::Painter &painter)
         const ui::RectF icon = iconRect();
         // Folders use a translucent material plate so the wallpaper remains
         // visible behind the four miniature application icons.
-        const double radius = std::max(10.0, icon.width * 0.24);
+        const double radius = std::max(12.0, icon.width * 0.28);
         const ui::Color backdrop = m_backdrop;
         const ui::Color background {
             uint8_t(std::min(255, int(backdrop.r * 0.55 + 255 * 0.45))),
             uint8_t(std::min(255, int(backdrop.g * 0.55 + 255 * 0.45))),
             uint8_t(std::min(255, int(backdrop.b * 0.55 + 255 * 0.45))),
             188};
-        painter.drawRoundedRect(icon, {radius, radius, ui::themeCorners()}, background);
+        // Launcher folders use circular corners regardless of the window
+        // corner preference, matching the compact icon material.
+        painter.drawRoundedRect(icon, {radius, radius, ui::Corners::Circular}, background);
     }
     const ui::RectF selection = selectionRect();
     if (selection.width > 0)
