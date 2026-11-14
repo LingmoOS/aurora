@@ -594,6 +594,26 @@ bool LauncherModel::removeFromFolder(const std::string &folderId, const std::str
     return true;
 }
 
+bool LauncherModel::moveInFolder(const std::string &folderId, const std::string &memberId, int toIndex)
+{
+    const auto folder = m_folders.find(folderId);
+    if (folder == m_folders.end())
+        return false;
+    auto &members = folder->second.second;
+    const auto from = std::find(members.begin(), members.end(), memberId);
+    if (from == members.end())
+        return false;
+    const int clamped = std::clamp(toIndex, 0, int(members.size()) - 1);
+    if (int(std::distance(members.begin(), from)) == clamped)
+        return false;
+    std::string moved = *from;
+    members.erase(from);
+    members.insert(members.begin() + clamped, std::move(moved));
+    updateRows();
+    delaySave();
+    return true;
+}
+
 bool LauncherModel::dissolveFolder(const std::string &folderId)
 {
     const auto folder = m_folders.find(folderId);

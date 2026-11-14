@@ -78,6 +78,7 @@ public:
     bool makeFolder(const std::string &sourceId, const std::string &targetId);
     bool renameFolder(const std::string &folderId, std::string name);
     bool removeFromFolder(const std::string &folderId, const std::string &memberId);
+    bool moveInFolder(const std::string &folderId, const std::string &memberId, int toIndex);
     bool dissolveFolder(const std::string &folderId);
     std::vector<LauncherItem> folderItems(const std::string &folderId) const;
     // A drag's moves are not saved while it runs, and a drag that ends

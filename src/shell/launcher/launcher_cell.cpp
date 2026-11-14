@@ -13,6 +13,7 @@
 #include "ui/label.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
+#include "ui/text_field.h"
 
 namespace Lingmo::Shell {
 
@@ -70,6 +71,15 @@ LauncherCell::LauncherCell(LauncherView *view, std::string id)
     m_label->setMaximumLineCount(2);
     m_label->setElide(ui::Label::Elide::Right);
     m_label->setTextAlignment(ui::Label::TextAlignment::Center);
+    m_renameField = addChild<ui::TextField>();
+    m_renameField->setHorizontallyCentered(true);
+    m_renameField->setVisible(false);
+    m_renameField->onAccepted = [this] {
+        m_view->renameFolderInline(m_id, m_renameField->text());
+        m_renameField->setVisible(false);
+        m_label->setVisible(true);
+        requestLayout();
+    };
 }
 
 LauncherCell::~LauncherCell() = default;
@@ -178,6 +188,23 @@ void LauncherCell::setMenuOpen(bool open)
         return;
     m_menuOpen = open;
     updateMask();
+}
+
+void LauncherCell::beginRename()
+{
+    if (!m_isFolder)
+        return;
+    m_renameField->setText(m_label->text());
+    m_label->setVisible(false);
+    m_renameField->setVisible(true);
+    m_renameField->setFocus();
+    requestLayout();
+}
+
+void LauncherCell::pointerRelease(const ui::PointerEvent &event)
+{
+    if (event.button == ui::MouseButton::Left && m_isFolder && m_label->geometry().contains(event.position))
+        beginRename();
 }
 
 void LauncherCell::setDropPreview(bool active, const std::string &iconName)
@@ -345,6 +372,7 @@ void LauncherCell::layout()
     const double line = m_label->ascent() + m_label->descent();
     m_label->setMaximumLineCount(std::clamp(int(std::floor(label.height / std::max(1.0, line))), 1, 2));
     m_label->setGeometry(label);
+    m_renameField->setGeometry(label);
 }
 
 void LauncherCell::paint(ui::Painter &painter)

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 project(lingmo-aurora
-    VERSION 1.0.10
+    VERSION 1.0.12
     DESCRIPTION "Lingmo Aurora Wayland compositor and window manager"
     LANGUAGES C CXX
 )

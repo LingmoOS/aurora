@@ -1,3 +1,19 @@
+lingmo-aurora (5.0.30+lingmo5u1) unstable; urgency=medium
+
+  * Preserve folder cell previews during folder drags.
+  * Add folder paging, member sorting and in-place label editing.
+  * Synchronize the Aurora version metadata.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sun, 15 Nov 2026 00:00:00 +0800
+
+lingmo-aurora (5.0.29+lingmo5u1) unstable; urgency=medium
+
+  * Preserve folder previews while dragging and support in-place renaming.
+  * Add folder member reordering and a smaller translucent folder surface.
+  * Synchronize the Aurora version metadata.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sun, 15 Nov 2026 00:00:00 +0800
+
 lingmo-aurora (5.0.28+lingmo5u1) unstable; urgency=medium
 
   * Fix launcher folder rounded shape parameters for visible corner clipping.

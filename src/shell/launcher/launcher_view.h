@@ -93,6 +93,7 @@ public:
 
     // Called by LauncherCell; not part of the public API.
     void cellClicked(LauncherCell *cell, ui::MouseButton button, ui::PointF windowPosition);
+    void renameFolderInline(const std::string &folderId, std::string name);
     bool startCellDrag(LauncherCell *cell, ui::View *icon);
 
     // A press on nothing but the page: hide.

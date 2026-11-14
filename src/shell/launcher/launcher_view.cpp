@@ -142,6 +142,9 @@ public:
         for (const LauncherItem &item : items)
             m_ids.push_back(item.id);
         m_count = items.size();
+        m_page = 0;
+        m_reordering = false;
+        m_swiping = false;
         requestLayout();
     }
     void setTitle(std::string title)
@@ -150,6 +153,7 @@ public:
         m_title->setText(std::move(title));
         requestLayout();
     }
+    void setFolderId(std::string id) { m_folderId = std::move(id); }
     void beginRename(const std::string &folderId)
     {
         m_folderId = folderId;
@@ -168,27 +172,37 @@ public:
 protected:
     void layout() override
     {
-        const double width = geometry().width * (0.72 + 0.20 * m_progress);
-        const double height = geometry().height * (0.62 + 0.16 * m_progress);
+        const double width = geometry().width * (0.58 + 0.14 * m_progress);
+        const double height = geometry().height * (0.52 + 0.12 * m_progress);
         const double x = (geometry().width - width) / 2;
         const double y = (geometry().height - height) / 2;
         m_panel = {x, y, width, height};
         const ui::RectF titleRect {x + 24, y + 16, width - 48, std::max(32.0, height * 0.11)};
         m_title->setGeometry(titleRect);
         m_titleField->setGeometry(titleRect);
-        const int columns = std::min(7, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.7))))));
-        const int rows = std::max(1, int((m_count + size_t(columns) - 1) / size_t(columns)));
+        const int columns = std::min(5, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.4))))));
+        m_columns = columns;
+        m_rows = std::max(1, int(std::ceil(std::max(1.0, height * 0.72 / 96.0))));
+        const int capacity = std::max(1, m_columns * m_rows);
+        m_pageCount = std::max(1, int((m_count + size_t(capacity) - 1) / size_t(capacity)));
+        m_page = std::clamp(m_page, 0, m_pageCount - 1);
         const double outerPadding = std::max(24.0, width * 0.045);
         const double columnWidth = (width - 2 * outerPadding) / columns;
         const double labelHeight = std::max(28.0, std::min(42.0, height * 0.075));
-        const double rowHeight = (height * 0.72) / rows;
-        const double iconSize = std::min({112.0, columnWidth * 0.72, rowHeight - labelHeight - 20});
+        const double rowHeight = (height * 0.72) / m_rows;
+        const double iconSize = std::min({m_view->m_metrics.iconSize * 1.0, columnWidth * 0.82,
+                                          rowHeight - labelHeight - 12});
         const double gridTop = y + height * 0.20;
+        const int pageCapacity = std::max(1, m_columns * m_rows);
         for (size_t i = 0; i < m_icons.size(); ++i) {
-            if (!m_icons[i]->isVisible())
+            const bool onPage = int(i) / pageCapacity == m_page;
+            m_icons[i]->setVisible(onPage && i < m_count);
+            m_names[i]->setVisible(onPage && i < m_count);
+            if (!onPage || i >= m_count)
                 continue;
-            const int col = int(i) % columns;
-            const int row = int(i) / columns;
+            const int local = int(i) - m_page * pageCapacity;
+            const int col = local % m_columns;
+            const int row = local / m_columns;
             const double cellX = x + outerPadding + col * columnWidth;
             const double iconX = cellX + (columnWidth - iconSize) / 2;
             const double iconY = gridTop + row * rowHeight;
@@ -203,11 +217,66 @@ protected:
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
         const double radius = std::max(26.0, std::min(m_panel.width, m_panel.height) * 0.065);
-        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, ui::Color {25, 25, 30, 232});
+        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, ui::Color {105, 112, 124, 156}, 1,
+                                ui::Color {255, 255, 255, 72});
     }
-    void pointerPress(const ui::PointerEvent &) override { }
+    void pointerMove(const ui::PointerEvent &event) override
+    {
+        if (m_pressIndex < 0 && !m_swiping) {
+            if (std::abs(event.position.x - m_pressPosition.x) > 12 && m_pageCount > 1)
+                m_swiping = true;
+        }
+        if (m_pressIndex < 0 && !m_swiping)
+            return;
+        if (m_swiping)
+            return;
+        const double dx = event.position.x - m_pressPosition.x;
+        if (std::abs(dx) > 12 && !m_reordering) {
+            m_reordering = true;
+            m_view->m_launcher.applications().beginReorder();
+        }
+        if (!m_reordering)
+            return;
+        m_dragPosition = event.position;
+        requestLayout();
+    }
     void pointerRelease(const ui::PointerEvent &event) override
     {
+        if (m_swiping) {
+            const double dx = event.position.x - m_pressPosition.x;
+            if (dx < -24)
+                ++m_page;
+            else if (dx > 24)
+                --m_page;
+            m_page = std::clamp(m_page, 0, m_pageCount - 1);
+            m_swiping = false;
+            m_pressIndex = -1;
+            requestLayout();
+            return;
+        }
+        if (m_title->isVisible() && m_title->geometry().contains(event.position)) {
+            if (LauncherCell *folder = m_view->cell(m_folderId)) {
+                m_view->closeFolderOverlay();
+                folder->beginRename();
+            }
+            return;
+        }
+        if (m_reordering) {
+            int target = -1;
+            for (size_t i = 0; i < m_count && i < m_icons.size(); ++i) {
+                if (m_icons[i]->isVisible() && m_icons[i]->geometry().contains(event.position)) {
+                    target = int(i);
+                    break;
+                }
+            }
+            if (target >= 0 && target != m_pressIndex)
+                m_view->m_launcher.applications().moveInFolder(m_folderId, m_ids[size_t(m_pressIndex)], target);
+            m_view->m_launcher.applications().endReorder(true);
+            m_reordering = false;
+            m_pressIndex = -1;
+            requestLayout();
+            return;
+        }
         for (size_t i = 0; i < m_count && i < m_ids.size(); ++i) {
             if (m_icons[i]->geometry().contains(event.position)) {
                 m_view->m_launcher.applications().launch(m_ids[i]);
@@ -216,6 +285,18 @@ protected:
             }
         }
         m_view->closeFolderOverlay();
+    }
+    void pointerPress(const ui::PointerEvent &event) override
+    {
+        m_pressPosition = event.position;
+        m_pressIndex = -1;
+        m_swiping = false;
+        for (size_t i = 0; i < m_count && i < m_icons.size(); ++i) {
+            if (m_icons[i]->isVisible() && m_icons[i]->geometry().contains(event.position)) {
+                m_pressIndex = int(i);
+                break;
+            }
+        }
     }
 private:
     void finishRename(bool save)
@@ -238,6 +319,15 @@ private:
     ui::TextField *m_titleField = nullptr;
     std::string m_folderId;
     std::string m_folderName;
+    ui::PointF m_pressPosition;
+    ui::PointF m_dragPosition;
+    int m_pressIndex = -1;
+    bool m_reordering = false;
+    int m_columns = 1;
+    int m_rows = 1;
+    int m_page = 0;
+    int m_pageCount = 1;
+    bool m_swiping = false;
     ui::RectF m_panel;
     size_t m_count = 0;
     double m_progress = 0;
@@ -1100,6 +1190,8 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
     if (button == ui::MouseButton::Left && found != m_launcher.applications().rows().end()) {
         if (found->folder) {
             if (m_folderOverlay)
+                m_folderOverlay->setFolderId(cell->id());
+            if (m_folderOverlay)
                 m_folderOverlay->setTitle(found->name);
             if (m_folderOverlay)
                 m_folderOverlay->setItems(m_launcher.applications().folderItems(cell->id()));
@@ -1114,6 +1206,11 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
     }
     else if (button == ui::MouseButton::Right)
         openMenu(cell, windowPosition);
+}
+
+void LauncherView::renameFolderInline(const std::string &folderId, std::string name)
+{
+    m_launcher.applications().renameFolder(folderId, std::move(name));
 }
 
 void LauncherView::closeFolderOverlay()
@@ -1143,17 +1240,8 @@ void LauncherView::openMenu(LauncherCell *cell, ui::PointF windowPosition)
     Launcher &launcher = m_launcher;
     if (row != m_launcher.applications().rows().end() && row->folder) {
         menu->addItem(tr("Rename Folder"), [this, id] {
-            if (!m_folderOverlay)
-                return;
-            const auto current = std::find_if(m_launcher.applications().rows().begin(),
-                                              m_launcher.applications().rows().end(),
-                                              [&id](const LauncherItem &item) { return item.id == id; });
-            if (current == m_launcher.applications().rows().end())
-                return;
-            m_folderOverlay->setTitle(current->name);
-            m_folderOverlay->beginRename(id);
-            m_folderOverlay->setVisible(true);
-            m_folderOverlay->setProgress(1);
+            if (LauncherCell *folder = this->cell(id))
+                folder->beginRename();
         });
         menu->addItem(tr("Dissolve Folder"), [&launcher, id] { launcher.applications().dissolveFolder(id); });
     } else {
@@ -1191,12 +1279,17 @@ bool LauncherView::startCellDrag(LauncherCell *cell, ui::View *icon)
     source.data = [id = cell->id()](const std::string &) { return id; };
     source.actions = ui::MoveAction;
     const double size = m_metrics.iconSize;
-    source.hotSpot = {size / 2, size / 2};
+    source.hotSpot = cell->isFolder()
+            ? ui::PointF {double(m_metrics.cellWidth) / 2, double(m_metrics.cellPaddingV) + size / 2}
+            : ui::PointF {size / 2, size / 2};
     if (ui::Window *window = this->window()) {
-        // icon.grabToImage(): the icon as drawn, at the window's scale.
+        // Capture the whole cell so a folder keeps its material and member
+        // icons while it follows the pointer.
         source.iconScale = window->scale();
-        source.icon = ui::themeIconBitmap(cell->iconName().empty() ? "application-x-desktop" : cell->iconName(),
-                                          m_metrics.iconSize, source.iconScale);
+        source.icon = cell->isFolder()
+                ? cell->grab(source.iconScale)
+                : ui::themeIconBitmap(cell->iconName().empty() ? "application-x-desktop" : cell->iconName(),
+                                      m_metrics.iconSize, source.iconScale);
     }
     std::weak_ptr<bool> alive = m_alive;
     source.onFinished = [this, alive](ui::DropAction action) {

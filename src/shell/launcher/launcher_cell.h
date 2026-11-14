@@ -15,6 +15,7 @@
 namespace Lingmo::ui {
 class Label;
 class ThemeIcon;
+class TextField;
 } // namespace Lingmo::UI
 
 namespace Lingmo::Shell {
@@ -33,6 +34,7 @@ public:
     ~LauncherCell() override;
 
     const std::string &id() const { return m_id; }
+    bool isFolder() const { return m_isFolder; }
 
     void setItem(const LauncherItem &item);
     // The application's count on the icon's corner; 0 for none.
@@ -50,6 +52,7 @@ public:
     // Its icon and name hide while it is dragged.
     void setDragging(bool dragging);
     void setMenuOpen(bool open);
+    void beginRename();
     void setDropPreview(bool active, const std::string &iconName = {});
     bool isPressDimmed() const { return (m_pressed || m_menuOpen) && !m_dragging; }
     // The colour the selection is inked against.
@@ -74,6 +77,8 @@ public:
     void iconReleased(const ui::PointerEvent &event);
 
 protected:
+    bool acceptsPointer() const override { return true; }
+    void pointerRelease(const ui::PointerEvent &event) override;
     void layout() override;
     void paint(ui::Painter &painter) override;
 
@@ -98,6 +103,7 @@ private:
     // Above the icon and its pressed look.
     CountBadge *m_countBadge = nullptr;
     ui::Label *m_label = nullptr;
+    ui::TextField *m_renameField = nullptr;
     ui::Color m_backdrop {0, 0, 0, 255};
     bool m_selected = false;
     bool m_dragging = false;
