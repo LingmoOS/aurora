@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.37+lingmo5u1) unstable; urgency=medium
+
+  * Temporarily disable efficient mode and restore the launchpad icon.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 21:20:00 +0800
+
 lingmo-aurora (5.0.36+lingmo5u1) unstable; urgency=medium
 
   * Restore status bar declarations required by the efficient taskbar.
