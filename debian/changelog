@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.38+lingmo5u1) unstable; urgency=medium
+
+  * Upload RPM and Debian source artifacts together to OBS.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 17:30:00 +0800
+
 lingmo-aurora (5.0.37+lingmo5u1) unstable; urgency=medium
 
   * Submit RPM sources to OBS from the dedicated RPM workflow.
