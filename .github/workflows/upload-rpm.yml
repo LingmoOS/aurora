@@ -18,7 +18,7 @@ jobs:
       - name: Install RPM tooling
         run: |
           sudo apt-get update
-          sudo apt-get install -y git rpm devscripts debhelper
+          sudo apt-get install -y git rpm
 
       - name: Checkout source
         uses: actions/checkout@v4
@@ -37,7 +37,6 @@ jobs:
             "${GITHUB_SHA}" > "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz"
           cp packaging/rpm/lingmo-aurora.spec "$top/SPECS/"
           rpmbuild -bs --define "_topdir $top" "$top/SPECS/lingmo-aurora.spec"
-          dpkg-buildpackage -S -us -uc -d
           mkdir -p rpm-source-output
           cp "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz" rpm-source-output/
           cp "$top/SPECS/lingmo-aurora.spec" rpm-source-output/
@@ -45,8 +44,6 @@ jobs:
           mkdir -p rpm-obs-source
           cp "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz" rpm-obs-source/
           cp "$top/SPECS/lingmo-aurora.spec" rpm-obs-source/
-          cp ../lingmo-aurora_*.dsc ../lingmo-aurora_*.tar.* rpm-obs-source/
-          cp ../lingmo-aurora_*.dsc ../lingmo-aurora_*.tar.* rpm-source-output/
 
       - name: Upload RPM source package
         uses: actions/upload-artifact@v4
