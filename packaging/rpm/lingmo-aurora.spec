@@ -21,21 +21,20 @@ BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libinput)
 BuildRequires:  pkgconfig(libseat)
 BuildRequires:  pkgconfig(libudev)
-BuildRequires:  pkgconfig(wayland-server) >= 1.23
-BuildRequires:  pkgconfig(libxcb)
-BuildRequires:  pkgconfig(libxcb-composite)
-BuildRequires:  pkgconfig(libxcb-shape)
-BuildRequires:  pkgconfig(libxcb-sync)
-BuildRequires:  pkgconfig(libxcb-xfixes)
+BuildRequires:  wayland-devel >= 1.23
+BuildRequires:  wayland-protocols-devel >= 1.39
+BuildRequires:  pkgconfig(xcb)
+BuildRequires:  pkgconfig(xcb-composite)
+BuildRequires:  pkgconfig(xcb-shape)
+BuildRequires:  pkgconfig(xcb-sync)
+BuildRequires:  pkgconfig(xcb-xfixes)
 BuildRequires:  pkgconfig(libspa-0.2)
 BuildRequires:  pkgconfig(libsystemd)
 BuildRequires:  pkgconfig(libpipewire-0.3)
-BuildRequires:  pkgconfig(wayland-protocols) >= 1.39
 BuildRequires:  pkgconfig(xkbcommon)
 BuildRequires:  lingmo-sdk-devel
 BuildRequires:  lingmo-framework-devel
 BuildRequires:  pam-devel
-BuildRequires:  wayland-scanner
 
 Requires:       lingmo-sdk >= 5.0.4
 Requires:       lingmo-framework >= 5.0.3
