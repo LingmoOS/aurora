@@ -545,9 +545,11 @@ void StatusBarWindow::layoutRow()
     for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control, m_notification})
         preferred(icon, icon->preferredWidth());
     preferred(m_clock, m_clock->preferredWidth());
-    if (m_search)
+    if (m_search) {
         m_search->setVisible(m_efficientMode && m_dockSettings
                              && m_dockSettings->taskbarSearch() == DockSettings::SearchShown);
+        preferred(m_search, m_search->preferredWidth());
+    }
     m_root->requestLayout();
     if (m_efficientMode) updateGeometry();
 }
