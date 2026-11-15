@@ -46,6 +46,8 @@ bool Dock::registerService()
     auto object = std::make_unique<dbus::Object>(m_bus, "/Dock", "org.lingmo.Dock");
     object->addMethod("setEfficientMode", [this](bool enabled) { m_settings.setEfficientMode(enabled); });
     object->addProperty("efficientMode", [this] { return m_settings.efficientMode(); });
+    object->addProperty("taskbarAlignment", [this] { return int32_t(m_settings.taskbarAlignment()); });
+    object->addProperty("taskbarSearch", [this] { return int32_t(m_settings.taskbarSearch()); });
     m_subscriptions.push_back(m_settings.efficientModeChanged.connect([this] {
         if (m_object) m_object->emitPropertiesChanged({"efficientMode"});
     }));
@@ -54,6 +56,12 @@ bool Dock::registerService()
                       dbus::ArgumentNames{{"direction"}, {}});
     object->addMethod("setIconSize", [this](int32_t iconSize) { m_settings.setIconSize(iconSize); },
                       dbus::ArgumentNames{{"iconSize"}, {}});
+    object->addMethod("setTaskbarAlignment", [this](int32_t value) {
+        m_settings.setTaskbarAlignment(DockSettings::TaskbarAlignment(value));
+    }, dbus::ArgumentNames{{"alignment"}, {}});
+    object->addMethod("setTaskbarSearch", [this](int32_t value) {
+        m_settings.setTaskbarSearch(DockSettings::TaskbarSearch(value));
+    }, dbus::ArgumentNames{{"search"}, {}});
     object->addMethod("setVisibility",
                       [this](int32_t visibility) { m_settings.setVisibility(DockSettings::Visibility(visibility)); },
                       dbus::ArgumentNames{{"visibility"}, {}});

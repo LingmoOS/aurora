@@ -43,6 +43,12 @@ public:
     void setEfficientMode(bool enabled);
     base::Signal<> efficientModeChanged;
     static constexpr int taskbarHeight = 52;
+    enum TaskbarAlignment { AlignLeft = 0, AlignCenter = 1 };
+    enum TaskbarSearch { SearchHidden = 0, SearchShown = 1 };
+    TaskbarAlignment taskbarAlignment() const { return m_taskbarAlignment; }
+    void setTaskbarAlignment(TaskbarAlignment alignment);
+    TaskbarSearch taskbarSearch() const { return m_taskbarSearch; }
+    void setTaskbarSearch(TaskbarSearch search);
     int iconSize() const { return m_efficientMode ? 32 : m_iconSize; }
     // Written once the size has stopped changing for a moment, as a slider
     // drags it.
@@ -77,6 +83,8 @@ public:
     base::Signal<> magnificationChanged;
     base::Signal<> magnificationFactorChanged;
     base::Signal<> bounceOnLaunchChanged;
+    base::Signal<> taskbarAlignmentChanged;
+    base::Signal<> taskbarSearchChanged;
 
 private:
     struct Values {
@@ -90,6 +98,8 @@ private:
         bool magnification = true;
         double magnificationFactor = 1.5;
         bool bounceOnLaunch = true;
+        TaskbarAlignment taskbarAlignment = AlignLeft;
+        TaskbarSearch taskbarSearch = SearchHidden;
     };
 
     static Values load(const std::string &path);
@@ -108,6 +118,8 @@ private:
     bool m_magnification = true;
     double m_magnificationFactor = 1.5;
     bool m_bounceOnLaunch = true;
+    TaskbarAlignment m_taskbarAlignment = AlignLeft;
+    TaskbarSearch m_taskbarSearch = SearchHidden;
     base::Timer m_iconSizeSave;
     base::Job m_load;
 };

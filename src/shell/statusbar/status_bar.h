@@ -56,6 +56,7 @@ public:
     Brightness &brightness() { return m_brightness; }
     powerprofiles::PowerProfiles &powerProfiles() { return *m_powerProfiles; }
     PowerActions &powerActions() { return m_powerActions; }
+    base::dbus::Connection *sessionBus() const { return m_bus; }
 
     // The clock follows the primary language, not LC_TIME: the region the
     // system was installed with would otherwise pick its words.

@@ -39,6 +39,7 @@ public:
     // The view maps and unmaps itself through these.
     std::function<void()> showWindow;
     std::function<void()> hideWindow;
+    std::function<void()> focusSearchWindow;
 
     bool isShown() const { return m_shown; }
     void show();
@@ -46,6 +47,7 @@ public:
     // Follows the logical state: the window can still be mapped while the
     // compositor unmaps it.
     void toggle();
+    void focusSearch();
 
     bool isPinnedInDock(const std::string &desktop) const;
     void sendToDock(const std::string &desktop);

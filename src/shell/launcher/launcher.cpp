@@ -54,6 +54,7 @@ bool Launcher::registerService()
     object->addMethod("show", [this] { show(); });
     object->addMethod("hide", [this] { hide(); });
     object->addMethod("toggle", [this] { toggle(); });
+    object->addMethod("focusSearch", [this] { focusSearch(); });
     if (!object->publish()
         || !m_bus->requestName("org.lingmo.Launcher", base::dbus::Connection::DoNotQueue)) {
         LM_WARNING(lingmoLauncher) << "Cannot own org.lingmo.Launcher";
@@ -81,6 +82,16 @@ void Launcher::hide()
 void Launcher::toggle()
 {
     m_shown ? hide() : show();
+}
+
+void Launcher::focusSearch()
+{
+    if (!m_shown)
+        show();
+    if (showWindow)
+        showWindow();
+    if (focusSearchWindow)
+        focusSearchWindow();
 }
 
 void Launcher::deactivated()

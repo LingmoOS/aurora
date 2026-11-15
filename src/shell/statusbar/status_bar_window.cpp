@@ -171,6 +171,16 @@ StatusBarWindow::StatusBarWindow(Shell *shell, std::unique_ptr<StatusBar> status
     m_notification = statusIcon("notifications", Panel::NotificationCenter);
     m_notification->setIconName("notifications");
     m_notification->setVisible(false);
+    m_search = m_root->addChild<StatusIcon>(this);
+    m_search->setName("taskbar-search");
+    m_search->setGlyph("search");
+    m_search->setLabel(Lingmo::i18n::tr("Search"));
+    m_search->onClicked = [this](const ui::PointerEvent &) {
+        if (m_statusBar->sessionBus())
+            m_statusBar->sessionBus()->send(m_statusBar->sessionBus()->newMethodCall(
+                    "org.lingmo.Launcher", "/Launcher", "org.lingmo.Launcher", "focusSearch"));
+    };
+    m_search->setVisible(false);
     m_clock = m_root->addChild<ClockItem>(this);
     m_clock->onClicked = [this](const ui::PointerEvent &) {
         if (m_recordingActive) {
@@ -257,6 +267,7 @@ int StatusBarWindow::taskbarWidth() const
 
 void StatusBarWindow::followDesktopMode(DockSettings &settings)
 {
+    m_dockSettings = &settings;
     const auto apply = [this, &settings] {
         const bool efficient = settings.efficientMode();
         if (efficient == m_efficientMode) return;
@@ -269,6 +280,8 @@ void StatusBarWindow::followDesktopMode(DockSettings &settings)
         updateClock(); layoutRow(); updateGeometry(); updateLook();
     };
     m_modeChanged = settings.efficientModeChanged.connect(apply);
+    m_subscriptions.push_back(settings.taskbarAlignmentChanged.connect([this] { updateGeometry(); layoutRow(); }));
+    m_subscriptions.push_back(settings.taskbarSearchChanged.connect([this] { layoutRow(); }));
     apply();
 }
 
@@ -281,7 +294,10 @@ void StatusBarWindow::updateGeometry()
     m_window->setOutput(output->name);
     if (m_efficientMode) {
         const int width = taskbarWidth();
-        m_window->setGeometry(base::Rect(output->bounds.right() - width,
+        const int x = m_dockSettings && m_dockSettings->taskbarAlignment() == DockSettings::AlignCenter
+                ? output->bounds.x() + (output->bounds.width() - width) / 2
+                : output->bounds.right() - width;
+        m_window->setGeometry(base::Rect(x,
             output->bounds.bottom() - DockSettings::taskbarHeight, width, DockSettings::taskbarHeight));
         m_window->setExclusiveZone(wm::ScreenEdge::Bottom, DockSettings::taskbarHeight);
         taskbarWidthChanged(width);
@@ -529,6 +545,9 @@ void StatusBarWindow::layoutRow()
     for (StatusIcon *icon : {m_volume, m_network, m_battery, m_control, m_notification})
         preferred(icon, icon->preferredWidth());
     preferred(m_clock, m_clock->preferredWidth());
+    if (m_search)
+        m_search->setVisible(m_efficientMode && m_dockSettings
+                             && m_dockSettings->taskbarSearch() == DockSettings::SearchShown);
     m_root->requestLayout();
     if (m_efficientMode) updateGeometry();
 }

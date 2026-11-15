@@ -32,6 +32,8 @@ DockSettings::DockSettings(std::string path)
                                  const bool factor =
                                          values.magnificationFactor != m_magnificationFactor;
                                  const bool bounce = values.bounceOnLaunch != m_bounceOnLaunch;
+                                 const bool alignment = values.taskbarAlignment != m_taskbarAlignment;
+                                 const bool search = values.taskbarSearch != m_taskbarSearch;
                                  const bool mode = !m_modeSet && values.efficientMode != m_efficientMode;
                                  if (!m_modeSet) m_efficientMode = values.efficientMode;
                                  m_iconSize = values.iconSize;
@@ -43,6 +45,8 @@ DockSettings::DockSettings(std::string path)
                                  m_magnification = values.magnification;
                                  m_magnificationFactor = values.magnificationFactor;
                                  m_bounceOnLaunch = values.bounceOnLaunch;
+                                 m_taskbarAlignment = values.taskbarAlignment;
+                                 m_taskbarSearch = values.taskbarSearch;
                                  m_ready = true;
                                  ready();
                                  if (mode) efficientModeChanged();
@@ -62,6 +66,8 @@ DockSettings::DockSettings(std::string path)
                                      magnificationFactorChanged();
                                  if (bounce || mode)
                                      bounceOnLaunchChanged();
+                                 if (alignment) taskbarAlignmentChanged();
+                                 if (search) taskbarSearchChanged();
                              });
 }
 
@@ -87,6 +93,10 @@ DockSettings::Values DockSettings::load(const std::string &path)
         settings.setValue("Dock/MagnificationFactor", 1.5);
     if (!settings.contains("Dock/BounceOnLaunch"))
         settings.setValue("Dock/BounceOnLaunch", true);
+    if (!settings.contains("Dock/TaskbarAlignment"))
+        settings.setValue("Dock/TaskbarAlignment", int(AlignLeft));
+    if (!settings.contains("Dock/TaskbarSearch"))
+        settings.setValue("Dock/TaskbarSearch", int(SearchHidden));
     settings.sync();
 
     Values values;
@@ -101,6 +111,8 @@ DockSettings::Values DockSettings::load(const std::string &path)
     const double factor = settings.doubleValue("Dock/MagnificationFactor", 1.5);
     values.magnificationFactor = std::clamp(std::isfinite(factor) ? factor : 1.5, 1.0, 2.0);
     values.bounceOnLaunch = settings.boolValue("Dock/BounceOnLaunch", true);
+    values.taskbarAlignment = TaskbarAlignment(settings.intValue("Dock/TaskbarAlignment", AlignLeft));
+    values.taskbarSearch = TaskbarSearch(settings.intValue("Dock/TaskbarSearch", SearchHidden));
     return values;
 }
 
@@ -200,6 +212,22 @@ void DockSettings::setBounceOnLaunch(bool enabled)
     m_bounceOnLaunch = enabled;
     write("Dock/BounceOnLaunch", enabled ? 1 : 0);
     bounceOnLaunchChanged();
+}
+
+void DockSettings::setTaskbarAlignment(TaskbarAlignment alignment)
+{
+    if (alignment == m_taskbarAlignment) return;
+    m_taskbarAlignment = alignment;
+    write("Dock/TaskbarAlignment", alignment);
+    taskbarAlignmentChanged();
+}
+
+void DockSettings::setTaskbarSearch(TaskbarSearch search)
+{
+    if (search == m_taskbarSearch) return;
+    m_taskbarSearch = search;
+    write("Dock/TaskbarSearch", search);
+    taskbarSearchChanged();
 }
 
 } // namespace Lingmo::Shell

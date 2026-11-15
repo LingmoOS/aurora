@@ -11,6 +11,7 @@
 #include "shell/dock/dock.h"
 #include "shell/launcher/launcher.h"
 #include "shell/launcher/launcher_view.h"
+#include "shell/launcher/launcher_search_field.h"
 #include "shell/launcher/launcher_wallpaper.h"
 #include "shell/shell_data.h"
 #include "shell/shell_window.h"
@@ -43,6 +44,7 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
 
     m_launcher->showWindow = [this] { showWindow(); };
     m_launcher->hideWindow = [this] { hideWindow(); };
+    m_launcher->focusSearchWindow = [this] { m_view->searchField()->focusField(); };
     LauncherModel &model = m_launcher->applications();
     // Applications opened before the view existed are no longer new.
     model.clearNewInstalled(m_launcher->takeOpenedApplications());
@@ -63,6 +65,7 @@ LauncherWindow::~LauncherWindow()
     m_subscriptions.clear();
     m_launcher->showWindow = nullptr;
     m_launcher->hideWindow = nullptr;
+    m_launcher->focusSearchWindow = nullptr;
     m_window.reset();
     m_wallpaper.reset();
     m_launcher.reset();
