@@ -36,9 +36,7 @@ jobs:
           git archive --format=tar.gz --prefix="lingmo-aurora-${rpm_version}/" \
             "${GITHUB_SHA}" > "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz"
           cp packaging/rpm/lingmo-aurora.spec "$top/SPECS/"
-          # OBS resolves BuildRequires. GitHub's Ubuntu runner does not carry
-          # the target RPM development packages, so only create the SRPM here.
-          rpmbuild -bs --nodeps --define "_topdir $top" "$top/SPECS/lingmo-aurora.spec"
+          rpmbuild -bs --define "_topdir $top" "$top/SPECS/lingmo-aurora.spec"
           dpkg-buildpackage -S -us -uc -d
           mkdir -p rpm-source-output
           cp "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz" rpm-source-output/
