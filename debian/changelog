@@ -1,3 +1,10 @@
+lingmo-aurora (5.0.36+lingmo5u1) unstable; urgency=medium
+
+  * Add the RPM spec and reproducible RPM source package workflow.
+  * Persist efficient taskbar layout state used by the new controls.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 16:30:00 +0800
+
 lingmo-aurora (5.0.35+lingmo5u1) unstable; urgency=medium
 
   * Ensure the optional taskbar search control receives its layout width.

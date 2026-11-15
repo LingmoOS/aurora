@@ -1,0 +1,51 @@
+name: Build RPM source package
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  rpm-source:
+    name: RPM source package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install RPM tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git rpm
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build source tarball and SRPM
+        shell: bash
+        run: |
+          set -euo pipefail
+          rpm_version="$(awk '$1 == "Version:" { print $2; exit }' packaging/rpm/lingmo-aurora.spec)"
+          test -n "$rpm_version"
+          top="$PWD/rpmbuild"
+          mkdir -p "$top/SOURCES" "$top/SPECS" "$top/SRPMS"
+          git archive --format=tar.gz --prefix="lingmo-aurora-${rpm_version}/" \
+            "${GITHUB_SHA}" > "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz"
+          cp packaging/rpm/lingmo-aurora.spec "$top/SPECS/"
+          rpmbuild -bs --define "_topdir $top" "$top/SPECS/lingmo-aurora.spec"
+          mkdir -p rpm-source-output
+          cp "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz" rpm-source-output/
+          cp "$top/SPECS/lingmo-aurora.spec" rpm-source-output/
+          cp "$top/SRPMS/"*.src.rpm rpm-source-output/
+
+      - name: Upload RPM source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: lingmo-aurora-rpm-source
+          path: rpm-source-output/
+          if-no-files-found: error
