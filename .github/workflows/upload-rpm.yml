@@ -1,6 +1,7 @@
 name: Build RPM source package
 
-permissions: write-all
+permissions:
+  contents: read
 
 on:
   push:
@@ -41,9 +42,6 @@ jobs:
           cp "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz" rpm-source-output/
           cp "$top/SPECS/lingmo-aurora.spec" rpm-source-output/
           cp "$top/SRPMS/"*.src.rpm rpm-source-output/
-          mkdir -p rpm-obs-source
-          cp "$top/SOURCES/lingmo-aurora-${rpm_version}.tar.gz" rpm-obs-source/
-          cp "$top/SPECS/lingmo-aurora.spec" rpm-obs-source/
 
       - name: Upload RPM source package
         uses: actions/upload-artifact@v4
@@ -51,15 +49,3 @@ jobs:
           name: lingmo-aurora-rpm-source
           path: rpm-source-output/
           if-no-files-found: error
-
-      - name: Upload RPM sources to OBS
-        if: github.event_name != 'pull_request'
-        uses: LingmoOS/action-upload-to-obs@0.0.4
-        with:
-          remove-old-sources: true
-          obs-package-name: 'lingmo-aurora'
-          obs-project-name: 'home:LingmoOS'
-          obs-user-name: ${{ secrets.OBS_USERNAME }}
-          obs-password: ${{ secrets.OBS_TOKEN }}
-          obs-instance-url: 'https://api.opensuse.org'
-          local-package-dir: './rpm-obs-source'

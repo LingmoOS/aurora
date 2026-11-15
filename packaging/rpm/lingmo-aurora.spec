@@ -1,5 +1,5 @@
 Name:           lingmo-aurora
-Version:        5.0.37
+Version:        5.0.36
 Release:        1.lingmo5u1%{?dist}
 Summary:        Lingmo Aurora Wayland compositor and desktop shell
 License:        GPL-3.0-or-later AND BSD-3-Clause AND MIT
@@ -77,5 +77,5 @@ DESTDIR=%{buildroot} cmake --install build
 %{_includedir}/lingmo-aurora/
 
 %changelog
-* Mon Nov 16 2026 Lingmo OS Team <team@lingmo.org> - 5.0.37-1.lingmo5u1
+* Mon Nov 16 2026 Lingmo OS Team <team@lingmo.org> - 5.0.36-1.lingmo5u1
 - Add the initial RPM spec and reproducible source package workflow.
