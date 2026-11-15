@@ -60,9 +60,21 @@ jobs:
         uses: LingmoOS/action-upload-to-obs@0.0.4
         with:
           remove-old-sources: true
-          obs-package-name: 'lingmo-aurora'
+          obs-package-name: 'aurora'
           obs-project-name: 'home:LingmoOS'
           obs-user-name: ${{ secrets.OBS_USERNAME }}
           obs-password: ${{ secrets.OBS_TOKEN }}
           obs-instance-url: 'https://api.opensuse.org'
           local-package-dir: './rpm-obs-source'
+
+      - name: Upload RPM spec to OBS
+        if: github.event_name != 'pull_request'
+        env:
+          OBS_USERNAME: ${{ secrets.OBS_USERNAME }}
+          OBS_TOKEN: ${{ secrets.OBS_TOKEN }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --user "$OBS_USERNAME:$OBS_TOKEN" \
+            --upload-file packaging/rpm/lingmo-aurora.spec \
+            'https://api.opensuse.org/source/home:LingmoOS/aurora/lingmo-aurora.spec?cmd=commit&meta=0&keeplink=0&comment=Upload%20RPM%20spec'
