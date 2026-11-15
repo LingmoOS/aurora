@@ -35,6 +35,18 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
     m_window = std::make_unique<ShellWindow>(shell, wm::WindowRole::Launcher);
     auto view = std::make_unique<LauncherView>(*m_launcher, *m_wallpaper, shell->badges());
     m_view = view.get();
+    m_view->folderBlurChanged = [this](ui::RectF panel, bool active) {
+        if (!active) {
+            m_window->setBackgroundBlur(base::Rect(), 0);
+            return;
+        }
+        const base::Rect blurRect(int(std::lround(panel.x)), int(std::lround(panel.y)),
+                                  int(std::lround(panel.width)), int(std::lround(panel.height)));
+        const bool dark = ui::Theme::current().darkMode;
+        m_window->setBackgroundBlur(blurRect, 24,
+                                    popupGlass(dark ? .13 : .94, dark ? .13 : .94,
+                                               dark ? .14 : .95, .78));
+    };
     m_window->setContentView(std::move(view));
     // Transparent: until the wallpaper decodes, the dimmer darkens what is
     // behind it.
@@ -66,6 +78,7 @@ LauncherWindow::~LauncherWindow()
     m_launcher->showWindow = nullptr;
     m_launcher->hideWindow = nullptr;
     m_launcher->focusSearchWindow = nullptr;
+    m_view->folderBlurChanged = nullptr;
     m_window.reset();
     m_wallpaper.reset();
     m_launcher.reset();

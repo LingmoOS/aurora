@@ -183,22 +183,29 @@ protected:
         const double x = m_origin.x + (targetX - m_origin.x) * m_progress;
         const double y = m_origin.y + (targetY - m_origin.y) * m_progress;
         m_panel = {x, y, width, height};
+        if (m_view->folderBlurChanged)
+            m_view->folderBlurChanged(m_panel, m_progress > 0);
         const ui::RectF titleRect {x + 24, y + 16, width - 48, std::max(32.0, height * 0.11)};
         m_title->setGeometry(titleRect);
         m_titleField->setGeometry(titleRect);
-        const int columns = std::min(4, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.15))))));
-        m_columns = columns;
-        m_rows = std::max(1, int(std::ceil(std::max(1.0, height * 0.72 / 96.0))));
+        const LauncherMetrics &metrics = m_view->m_metrics;
+        const double outerPadding = std::max(24.0, width * 0.045);
+        const double availableWidth = std::max(1.0, width - 2 * outerPadding);
+        const double gridTop = y + height * 0.20;
+        const double availableHeight = std::max(1.0, y + height - gridTop - outerPadding);
+        // Keep the launcher's cell and icon metrics. A narrow card uses more
+        // pages instead of shrinking its icons.
+        m_columns = std::max(1, std::min(metrics.columns,
+                                         int(std::floor(availableWidth / metrics.cellWidth))));
+        m_rows = std::max(1, std::min(metrics.rows,
+                                      int(std::floor(availableHeight / metrics.cellHeight))));
         const int capacity = std::max(1, m_columns * m_rows);
         m_pageCount = std::max(1, int((m_count + size_t(capacity) - 1) / size_t(capacity)));
         m_page = std::clamp(m_page, 0, m_pageCount - 1);
-        const double outerPadding = std::max(24.0, width * 0.045);
-        const double columnWidth = (width - 2 * outerPadding) / columns;
-        const double labelHeight = std::max(28.0, std::min(42.0, height * 0.075));
-        const double rowHeight = (height * 0.72) / m_rows;
-        const double iconSize = std::max(32.0, std::min({double(m_view->m_metrics.iconSize), columnWidth * 0.94,
-                                                        rowHeight - labelHeight - 4}));
-        const double gridTop = y + height * 0.20;
+        const double columnWidth = metrics.cellWidth;
+        const double labelHeight = metrics.labelLineHeight * 2;
+        const double rowHeight = metrics.cellHeight;
+        const double iconSize = metrics.iconSize;
         const int pageCapacity = std::max(1, m_columns * m_rows);
         for (size_t i = 0; i < m_icons.size(); ++i) {
             const bool onPage = int(i) / pageCapacity == m_page;
@@ -209,11 +216,12 @@ protected:
             const int local = int(i) - m_page * pageCapacity;
             const int col = local % m_columns;
             const int row = local / m_columns;
+            // Match the launcher's row-major, left-to-right grid.
             const double cellX = x + outerPadding + col * columnWidth;
             const double iconX = cellX + (columnWidth - iconSize) / 2;
             const double iconY = gridTop + row * rowHeight;
             m_icons[i]->setGeometry({iconX, iconY, iconSize, iconSize});
-            m_names[i]->setFontSize(std::max(12.0, std::min(16.0, height * 0.026)));
+            m_names[i]->setFontSize(metrics.labelPixelSize);
             m_names[i]->setGeometry({cellX, iconY + iconSize + 4, columnWidth, labelHeight});
         }
     }
@@ -222,9 +230,11 @@ protected:
         if (m_progress <= 0)
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
-        const double radius = std::max(26.0, std::min(m_panel.width, m_panel.height) * 0.065);
-        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, ui::Color {105, 112, 124, 156}, 1,
-                                ui::Color {255, 255, 255, 72});
+        const bool dark = ui::Theme::current().darkMode;
+        const double radius = std::min(18.0, std::min(m_panel.width, m_panel.height) * 0.04);
+        const ui::Color fill = dark ? ui::Color {24, 25, 30, 184} : ui::Color {248, 249, 252, 184};
+        const ui::Color border = dark ? ui::Color {255, 255, 255, 58} : ui::Color {255, 255, 255, 120};
+        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, fill, 1, border);
     }
     void pointerMove(const ui::PointerEvent &event) override
     {
@@ -1225,8 +1235,12 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
                 m_folderOverlay->setItems(m_launcher.applications().folderItems(cell->id()));
             if (m_folderOverlay) {
                 m_folderOverlay->setVisible(true);
-                m_folderTween.start(window(), 0, 1, std::chrono::milliseconds(220), easing::outBack,
-                                    [this](double value) { m_folderOverlay->setProgress(value); });
+                m_folderProgress = 0;
+                m_folderSpring.start(window(), m_folderProgress, 1,
+                                     [this](double value) {
+                                         m_folderProgress = value;
+                                         m_folderOverlay->setProgress(value);
+                                     });
             }
         } else {
             m_launcher.applications().launch(cell->id());
@@ -1245,12 +1259,13 @@ void LauncherView::closeFolderOverlay()
 {
     if (!m_folderOverlay || !m_folderOverlay->isVisible())
         return;
-    m_folderTween.start(window(), 1, 0, std::chrono::milliseconds(150), easing::outCubic,
-                        [this](double value) {
-                            m_folderOverlay->setProgress(value);
-                            if (value <= 0)
-                                m_folderOverlay->setVisible(false);
-                        });
+    m_folderSpring.start(window(), m_folderProgress, 0,
+                         [this](double value) {
+                             m_folderProgress = value;
+                             m_folderOverlay->setProgress(value);
+                             if (value <= 0)
+                                 m_folderOverlay->setVisible(false);
+                         });
 }
 
 void LauncherView::openMenu(LauncherCell *cell, ui::PointF windowPosition)

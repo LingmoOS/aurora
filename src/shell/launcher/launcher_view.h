@@ -5,6 +5,7 @@
 
 
 #include <chrono>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -99,6 +100,8 @@ public:
 
     // A press on nothing but the page: hide.
     base::Signal<> dismissRequested;
+    // The shell surface uses this to apply backdrop blur to the folder card.
+    std::function<void(ui::RectF, bool)> folderBlurChanged;
 
 protected:
     bool acceptsFocus() const override { return true; }
@@ -175,7 +178,8 @@ private:
     Indicator *m_indicator = nullptr;
     ui::Label *m_notFound = nullptr;
     FolderOverlay *m_folderOverlay = nullptr;
-    LauncherTween m_folderTween;
+    LauncherSpring m_folderSpring;
+    double m_folderProgress = 0;
 
     int m_currentPage = -1;
     double m_contentX = 0;

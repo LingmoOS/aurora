@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.38+lingmo5u1) unstable; urgency=medium
+
+  * Align folder layout, spring animation, icon sizing and glass backdrop with the launcher.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 21:45:00 +0800
+
 lingmo-aurora (5.0.37+lingmo5u1) unstable; urgency=medium
 
   * Temporarily disable efficient mode and restore the launchpad icon.
