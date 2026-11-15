@@ -132,7 +132,6 @@ private:
     ui::RectF availableGeometry() const;
 
     bool m_efficientMode = false;
-    DockSettings *m_dockSettings = nullptr;
     bool m_geometryUpdating = false;
     base::Subscription m_modeChanged;
     Shell *m_shell;
@@ -156,7 +155,6 @@ private:
     StatusIcon *m_control = nullptr;
     ClockItem *m_clock = nullptr;
     StatusIcon *m_notification = nullptr;
-    StatusIcon *m_search = nullptr;
     std::vector<StatusBarPanels *> m_panels;
     std::vector<base::Subscription> m_panelSubscriptions;
     StatusBarIndicators *m_indicators = nullptr;
