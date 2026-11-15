@@ -1,5 +1,5 @@
 Name:           lingmo-aurora
-Version:        5.0.41
+Version:        5.0.40
 Release:        1.lingmo5u1%{?dist}
 Summary:        Lingmo Aurora Wayland compositor and desktop shell
 License:        GPL-3.0-or-later AND BSD-3-Clause AND MIT
@@ -32,12 +32,12 @@ BuildRequires:  pkgconfig(libspa-0.2)
 BuildRequires:  pkgconfig(libsystemd)
 BuildRequires:  pkgconfig(libpipewire-0.3)
 BuildRequires:  pkgconfig(xkbcommon)
-BuildRequires:  lingmo-sdk-devel >= 5.0.7
-BuildRequires:  lingmo-framework-devel >= 5.0.6
+BuildRequires:  lingmo-sdk-devel >= 5.0.6
+BuildRequires:  lingmo-framework-devel >= 5.0.5
 BuildRequires:  pam-devel
 
-Requires:       lingmo-sdk >= 5.0.7
-Requires:       lingmo-framework >= 5.0.6
+Requires:       lingmo-sdk >= 5.0.6
+Requires:       lingmo-framework >= 5.0.5
 Recommends:     pipewire
 Recommends:     xwayland
 
@@ -76,5 +76,5 @@ DESTDIR=%{buildroot} cmake --install build
 %{_includedir}/lingmo-aurora/
 
 %changelog
-* Mon Nov 16 2026 Lingmo OS Team <team@lingmo.org> - 5.0.41-1.lingmo5u1
-- Track the validated SDK and framework RPM package versions.
+* Mon Nov 16 2026 Lingmo OS Team <team@lingmo.org> - 5.0.40-1.lingmo5u1
+- Align RPM dependencies with the published Lingmo SDK and framework packages.
