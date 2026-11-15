@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.40+lingmo5u1) unstable; urgency=medium
+
+  * Forward empty launcher cell clicks to the dismissible background.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 22:20:00 +0800
+
 lingmo-aurora (5.0.39+lingmo5u1) unstable; urgency=medium
 
   * Use non-linear folder transitions without spring physics.

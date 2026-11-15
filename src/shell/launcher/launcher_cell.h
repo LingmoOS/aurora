@@ -78,6 +78,8 @@ public:
 
 protected:
     bool acceptsPointer() const override { return true; }
+    void pointerPress(const ui::PointerEvent &event) override;
+    void pointerMove(const ui::PointerEvent &event) override;
     void pointerRelease(const ui::PointerEvent &event) override;
     void layout() override;
     void paint(ui::Painter &painter) override;
@@ -111,6 +113,7 @@ private:
     bool m_dragging = false;
     bool m_menuOpen = false;
     bool m_pressed = false;
+    bool m_backgroundPress = false;
     // One drag per press.
     bool m_dragArmed = false;
     ui::PointF m_pressPoint;

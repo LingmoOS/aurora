@@ -207,8 +207,31 @@ void LauncherCell::beginRename()
     requestLayout();
 }
 
+void LauncherCell::pointerPress(const ui::PointerEvent &event)
+{
+    if (event.button != ui::MouseButton::Left || iconRect().contains(event.position))
+        return;
+    // A folder label is an inline rename target; all other cell whitespace is
+    // part of the launcher's dismissible background.
+    if (m_isFolder && m_label->geometry().contains(event.position))
+        return;
+    m_backgroundPress = true;
+    m_view->backgroundPressed(mapToWindow(event.position));
+}
+
+void LauncherCell::pointerMove(const ui::PointerEvent &event)
+{
+    if (m_backgroundPress)
+        m_view->backgroundMoved(mapToWindow(event.position));
+}
+
 void LauncherCell::pointerRelease(const ui::PointerEvent &event)
 {
+    if (m_backgroundPress) {
+        m_backgroundPress = false;
+        m_view->backgroundReleased(mapToWindow(event.position));
+        return;
+    }
     if (event.button == ui::MouseButton::Left && m_isFolder && m_label->geometry().contains(event.position))
         beginRename();
 }

@@ -117,6 +117,7 @@ protected:
 
 private:
     friend class FolderOverlay;
+    friend class LauncherCell;
     class Pages;
     class Page;
     class Indicator;
