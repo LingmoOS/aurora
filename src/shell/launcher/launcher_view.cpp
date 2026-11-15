@@ -112,6 +112,7 @@ public:
         m_titleField->setHorizontallyCentered(true);
         m_titleField->setVisible(false);
         m_titleField->onAccepted = [this] { finishRename(true); };
+        m_titleField->onEditingFinished = [this] { finishRename(true); };
     }
 
     bool acceptsPointer() const override { return true; }
@@ -154,6 +155,7 @@ public:
         requestLayout();
     }
     void setFolderId(std::string id) { m_folderId = std::move(id); }
+    void setOrigin(ui::RectF origin) { m_origin = origin; }
     void beginRename(const std::string &folderId)
     {
         m_folderId = folderId;
@@ -172,15 +174,19 @@ public:
 protected:
     void layout() override
     {
-        const double width = geometry().width * (0.58 + 0.14 * m_progress);
-        const double height = geometry().height * (0.52 + 0.12 * m_progress);
-        const double x = (geometry().width - width) / 2;
-        const double y = (geometry().height - height) / 2;
+        const double targetWidth = geometry().width * 0.72;
+        const double targetHeight = geometry().height * 0.64;
+        const double targetX = (geometry().width - targetWidth) / 2;
+        const double targetY = (geometry().height - targetHeight) / 2;
+        const double width = m_origin.width + (targetWidth - m_origin.width) * m_progress;
+        const double height = m_origin.height + (targetHeight - m_origin.height) * m_progress;
+        const double x = m_origin.x + (targetX - m_origin.x) * m_progress;
+        const double y = m_origin.y + (targetY - m_origin.y) * m_progress;
         m_panel = {x, y, width, height};
         const ui::RectF titleRect {x + 24, y + 16, width - 48, std::max(32.0, height * 0.11)};
         m_title->setGeometry(titleRect);
         m_titleField->setGeometry(titleRect);
-        const int columns = std::min(5, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.4))))));
+        const int columns = std::min(4, std::max(1, int(std::ceil(std::sqrt(std::max(1.0, double(m_count) * 1.15))))));
         m_columns = columns;
         m_rows = std::max(1, int(std::ceil(std::max(1.0, height * 0.72 / 96.0))));
         const int capacity = std::max(1, m_columns * m_rows);
@@ -190,8 +196,8 @@ protected:
         const double columnWidth = (width - 2 * outerPadding) / columns;
         const double labelHeight = std::max(28.0, std::min(42.0, height * 0.075));
         const double rowHeight = (height * 0.72) / m_rows;
-        const double iconSize = std::min({m_view->m_metrics.iconSize * 1.0, columnWidth * 0.82,
-                                          rowHeight - labelHeight - 12});
+        const double iconSize = std::max(32.0, std::min({double(m_view->m_metrics.iconSize), columnWidth * 0.94,
+                                                        rowHeight - labelHeight - 4}));
         const double gridTop = y + height * 0.20;
         const int pageCapacity = std::max(1, m_columns * m_rows);
         for (size_t i = 0; i < m_icons.size(); ++i) {
@@ -328,6 +334,7 @@ private:
     int m_page = 0;
     int m_pageCount = 1;
     bool m_swiping = false;
+    ui::RectF m_origin;
     ui::RectF m_panel;
     size_t m_count = 0;
     double m_progress = 0;
@@ -1189,6 +1196,12 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
                                     [cell](const LauncherItem &item) { return item.id == cell->id(); });
     if (button == ui::MouseButton::Left && found != m_launcher.applications().rows().end()) {
         if (found->folder) {
+            if (m_folderOverlay)
+                {
+                    const ui::RectF icon = cell->iconRect();
+                    const ui::PointF origin = cell->mapToWindow(icon.topLeft());
+                    m_folderOverlay->setOrigin({origin.x, origin.y, icon.width, icon.height});
+                }
             if (m_folderOverlay)
                 m_folderOverlay->setFolderId(cell->id());
             if (m_folderOverlay)

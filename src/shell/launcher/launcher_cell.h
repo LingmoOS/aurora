@@ -87,6 +87,7 @@ private:
 
     void updateMask();
     void updateCountBadge();
+    void finishRename();
 
     LauncherView *m_view;
     std::string m_id;
@@ -100,6 +101,7 @@ private:
     ui::ThemeIcon *m_mask = nullptr;
     ui::ThemeIcon *m_dropIcon = nullptr;
     std::vector<ui::ThemeIcon *> m_folderIcons;
+    size_t m_folderIconCount = 0;
     // Above the icon and its pressed look.
     CountBadge *m_countBadge = nullptr;
     ui::Label *m_label = nullptr;

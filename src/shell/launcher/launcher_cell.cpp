@@ -74,12 +74,18 @@ LauncherCell::LauncherCell(LauncherView *view, std::string id)
     m_renameField = addChild<ui::TextField>();
     m_renameField->setHorizontallyCentered(true);
     m_renameField->setVisible(false);
-    m_renameField->onAccepted = [this] {
-        m_view->renameFolderInline(m_id, m_renameField->text());
-        m_renameField->setVisible(false);
-        m_label->setVisible(true);
-        requestLayout();
-    };
+    m_renameField->onAccepted = [this] { finishRename(); };
+    m_renameField->onEditingFinished = [this] { finishRename(); };
+}
+
+void LauncherCell::finishRename()
+{
+    if (!m_renameField->isVisible())
+        return;
+    m_view->renameFolderInline(m_id, m_renameField->text());
+    m_renameField->setVisible(false);
+    m_label->setVisible(true);
+    requestLayout();
 }
 
 LauncherCell::~LauncherCell() = default;
@@ -101,19 +107,17 @@ void LauncherCell::setItem(const LauncherItem &item)
         requestPaint();
     }
     if (item.folder) {
-        while (m_folderIcons.size() < std::min<size_t>(4, item.memberIcons.size()))
+        m_folderIconCount = std::min<size_t>(4, item.memberIcons.size());
+        while (m_folderIcons.size() < m_folderIconCount)
             m_folderIcons.push_back(addChild<ui::ThemeIcon>());
         for (size_t i = 0; i < m_folderIcons.size(); ++i) {
-            const bool visible = i < item.memberIcons.size() && i < 4;
+            const bool visible = !m_dragging && i < m_folderIconCount;
             m_folderIcons[i]->setVisible(visible);
-            if (visible)
+            if (i < m_folderIconCount)
                 m_folderIcons[i]->setIconName(item.memberIcons[i].empty()
                                                       ? "application-x-desktop"
                                                       : item.memberIcons[i]);
         }
-        // Keep the primary icon view as a transparent hit target. Folder
-        // member icons are visual-only; without this target a click falls
-        // through to the page background and dismisses the launcher.
         m_icon->setVisible(true);
         m_icon->setOpacity(0);
         requestLayout();
@@ -177,6 +181,8 @@ void LauncherCell::setDragging(bool dragging)
     m_pressed = false;
     m_icon->setVisible(!dragging);
     m_label->setVisible(!dragging);
+    for (size_t i = 0; i < m_folderIcons.size(); ++i)
+        m_folderIcons[i]->setVisible(!dragging && m_isFolder && i < m_folderIconCount);
     updateMask();
     updateCountBadge();
     requestPaint();
@@ -381,7 +387,7 @@ void LauncherCell::paint(ui::Painter &painter)
         const ui::RectF icon = iconRect();
         // Folders use a translucent material plate so the wallpaper remains
         // visible behind the four miniature application icons.
-        const double radius = std::max(12.0, icon.width * 0.28);
+        const double radius = std::max(10.0, icon.width * 0.20);
         const ui::Color backdrop = m_backdrop;
         const ui::Color background {
             uint8_t(std::min(255, int(backdrop.r * 0.55 + 255 * 0.45))),
