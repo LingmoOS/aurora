@@ -57,7 +57,9 @@ public:
 protected:
     void paint(ui::Painter &painter) override
     {
-        if (m_bar->efficientMode()) painter.fillRect(localRect(), ui::Theme::current().background);
+        // The surface blur supplies the taskbar's glass background. Painting
+        // an opaque theme color here defeats it and makes efficient mode a
+        // solid strip.
     }
     void pointerPress(const ui::PointerEvent &) override { m_bar->closePopups(); }
 

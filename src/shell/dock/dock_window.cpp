@@ -592,7 +592,7 @@ void DockWindow::rebuild()
         }
         icon->setDraggable(!item.fixed);
         if (item.id == DockModel::kLauncherId)
-            icon->setIcon(shellDataFile("launchpad.svg"), true);
+            icon->setIcon(shellDataFile("launcher.svg"), true);
         else
             icon->setIcon(item.iconName.empty() ? "application-x-desktop" : item.iconName);
         icon->setToolTip(item.visibleName);

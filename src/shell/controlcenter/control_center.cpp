@@ -231,10 +231,12 @@ void ControlCenter::openPanel(Panel panel, ShellWindow *bar, const base::Rect &a
     if (open.panel)
         open.panel->setMaximumHeight(open.geometry.height());
     const base::Point origin = bar->geometry().topLeft();
+    const bool bottomBar = bar->geometry().y() > m_shell->output(bar->outputName())->bounds.y()
+            + m_shell->output(bar->outputName())->bounds.height() / 2;
     ui::PopupPlacement placement;
     placement.anchorRect = {double(open.geometry.x() - origin.x()), double(open.geometry.y() - origin.y()), 1, 1};
     placement.anchor = ui::PopupAnchor::TopLeft;
-    placement.gravity = ui::PopupAnchor::BottomRight;
+    placement.gravity = bottomBar ? ui::PopupAnchor::TopRight : ui::PopupAnchor::BottomRight;
     placement.flipX = false;
     placement.flipY = false;
     placement.slide = false;

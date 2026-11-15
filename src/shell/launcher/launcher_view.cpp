@@ -538,6 +538,15 @@ void LauncherView::setMargins(const LauncherMetrics::Margins &margins)
     requestLayout();
 }
 
+void LauncherView::setCompact(bool compact)
+{
+    if (compact == m_compact)
+        return;
+    m_compact = compact;
+    requestLayout();
+    requestPaint();
+}
+
 void LauncherView::setShown(bool shown)
 {
     if (shown == m_shown)
@@ -658,6 +667,12 @@ void LauncherView::layout()
 void LauncherView::paint(ui::Painter &painter)
 {
     const ui::RectF bounds = localRect();
+    if (m_compact) {
+        const ui::Theme &theme = ui::Theme::current();
+        painter.fillRoundedRect(bounds, 24, theme.darkMode ? ui::Color{24, 25, 30, 230}
+                                                           : ui::Color{248, 249, 252, 235});
+        return;
+    }
     if (!m_wallpaper.isPicture()) {
         painter.fillRect(bounds, m_wallpaper.color());
         return;

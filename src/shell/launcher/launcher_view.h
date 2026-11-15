@@ -46,6 +46,7 @@ public:
     ~LauncherView() override;
 
     void setMargins(const LauncherMetrics::Margins &margins);
+    void setCompact(bool compact);
     // Where menus stay, in window coordinates: the output's work area.
     void setAvailableGeometry(std::optional<ui::RectF> geometry) { m_availableGeometry = geometry; }
     const LauncherMetrics &metrics() const { return m_metrics; }
@@ -165,6 +166,7 @@ private:
     LauncherMetrics::Margins m_margins;
     LauncherMetrics m_metrics;
     bool m_shown = false;
+    bool m_compact = false;
 
     Pages *m_pagesView = nullptr;
     std::vector<Page *> m_pages;
