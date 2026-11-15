@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.39+lingmo5u1) unstable; urgency=medium
+
+  * Use non-linear folder transitions without spring physics.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 22:00:00 +0800
+
 lingmo-aurora (5.0.38+lingmo5u1) unstable; urgency=medium
 
   * Align folder layout, spring animation, icon sizing and glass backdrop with the launcher.

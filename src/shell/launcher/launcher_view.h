@@ -178,7 +178,7 @@ private:
     Indicator *m_indicator = nullptr;
     ui::Label *m_notFound = nullptr;
     FolderOverlay *m_folderOverlay = nullptr;
-    LauncherSpring m_folderSpring;
+    LauncherTween m_folderTween;
     double m_folderProgress = 0;
 
     int m_currentPage = -1;

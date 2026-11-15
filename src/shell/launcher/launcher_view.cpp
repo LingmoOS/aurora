@@ -1236,11 +1236,12 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
             if (m_folderOverlay) {
                 m_folderOverlay->setVisible(true);
                 m_folderProgress = 0;
-                m_folderSpring.start(window(), m_folderProgress, 1,
-                                     [this](double value) {
-                                         m_folderProgress = value;
-                                         m_folderOverlay->setProgress(value);
-                                     });
+                m_folderTween.start(window(), m_folderProgress, 1, std::chrono::milliseconds(300),
+                                    easing::outCubic,
+                                    [this](double value) {
+                                        m_folderProgress = value;
+                                        m_folderOverlay->setProgress(value);
+                                    });
             }
         } else {
             m_launcher.applications().launch(cell->id());
@@ -1259,13 +1260,13 @@ void LauncherView::closeFolderOverlay()
 {
     if (!m_folderOverlay || !m_folderOverlay->isVisible())
         return;
-    m_folderSpring.start(window(), m_folderProgress, 0,
-                         [this](double value) {
-                             m_folderProgress = value;
-                             m_folderOverlay->setProgress(value);
-                             if (value <= 0)
-                                 m_folderOverlay->setVisible(false);
-                         });
+    m_folderTween.start(window(), m_folderProgress, 0, std::chrono::milliseconds(220), easing::inCubic,
+                        [this](double value) {
+                            m_folderProgress = value;
+                            m_folderOverlay->setProgress(value);
+                            if (value <= 0)
+                                m_folderOverlay->setVisible(false);
+                        });
 }
 
 void LauncherView::openMenu(LauncherCell *cell, ui::PointF windowPosition)

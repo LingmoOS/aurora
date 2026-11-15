@@ -28,6 +28,11 @@ inline double outCubic(double t)
     return u * u * u + 1;
 }
 
+inline double inCubic(double t)
+{
+    return t * t * t;
+}
+
 // Out back with an overshoot of 1.70158.
 inline double outBack(double t)
 {
