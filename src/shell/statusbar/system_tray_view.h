@@ -22,6 +22,7 @@
 namespace Lingmo::ui {
 class Menu;
 class ThemeIcon;
+class Window;
 } // namespace Lingmo::UI
 
 namespace Lingmo::Shell {
@@ -30,6 +31,7 @@ class DBusMenu;
 class DBusMenuPopup;
 class SystemTrayModel;
 class TrayItemView;
+class OverflowButton;
 
 // The tray: the StatusNotifierItems as 40 px bar items, the first
 // registered at the right end. Left click activates, middle click asks for
@@ -57,7 +59,7 @@ public:
 
     int count() const { return int(m_items.size()); }
     TrayItemView *item(int row) const;
-    double preferredWidth() const { return kItemWidth * count(); }
+    double preferredWidth() const;
 
     void closeMenu();
     ui::Menu *openMenu() const;
@@ -84,12 +86,19 @@ private:
     void openContextMenu(TrayItemView *item, const ui::PointF &position);
     void showMenu(TrayItemView *item, DBusMenu *menu);
     void menuClosed();
+    void toggleOverflow();
+    void closeOverflow();
+    int visibleCount() const;
     double slotX(int row) const;
 
     BarContext *m_bar;
     SystemTrayModel *m_model;
     Host m_host;
     std::vector<TrayItemView *> m_items;
+    OverflowButton *m_overflowButton = nullptr;
+    std::unique_ptr<ui::Window> m_overflowWindow;
+    ui::View *m_overflowRoot = nullptr;
+    std::vector<TrayItemView *> m_overflowItems;
     std::unique_ptr<DBusMenuPopup> m_popup;
     // The item whose menu the popup shows, open or not.
     TrayItemView *m_popupItem = nullptr;

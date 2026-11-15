@@ -13,6 +13,7 @@
 #include "shell/statusbar/dbus_menu_popup.h"
 #include "shell/statusbar/status_notifier_item.h"
 #include "shell/statusbar/system_tray_model.h"
+#include "shell/shell_data.h"
 #include "ui/drag.h"
 #include "ui/icon.h"
 #include "ui/menu.h"
@@ -28,6 +29,101 @@ static constexpr double kMenuGap = 6;
 // A move of the held pointer this far starts a drag (startDragDistance).
 static constexpr double kDragThreshold = 10;
 static constexpr char kTrayItemMimeType[] = "application/x-lingmo-tray-item";
+
+class OverflowButton final : public BarItem
+{
+public:
+    OverflowButton(BarContext *bar, std::function<void()> clicked)
+        : BarItem(bar)
+    {
+        setName("tray-overflow");
+        setInsets(BarContext::kHighlightGap / 2, BarContext::kHighlightGap / 2);
+        setGlyphWidth(16);
+        onClicked = [clicked = std::move(clicked)](const ui::PointerEvent &) { clicked(); };
+    }
+
+    void setOpen(bool open, ui::Window *window)
+    {
+        if (open == m_open && !m_animation)
+            return;
+        m_open = open;
+        if (!window) {
+            m_angle = open ? 180 : 0;
+            requestPaint();
+            return;
+        }
+        if (!m_animation) {
+            m_animation = std::make_unique<ui::Animation>(window);
+            m_animation->setDuration(std::chrono::milliseconds(180));
+            m_animation->setEasing(ui::Animation::Easing::InOutQuad);
+            m_animation->onUpdate = [this](double value) {
+                m_angle = m_from + (m_to - m_from) * value;
+                requestPaint();
+            };
+            m_animation->onFinished = [this] { m_animation.reset(); };
+        }
+        m_from = m_angle;
+        m_to = open ? 180 : 0;
+        m_animation->start();
+    }
+
+protected:
+    void paint(ui::Painter &painter) override
+    {
+        BarItem::paint(painter);
+        painter.save();
+        painter.rotate(m_angle, {geometry().width / 2, geometry().height / 2});
+        painter.drawSvg(shellDataFile("statusbar/chevron.svg"), centred({16, 16}), bar()->textColor());
+        painter.restore();
+    }
+
+private:
+    std::unique_ptr<ui::Animation> m_animation;
+    double m_angle = 0;
+    double m_from = 0;
+    double m_to = 0;
+    bool m_open = false;
+};
+
+class OverflowRoot final : public ui::View
+{
+public:
+    OverflowRoot() { setClipsChildren(true); }
+
+    void add(std::unique_ptr<TrayItemView> item)
+    {
+        m_items.push_back(item.get());
+        addChild(std::move(item));
+    }
+
+    void layout() override
+    {
+        const int columns = std::max(1, int(std::floor((geometry().width - 24) / SystemTrayView::kItemWidth)));
+        for (size_t i = 0; i < m_items.size(); ++i) {
+            const int col = int(i % size_t(columns));
+            const int row = int(i / size_t(columns));
+            m_items[i]->setGeometry({12 + col * SystemTrayView::kItemWidth,
+                                     12 + row * SystemTrayView::kItemWidth,
+                                     SystemTrayView::kItemWidth, SystemTrayView::kItemWidth});
+        }
+    }
+
+    double popupWidth() const
+    {
+        const int columns = std::max(1, std::min(10, int(m_items.size())));
+        return columns * SystemTrayView::kItemWidth + 24;
+    }
+
+    double popupHeight() const
+    {
+        const int columns = std::max(1, std::min(10, int(m_items.size())));
+        const int rows = std::max(1, int((m_items.size() + size_t(columns) - 1) / size_t(columns)));
+        return rows * SystemTrayView::kItemWidth + 24;
+    }
+
+private:
+    std::vector<TrayItemView *> m_items;
+};
 
 // FishUI's ThemeManager::isMonochromeIcon on a 32 px rendering: every
 // opaque pixel one colour, and that colour nearly grey.
@@ -138,6 +234,24 @@ SystemTrayView::~SystemTrayView()
     m_subscriptions.clear();
     m_menuLoaded.reset();
     m_popup.reset();
+    closeOverflow();
+}
+
+double SystemTrayView::preferredWidth() const
+{
+    const int visible = visibleCount();
+    return kItemWidth * (visible + (visible < count() ? 1 : 0));
+}
+
+int SystemTrayView::visibleCount() const
+{
+    double width = 480;
+    if (m_host.availableGeometry) {
+        const ui::RectF area = m_host.availableGeometry();
+        if (area.width > 0)
+            width = std::max(160.0, area.width * 0.24);
+    }
+    return std::min(count(), std::max(1, int(std::floor(width / kItemWidth)) - 1));
 }
 
 TrayItemView *SystemTrayView::item(int row) const
@@ -183,9 +297,69 @@ void SystemTrayView::rebuild()
     m_items = std::move(items);
     for (TrayItemView *view : m_items)
         view->updateLook();
+    if (!m_overflowButton)
+        m_overflowButton = addChild<OverflowButton>(m_bar, [this] { toggleOverflow(); });
     requestLayout();
     if (onCountChanged)
         onCountChanged();
+}
+
+void SystemTrayView::toggleOverflow()
+{
+    if (m_overflowWindow) {
+        closeOverflow();
+        return;
+    }
+    if (m_host.closePopups)
+        m_host.closePopups();
+    const int visible = visibleCount();
+    auto root = std::make_unique<OverflowRoot>();
+    OverflowRoot *rawRoot = root.get();
+    m_overflowItems.clear();
+    for (int row = visible; row < count(); ++row) {
+        TrayItemView *item = m_items[size_t(row)];
+        item->setVisible(true);
+        std::unique_ptr<ui::View> child = takeChild(item);
+        if (!child)
+            continue;
+        TrayItemView *rawItem = static_cast<TrayItemView *>(child.release());
+        m_overflowItems.push_back(rawItem);
+        rawRoot->add(std::unique_ptr<TrayItemView>(rawItem));
+    }
+    ui::PopupPlacement placement;
+    const ui::RectF area = m_host.availableGeometry ? m_host.availableGeometry() : ui::RectF();
+    const bool bottomBar = area.height > 0 && area.y < 0;
+    placement.anchorRect = {geometry().width - kItemWidth, bottomBar ? 0 : geometry().height, kItemWidth, 1};
+    placement.anchor = bottomBar ? ui::PopupAnchor::BottomRight : ui::PopupAnchor::TopRight;
+    placement.gravity = bottomBar ? ui::PopupAnchor::BottomRight : ui::PopupAnchor::TopRight;
+    placement.flipX = true;
+    placement.flipY = false;
+    placement.slide = true;
+    m_overflowWindow = ui::Window::createPopup(window(), placement, true);
+    m_overflowRoot = rawRoot;
+    m_overflowWindow->setContentView(std::move(root));
+    m_overflowWindow->resize({rawRoot->popupWidth(), rawRoot->popupHeight()});
+    m_overflowWindow->setBackgroundBlur({0, 0, rawRoot->popupWidth(), rawRoot->popupHeight()}, 16);
+    m_overflowWindow->onCloseRequested = [this] { closeOverflow(); };
+    m_overflowWindow->show();
+    m_overflowButton->setOpen(true, window());
+}
+
+void SystemTrayView::closeOverflow()
+{
+    if (!m_overflowWindow)
+        return;
+    m_overflowButton->setOpen(false, window());
+    for (TrayItemView *item : m_overflowItems) {
+        std::unique_ptr<ui::View> child = m_overflowRoot->takeChild(item);
+        if (child)
+            addChild(std::move(child));
+    }
+    m_overflowItems.clear();
+    m_overflowRoot = nullptr;
+    m_overflowWindow->hide();
+    m_overflowWindow.reset();
+    requestLayout();
 }
 
 double SystemTrayView::slotX(int row) const
@@ -225,12 +399,22 @@ void SystemTrayView::layout()
             m_moveAnimation->start();
         }
     }
+    const int visible = visibleCount();
     for (int row = 0; row < count(); ++row) {
         TrayItemView *item = m_items[size_t(row)];
-        double x = slotX(row);
+        if (row >= visible) {
+            item->setVisible(false);
+            continue;
+        }
+        item->setVisible(true);
+        double x = slotX(row + (visible < count() ? 1 : 0));
         if (const auto it = m_moves.find(item); it != m_moves.end())
             x = it->second.first + (it->second.second - it->second.first) * m_moveProgress;
         item->setGeometry({x, 0, kItemWidth, height});
+    }
+    if (m_overflowButton) {
+        m_overflowButton->setVisible(visible < count());
+        m_overflowButton->setGeometry({0, 0, kItemWidth, height});
     }
 }
 
