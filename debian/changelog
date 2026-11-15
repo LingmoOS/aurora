@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.36+lingmo5u1) unstable; urgency=medium
+
+  * Restore status bar declarations required by the efficient taskbar.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 16 Nov 2026 21:00:00 +0800
+
 lingmo-aurora (5.0.35+lingmo5u1) unstable; urgency=medium
 
   * Ensure the optional taskbar search control receives its layout width.
