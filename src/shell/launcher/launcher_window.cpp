@@ -49,14 +49,7 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
         const int right = std::min(output->bounds.width(), int(std::ceil(panel.right())) + margin);
         const int bottom = std::min(output->bounds.height(), int(std::ceil(panel.bottom())) + margin);
         const base::Rect blurRect(left, top, std::max(1, right - left), std::max(1, bottom - top));
-        const ui::Color backdrop = m_wallpaper->backdropColor();
-        const double luminance = (0.2126 * backdrop.r + 0.7152 * backdrop.g + 0.0722 * backdrop.b) / 255.0;
-        const bool light = luminance > 0.52;
-        render::GlassParams glass = popupGlass(light ? .88 : .12, light ? .89 : .12,
-                                               light ? .92 : .13, .28);
-        glass.blurSigma = glassFixed(12.0);
-        glass.plainSigma = 42;
-        m_window->setBackgroundBlur(blurRect, 36, glass);
+        m_window->setBackgroundBlur(blurRect, 48);
     };
     m_window->setContentView(std::move(view));
     // Transparent: until the wallpaper decodes, the dimmer darkens what is

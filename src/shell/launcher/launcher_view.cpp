@@ -173,8 +173,8 @@ public:
 protected:
     void layout() override
     {
-        const double targetWidth = geometry().width * 0.88;
-        const double targetHeight = geometry().height * 0.82;
+        const double targetWidth = geometry().width * 0.72;
+        const double targetHeight = geometry().height * 0.64;
         const double targetX = (geometry().width - targetWidth) / 2;
         const double targetY = (geometry().height - targetHeight) / 2;
         const double width = m_origin.width + (targetWidth - m_origin.width) * m_progress;
@@ -213,6 +213,7 @@ protected:
         const double iconSize = metrics.iconSize;
         const int pageCapacity = std::max(1, m_columns * m_rows);
         for (size_t i = 0; i < m_icons.size(); ++i) {
+            m_icons[i]->setSize(iconSize);
             const bool onPage = int(i) / pageCapacity == m_page;
             m_icons[i]->setVisible(onPage && i < m_count);
             m_names[i]->setVisible(onPage && i < m_count);
@@ -236,7 +237,7 @@ protected:
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
         const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
-        const ui::Color fill {backdrop.r, backdrop.g, backdrop.b, 190};
+        const ui::Color fill {backdrop.r, backdrop.g, backdrop.b, 92};
         const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         const double radius = std::min(18.0, std::min(m_panel.width, m_panel.height) * 0.04);
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, fill, 1, border);
