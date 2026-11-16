@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.45+lingmo5u1) unstable; urgency=medium
+
+  * Hide the source folder cell while its expanded view is open.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 17 Nov 2026 00:45:00 +0800
+
 lingmo-aurora (5.0.44+lingmo5u1) unstable; urgency=medium
 
   * Render the folder card with the launcher's blurred wallpaper backdrop.

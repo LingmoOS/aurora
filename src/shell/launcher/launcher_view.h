@@ -181,6 +181,7 @@ private:
     FolderOverlay *m_folderOverlay = nullptr;
     LauncherTween m_folderTween;
     double m_folderProgress = 0;
+    std::string m_openFolderId;
 
     int m_currentPage = -1;
     double m_contentX = 0;

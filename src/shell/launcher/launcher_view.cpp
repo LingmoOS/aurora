@@ -766,7 +766,7 @@ void LauncherView::syncCells()
         } else {
             samePage = cell->isVisible();
         }
-        cell->setVisible(true);
+        cell->setVisible(item.id != m_openFolderId || !m_folderOverlay || !m_folderOverlay->isVisible());
         cell->setItem(item);
         cell->setCount(m_badges.count(item.id));
         cell->setMetrics(m_metrics);
@@ -1252,6 +1252,8 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
             if (m_folderOverlay)
                 m_folderOverlay->setItems(m_launcher.applications().folderItems(cell->id()));
             if (m_folderOverlay) {
+                m_openFolderId = cell->id();
+                cell->setVisible(false);
                 m_folderOverlay->setVisible(true);
                 m_folderProgress = 0;
                 m_folderTween.start(window(), m_folderProgress, 1, std::chrono::milliseconds(300),
@@ -1283,7 +1285,14 @@ void LauncherView::closeFolderOverlay()
                             m_folderProgress = value;
                             m_folderOverlay->setProgress(value);
                             if (value <= 0)
-                                m_folderOverlay->setVisible(false);
+                                 {
+                                     m_folderOverlay->setVisible(false);
+                                     if (!m_openFolderId.empty()) {
+                                         if (LauncherCell *folder = cell(m_openFolderId))
+                                             folder->setVisible(true);
+                                         m_openFolderId.clear();
+                                     }
+                                 }
                         });
 }
 
