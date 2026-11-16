@@ -104,7 +104,6 @@ public:
         setName("launcher-folder-overlay");
         setOpacity(0);
         m_title = addChild<ui::Label>();
-        m_title->setColor(kWhite);
         m_title->setTextAlignment(ui::Label::TextAlignment::Center);
         m_title->setVerticallyCentered(true);
         m_title->setWeight(500);
@@ -174,8 +173,8 @@ public:
 protected:
     void layout() override
     {
-        const double targetWidth = geometry().width * 0.72;
-        const double targetHeight = geometry().height * 0.64;
+        const double targetWidth = geometry().width * 0.88;
+        const double targetHeight = geometry().height * 0.82;
         const double targetX = (geometry().width - targetWidth) / 2;
         const double targetY = (geometry().height - targetHeight) / 2;
         const double width = m_origin.width + (targetWidth - m_origin.width) * m_progress;
@@ -183,15 +182,21 @@ protected:
         const double x = m_origin.x + (targetX - m_origin.x) * m_progress;
         const double y = m_origin.y + (targetY - m_origin.y) * m_progress;
         m_panel = {x, y, width, height};
+        const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
+        const double luminance = (0.2126 * backdrop.r + 0.7152 * backdrop.g + 0.0722 * backdrop.b) / 255.0;
+        m_ink = luminance > 0.52 ? ui::Color {20, 20, 22, 255} : kWhite;
+        m_title->setColor(m_ink);
+        for (ui::Label *name : m_names)
+            name->setColor(m_ink);
         if (m_view->folderBlurChanged)
             m_view->folderBlurChanged(m_panel, m_progress > 0);
         const ui::RectF titleRect {x + 24, y + 16, width - 48, std::max(32.0, height * 0.11)};
         m_title->setGeometry(titleRect);
         m_titleField->setGeometry(titleRect);
         const LauncherMetrics &metrics = m_view->m_metrics;
-        const double outerPadding = std::max(24.0, width * 0.045);
+        const double outerPadding = std::max(20.0, width * 0.035);
         const double availableWidth = std::max(1.0, width - 2 * outerPadding);
-        const double gridTop = y + height * 0.20;
+        const double gridTop = y + height * 0.17;
         const double availableHeight = std::max(1.0, y + height - gridTop - outerPadding);
         // Keep the launcher's cell and icon metrics. A narrow card uses more
         // pages instead of shrinking its icons.
@@ -230,10 +235,10 @@ protected:
         if (m_progress <= 0)
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
-        const bool dark = ui::Theme::current().darkMode;
+        const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
+        const ui::Color fill {backdrop.r, backdrop.g, backdrop.b, 190};
+        const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         const double radius = std::min(18.0, std::min(m_panel.width, m_panel.height) * 0.04);
-        const ui::Color fill = dark ? ui::Color {24, 25, 30, 184} : ui::Color {248, 249, 252, 184};
-        const ui::Color border = dark ? ui::Color {255, 255, 255, 58} : ui::Color {255, 255, 255, 120};
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, fill, 1, border);
     }
     void pointerMove(const ui::PointerEvent &event) override
@@ -335,6 +340,7 @@ private:
     ui::TextField *m_titleField = nullptr;
     std::string m_folderId;
     std::string m_folderName;
+    ui::Color m_ink {255, 255, 255, 255};
     ui::PointF m_pressPosition;
     ui::PointF m_dragPosition;
     int m_pressIndex = -1;
