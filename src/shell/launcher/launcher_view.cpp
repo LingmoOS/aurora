@@ -237,10 +237,21 @@ protected:
             return;
         painter.fillRect(localRect(), ui::Color {0, 0, 0, uint8_t(115 * m_progress)});
         const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
-        const ui::Color fill {backdrop.r, backdrop.g, backdrop.b, 92};
-        const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         const double radius = std::min(18.0, std::min(m_panel.width, m_panel.height) * 0.04);
-        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, fill, 1, border);
+        // The compositor blur cannot sample another view in this same
+        // surface. The launcher's wallpaper image is already downscaled and
+        // blurred, so use it as the card's actual backdrop and clip it to the
+        // rounded card shape.
+        painter.save();
+        painter.clipRoundedRect(m_panel, radius);
+        if (m_view->m_wallpaper.isPicture() && !m_view->m_wallpaper.image().isNull())
+            painter.drawImage(m_view->m_wallpaper.image(), localRect());
+        else
+            painter.fillRect(m_panel, backdrop.withAlpha(190.0 / 255.0));
+        painter.fillRect(m_panel, backdrop.withAlpha(0.22));
+        painter.restore();
+        const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
+        painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, {}, 1, border);
     }
     void pointerMove(const ui::PointerEvent &event) override
     {

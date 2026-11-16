@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.44+lingmo5u1) unstable; urgency=medium
+
+  * Render the folder card with the launcher's blurred wallpaper backdrop.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 17 Nov 2026 00:20:00 +0800
+
 lingmo-aurora (5.0.43+lingmo5u1) unstable; urgency=medium
 
   * Restore folder size, scale folder icons fully and use plain backdrop blur.
