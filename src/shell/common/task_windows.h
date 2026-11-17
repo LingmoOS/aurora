@@ -42,6 +42,7 @@ struct TaskWindow {
     std::string menuService;
     std::string menuPath;
     std::string gtkMenuBusName;
+    std::string gtkAppMenuPath;
     std::string gtkMenuPath;
     std::string gtkWindowPath;
     std::string gtkApplicationPath;

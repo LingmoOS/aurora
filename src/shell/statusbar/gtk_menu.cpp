@@ -5,6 +5,7 @@
 #include "shell/statusbar/gtk_menu.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <chrono>
 #include <utility>
@@ -74,11 +75,10 @@ std::string qualified(const std::string &actionNamespace, const std::string &nam
 } // namespace
 
 GtkMenu::GtkMenu(dbus::Connection *bus, std::string busName, std::string menuPath,
-                 std::string windowPath, std::string applicationPath)
+                 std::string appMenuPath, std::string windowPath, std::string applicationPath)
     : DBusMenu(bus, busName)
     , m_bus(bus)
     , m_busName(std::move(busName))
-    , m_menuProxy(bus, m_busName, menuPath, kMenusInterface)
     , m_sender(bus, m_busName)
 {
     DBusMenuItem root;
@@ -93,10 +93,16 @@ GtkMenu::GtkMenu(dbus::Connection *bus, std::string busName, std::string menuPat
                 menuUpdated(id);
     };
 
-    m_matches.push_back(m_menuProxy.onSignal("Changed", [this](const dbus::Message &message) {
-        onMenusChanged(message);
-    }));
-    start({0});
+    const std::array<std::string, 2> paths = {menuPath, appMenuPath};
+    for (int exporter = 0; exporter < 2; ++exporter) {
+        if (paths[exporter].empty())
+            continue;
+        m_menuProxies[exporter] = dbus::Proxy(bus, m_busName, paths[exporter], kMenusInterface);
+        m_matches.push_back(m_menuProxies[exporter].onSignal("Changed", [this, exporter](const dbus::Message &message) {
+            onMenusChanged(exporter, message);
+        }));
+        start(exporter, {0});
+    }
     for (const auto &[prefix, path] : {std::pair<std::string, std::string>("app", applicationPath),
                                        std::pair<std::string, std::string>("win", windowPath)}) {
         if (path.empty())
@@ -113,8 +119,10 @@ GtkMenu::GtkMenu(dbus::Connection *bus, std::string busName, std::string menuPat
 
 GtkMenu::~GtkMenu()
 {
-    if (!m_subscribed.empty())
-        m_menuProxy.send("End", std::vector<uint32_t>(m_subscribed.begin(), m_subscribed.end()));
+    for (int exporter = 0; exporter < 2; ++exporter) {
+        if (!m_subscribed[exporter].empty() && m_menuProxies[exporter].isValid())
+            m_menuProxies[exporter].send("End", std::vector<uint32_t>(m_subscribed[exporter].begin(), m_subscribed[exporter].end()));
+    }
 }
 
 GtkMenu::Entry GtkMenu::parseEntry(const dbus::VariantMap &attributes)
@@ -147,11 +155,11 @@ const DBusMenuItem *GtkMenu::item(int32_t id) const
     return it == m_items.end() ? nullptr : &it->second;
 }
 
-void GtkMenu::start(std::vector<uint32_t> requested)
+void GtkMenu::start(int exporter, std::vector<uint32_t> requested)
 {
     std::vector<uint32_t> groups;
     for (uint32_t group : requested) {
-        if (m_subscribed.size() < kMaxGroups && m_subscribed.insert(group).second)
+        if (m_subscribed[exporter].size() < kMaxGroups && m_subscribed[exporter].insert(group).second)
             groups.push_back(group);
     }
     if (groups.empty())
@@ -160,12 +168,12 @@ void GtkMenu::start(std::vector<uint32_t> requested)
     if (initial)
         ++m_loading;
     m_calls.track([&](std::function<void()> finished) {
-        return m_menuProxy.callAsync("Start", [this, groups, initial, finished](const dbus::Reply &reply) {
+        return m_menuProxies[exporter].callAsync("Start", [this, exporter, groups, initial, finished](const dbus::Reply &reply) {
             std::vector<std::tuple<uint32_t, uint32_t, std::vector<dbus::VariantMap>>> menus;
             std::vector<Entry> linked;
             if (reply.read(menus)) {
                 for (const auto &[group, menu, attributes] : menus) {
-                    if (!m_subscribed.count(group))
+                    if (!m_subscribed[exporter].count(group))
                         continue;
                     std::vector<Entry> entries;
                     for (const auto &item : attributes) {
@@ -174,11 +182,11 @@ void GtkMenu::start(std::vector<uint32_t> requested)
                         entries.push_back(parseEntry(item));
                     }
                     linked.insert(linked.end(), entries.begin(), entries.end());
-                    m_menus[{group, menu}] = std::move(entries);
+                    m_menus[{exporter, group, menu}] = std::move(entries);
                 }
             }
-            m_loaded.insert(groups.begin(), groups.end());
-            subscribeLinks(linked);
+            m_loaded[exporter].insert(groups.begin(), groups.end());
+            subscribeLinks(exporter, linked);
             if (initial)
                 --m_loading;
             scheduleRebuild();
@@ -187,18 +195,18 @@ void GtkMenu::start(std::vector<uint32_t> requested)
     });
 }
 
-void GtkMenu::subscribeLinks(const std::vector<Entry> &entries)
+void GtkMenu::subscribeLinks(int exporter, const std::vector<Entry> &entries)
 {
     std::vector<uint32_t> groups;
     for (const Entry &entry : entries) {
         for (const auto &link : {entry.section, entry.submenu}) {
-            if (link && !m_subscribed.count(std::get<0>(*link))
+            if (link && !m_subscribed[exporter].count(std::get<0>(*link))
                 && std::find(groups.begin(), groups.end(), std::get<0>(*link)) == groups.end())
                 groups.push_back(std::get<0>(*link));
         }
     }
     if (!groups.empty())
-        start(std::move(groups));
+        start(exporter, std::move(groups));
 }
 
 void GtkMenu::describeActions(const std::string &prefix)
@@ -226,7 +234,7 @@ void GtkMenu::describeActions(const std::string &prefix)
     });
 }
 
-void GtkMenu::onMenusChanged(const dbus::Message &message)
+void GtkMenu::onMenusChanged(int exporter, const dbus::Message &message)
 {
     using Change = std::tuple<uint32_t, uint32_t, uint32_t, uint32_t, std::vector<dbus::VariantMap>>;
     std::vector<Change> changes;
@@ -234,11 +242,11 @@ void GtkMenu::onMenusChanged(const dbus::Message &message)
         return;
     std::vector<Entry> linked;
     for (const auto &[group, menu, position, removed, added] : changes) {
-        auto it = m_menus.find({group, menu});
+        auto it = m_menus.find({exporter, group, menu});
         if (it == m_menus.end()) {
-            if (!m_loaded.count(group))
+            if (!m_loaded[exporter].count(group))
                 continue;
-            it = m_menus.emplace(MenuKey{group, menu}, std::vector<Entry>()).first;
+            it = m_menus.emplace(MenuKey{exporter, group, menu}, std::vector<Entry>()).first;
         }
         auto &entries = it->second;
         const size_t at = std::min<size_t>(position, entries.size());
@@ -253,7 +261,7 @@ void GtkMenu::onMenusChanged(const dbus::Message &message)
         entries.insert(entries.begin() + ptrdiff_t(at), inserted.begin(), inserted.end());
         linked.insert(linked.end(), inserted.begin(), inserted.end());
     }
-    subscribeLinks(linked);
+    subscribeLinks(exporter, linked);
     scheduleRebuild();
 }
 
@@ -333,14 +341,14 @@ void GtkMenu::applyAction(DBusMenuItem &item, const Entry &entry, const Target &
     }
 }
 
-void GtkMenu::flatten(uint32_t group, uint32_t menu, const std::string &actionNamespace,
+void GtkMenu::flatten(int exporter, uint32_t group, uint32_t menu, const std::string &actionNamespace,
                       const std::string &key, int depth, int32_t parent,
                       std::unordered_map<int32_t, DBusMenuItem> &items,
                       std::unordered_map<int32_t, Target> &targets)
 {
     if (depth > kMaxDepth)
         return;
-    const auto found = m_menus.find({group, menu});
+    const auto found = m_menus.find({exporter, group, menu});
     if (found == m_menus.end())
         return;
     const auto separator = [&](const std::string &separatorKey) {
@@ -358,7 +366,7 @@ void GtkMenu::flatten(uint32_t group, uint32_t menu, const std::string &actionNa
         const std::string itemKey = key + '/' + std::to_string(index);
         if (entry.section) {
             separator(itemKey + '<');
-            flatten(std::get<0>(*entry.section), std::get<1>(*entry.section),
+            flatten(exporter, std::get<0>(*entry.section), std::get<1>(*entry.section),
                     namespaceUnder(actionNamespace, entry.attributes), itemKey, depth + 1, parent, items, targets);
             separator(itemKey + '>');
             continue;
@@ -384,9 +392,9 @@ void GtkMenu::flatten(uint32_t group, uint32_t menu, const std::string &actionNa
             target.submenuAction = qualified(submenuNamespace,
                                               stringAttribute(entry.attributes, "submenu-action"));
             item.hasSubmenu = true;
-            item.childrenLoaded = m_loaded.count(std::get<0>(*entry.submenu)) > 0;
+            item.childrenLoaded = m_loaded[exporter].count(std::get<0>(*entry.submenu)) > 0;
             items.emplace(id, std::move(item));
-            flatten(std::get<0>(*entry.submenu), std::get<1>(*entry.submenu), submenuNamespace, itemKey,
+            flatten(exporter, std::get<0>(*entry.submenu), std::get<1>(*entry.submenu), submenuNamespace, itemKey,
                     depth + 1, id, items, targets);
         } else {
             items.emplace(id, std::move(item));
@@ -406,7 +414,20 @@ void GtkMenu::rebuild()
     root.hasSubmenu = true;
     root.childrenLoaded = true;
     items.emplace(0, std::move(root));
-    flatten(0, 0, {}, "m", 0, 0, items, targets);
+    // The application menu is inserted below a synthetic application item,
+    // while the window menu remains at the root of the global bar.
+    if (m_menus.count({1, 0, 0})) {
+        DBusMenuItem application;
+        application.id = idFor("a");
+        application.parent = 0;
+        application.hasSubmenu = true;
+        application.childrenLoaded = true;
+        const int32_t id = application.id;
+        items.emplace(id, std::move(application));
+        items.at(0).children.push_back(id);
+        flatten(1, 0, 0, {}, "a", 1, id, items, targets);
+    }
+    flatten(0, 0, 0, {}, "m", 0, 0, items, targets);
     std::vector<int32_t> updated;
     std::vector<int32_t> changed;
     for (const auto &[id, item] : items) {

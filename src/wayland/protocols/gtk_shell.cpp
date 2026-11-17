@@ -87,7 +87,7 @@ public:
         m_surface = nullptr;
     }
 
-    void setProperties(const char *menuPath, const char *windowPath, const char *applicationPath,
+    void setProperties(const char *appMenuPath, const char *menuPath, const char *windowPath, const char *applicationPath,
                        const char *busName)
     {
         if (!m_surface)
@@ -97,6 +97,9 @@ public:
         const std::string_view menu(menuPath ? menuPath : "");
         if (validBusName(bus) && validObjectPath(menu)) {
             address.gtkBusName = bus;
+            const std::string_view appMenu(appMenuPath ? appMenuPath : "");
+            if (validObjectPath(appMenu))
+                address.gtkAppMenuPath = appMenu;
             address.gtkMenuPath = menu;
             const std::string_view window(windowPath ? windowPath : "");
             const std::string_view application(applicationPath ? applicationPath : "");
@@ -113,10 +116,10 @@ private:
     uint64_t m_source;
 };
 
-void setDBusProperties(wl_client *, wl_resource *resource, const char *, const char *, const char *menuPath,
+void setDBusProperties(wl_client *, wl_resource *resource, const char *, const char *appMenuPath, const char *menuPath,
                        const char *windowPath, const char *applicationPath, const char *busName)
 {
-    getUserDataAs<GtkSurface>(resource)->setProperties(menuPath, windowPath, applicationPath, busName);
+    getUserDataAs<GtkSurface>(resource)->setProperties(appMenuPath, menuPath, windowPath, applicationPath, busName);
 }
 
 void noOp(wl_client *, wl_resource *) {}

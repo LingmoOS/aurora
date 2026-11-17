@@ -132,12 +132,15 @@ ApplicationMenu::Import *ApplicationMenu::importForWindow(const TaskWindow *wind
 {
     if (!window)
         return nullptr;
-    if (m_bus && !window->gtkMenuBusName.empty() && !window->gtkMenuPath.empty()) {
-        const std::string key = importKey(window->gtkMenuBusName, "gtk:" + window->gtkMenuPath);
+    if (m_bus && !window->gtkMenuBusName.empty()
+        && (!window->gtkMenuPath.empty() || !window->gtkAppMenuPath.empty())) {
+        const std::string key = importKey(window->gtkMenuBusName,
+                                          "gtk:" + window->gtkAppMenuPath + "\n" + window->gtkMenuPath);
         if (const auto it = m_imports.find(key); it != m_imports.end())
             return &it->second;
         Import &import = m_imports[key];
         import.menu = std::make_unique<GtkMenu>(m_bus, window->gtkMenuBusName, window->gtkMenuPath,
+                                                window->gtkAppMenuPath,
                                                 window->gtkWindowPath, window->gtkApplicationPath);
         DBusMenu *menu = import.menu.get();
         import.subscriptions.push_back(menu->menuUpdated.connect([this, key](int32_t id) {
@@ -242,9 +245,10 @@ void ApplicationMenu::pruneImports()
         const TaskWindow *client = m_windows.window(window);
         std::string service;
         std::string path;
-        if (client && !client->gtkMenuBusName.empty() && !client->gtkMenuPath.empty()) {
+        if (client && !client->gtkMenuBusName.empty()
+            && (!client->gtkMenuPath.empty() || !client->gtkAppMenuPath.empty())) {
             service = client->gtkMenuBusName;
-            path = "gtk:" + client->gtkMenuPath;
+            path = "gtk:" + client->gtkAppMenuPath + "\n" + client->gtkMenuPath;
         } else {
             menuAddressOf(window, &service, &path);
         }
@@ -281,9 +285,10 @@ void ApplicationMenu::update()
     const TaskWindow *client = m_windows.window(m_windows.activeWindow());
     std::string service;
     std::string path;
-    if (client && !client->gtkMenuBusName.empty() && !client->gtkMenuPath.empty()) {
+    if (client && !client->gtkMenuBusName.empty()
+        && (!client->gtkMenuPath.empty() || !client->gtkAppMenuPath.empty())) {
         service = client->gtkMenuBusName;
-        path = "gtk:" + client->gtkMenuPath;
+        path = "gtk:" + client->gtkAppMenuPath + "\n" + client->gtkMenuPath;
     } else {
         menuAddressOf(m_windows.activeWindow(), &service, &path);
     }

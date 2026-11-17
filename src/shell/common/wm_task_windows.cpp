@@ -178,6 +178,7 @@ TaskWindow WmTaskWindows::describe(wm::Window *window) const
         info.menuService = surface->menuAddress().service;
         info.menuPath = surface->menuAddress().path;
         info.gtkMenuBusName = surface->menuAddress().gtkBusName;
+        info.gtkAppMenuPath = surface->menuAddress().gtkAppMenuPath;
         info.gtkMenuPath = surface->menuAddress().gtkMenuPath;
         info.gtkWindowPath = surface->menuAddress().gtkWindowPath;
         info.gtkApplicationPath = surface->menuAddress().gtkApplicationPath;
@@ -215,7 +216,8 @@ void WmTaskWindows::refresh(wm::Window *window)
     if (old.geometry != info.geometry)
         changes |= kGeometryChange;
     if (old.menuService != info.menuService || old.menuPath != info.menuPath
-        || old.gtkMenuBusName != info.gtkMenuBusName || old.gtkMenuPath != info.gtkMenuPath
+        || old.gtkMenuBusName != info.gtkMenuBusName || old.gtkAppMenuPath != info.gtkAppMenuPath
+        || old.gtkMenuPath != info.gtkMenuPath
         || old.gtkWindowPath != info.gtkWindowPath || old.gtkApplicationPath != info.gtkApplicationPath)
         changes |= kApplicationMenuChange;
     if (old.parent != info.parent)

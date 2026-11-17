@@ -153,6 +153,7 @@ public:
         std::string service;
         std::string path;
         std::string gtkBusName;
+        std::string gtkAppMenuPath;
         std::string gtkMenuPath;
         std::string gtkWindowPath;
         std::string gtkApplicationPath;

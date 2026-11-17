@@ -27,6 +27,7 @@ public:
     static constexpr int kMaxDepth = 16;
 
     GtkMenu(base::dbus::Connection *bus, std::string busName, std::string menuPath,
+            std::string appMenuPath,
             std::string windowPath, std::string applicationPath);
     ~GtkMenu() override;
 
@@ -39,7 +40,7 @@ public:
 
 private:
     using Link = std::tuple<uint32_t, uint32_t>;
-    using MenuKey = std::pair<uint32_t, uint32_t>;
+    using MenuKey = std::tuple<int, uint32_t, uint32_t>;
     using ActionDescription = std::tuple<bool, base::dbus::Signature, std::vector<base::dbus::Variant>>;
 
     struct Entry {
@@ -60,14 +61,14 @@ private:
 
     static Entry parseEntry(const base::dbus::VariantMap &attributes);
     static Action parseAction(const ActionDescription &description);
-    void start(std::vector<uint32_t> groups);
-    void subscribeLinks(const std::vector<Entry> &entries);
+    void start(int exporter, std::vector<uint32_t> groups);
+    void subscribeLinks(int exporter, const std::vector<Entry> &entries);
     void describeActions(const std::string &prefix);
-    void onMenusChanged(const base::dbus::Message &message);
+    void onMenusChanged(int exporter, const base::dbus::Message &message);
     void onActionsChanged(const std::string &prefix, const base::dbus::Message &message);
     void scheduleRebuild();
     void rebuild();
-    void flatten(uint32_t group, uint32_t menu, const std::string &actionNamespace,
+    void flatten(int exporter, uint32_t group, uint32_t menu, const std::string &actionNamespace,
                  const std::string &key, int depth, int32_t parent,
                  std::unordered_map<int32_t, DBusMenuItem> &items,
                  std::unordered_map<int32_t, Target> &targets);
@@ -78,14 +79,14 @@ private:
 
     base::dbus::Connection *m_bus;
     std::string m_busName;
-    base::dbus::Proxy m_menuProxy;
+    std::array<base::dbus::Proxy, 2> m_menuProxies;
     SenderFilter m_sender;
     std::map<std::string, base::dbus::Proxy> m_actionProxies;
     std::vector<base::dbus::Match> m_matches;
     PendingCalls m_calls;
     std::map<MenuKey, std::vector<Entry>> m_menus;
-    std::set<uint32_t> m_subscribed;
-    std::set<uint32_t> m_loaded;
+    std::array<std::set<uint32_t>, 2> m_subscribed;
+    std::array<std::set<uint32_t>, 2> m_loaded;
     std::map<std::string, std::map<std::string, Action>> m_actions;
     int m_loading = 0;
     bool m_built = false;
