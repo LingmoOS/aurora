@@ -41,6 +41,10 @@ struct TaskWindow {
     // The dbusmenu the window's surface names through the appmenu protocol.
     std::string menuService;
     std::string menuPath;
+    std::string gtkMenuBusName;
+    std::string gtkMenuPath;
+    std::string gtkWindowPath;
+    std::string gtkApplicationPath;
 
     bool isTaskListWindow() const { return id != 0 && !skipTaskbar; }
 };

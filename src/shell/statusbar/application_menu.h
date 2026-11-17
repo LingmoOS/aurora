@@ -19,6 +19,7 @@ namespace Lingmo::Shell {
 
 class AppMenuRegistrar;
 class DBusMenu;
+struct TaskWindow;
 class TaskManager;
 class TaskWindows;
 
@@ -78,6 +79,7 @@ private:
 
     static std::string importKey(const std::string &service, const std::string &path);
     Import *importFor(const std::string &service, const std::string &path);
+    Import *importForWindow(const TaskWindow *window);
     void menuAddressOf(uint64_t window, std::string *service, std::string *path) const;
     void prefetch(uint64_t window);
     void onImported(const std::string &key, int32_t id);

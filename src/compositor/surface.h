@@ -152,6 +152,10 @@ public:
     struct MenuAddress {
         std::string service;
         std::string path;
+        std::string gtkBusName;
+        std::string gtkMenuPath;
+        std::string gtkWindowPath;
+        std::string gtkApplicationPath;
         bool operator==(const MenuAddress &) const = default;
     };
 

@@ -76,6 +76,16 @@ DBusMenu::DBusMenu(dbus::Connection *bus, std::string service, std::string path)
     refresh(0);
 }
 
+DBusMenu::DBusMenu(dbus::Connection *bus, std::string service)
+    : m_bus(bus)
+    , m_service(std::move(service))
+    , m_sender(bus, m_service)
+{
+    DBusMenuItem root;
+    root.hasSubmenu = true;
+    m_items.emplace(0, std::move(root));
+}
+
 DBusMenu::~DBusMenu() = default;
 
 const DBusMenuItem *DBusMenu::item(int32_t id) const

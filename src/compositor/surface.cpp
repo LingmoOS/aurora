@@ -1314,9 +1314,16 @@ void Surface::updateMenuAddress()
 {
     MenuAddress address;
     for (auto it = m_menuSources.rbegin(); it != m_menuSources.rend(); ++it) {
-        if (!it->second.service.empty() && !it->second.path.empty()) {
-            address = it->second;
-            break;
+        const MenuAddress &source = it->second;
+        if (address.service.empty() && !source.service.empty() && !source.path.empty()) {
+            address.service = source.service;
+            address.path = source.path;
+        }
+        if (address.gtkBusName.empty() && !source.gtkBusName.empty() && !source.gtkMenuPath.empty()) {
+            address.gtkBusName = source.gtkBusName;
+            address.gtkMenuPath = source.gtkMenuPath;
+            address.gtkWindowPath = source.gtkWindowPath;
+            address.gtkApplicationPath = source.gtkApplicationPath;
         }
     }
     if (address == m_menuAddress)

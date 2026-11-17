@@ -11,6 +11,7 @@
 #include "shell/common/task_windows.h"
 #include "shell/statusbar/app_menu_registrar.h"
 #include "shell/statusbar/dbus_menu.h"
+#include "shell/statusbar/gtk_menu.h"
 
 using Lingmo::i18n::tr;
 
@@ -127,11 +128,46 @@ ApplicationMenu::Import *ApplicationMenu::importFor(const std::string &service, 
     return &import;
 }
 
+ApplicationMenu::Import *ApplicationMenu::importForWindow(const TaskWindow *window)
+{
+    if (!window)
+        return nullptr;
+    if (m_bus && !window->gtkMenuBusName.empty() && !window->gtkMenuPath.empty()) {
+        const std::string key = importKey(window->gtkMenuBusName, "gtk:" + window->gtkMenuPath);
+        if (const auto it = m_imports.find(key); it != m_imports.end())
+            return &it->second;
+        Import &import = m_imports[key];
+        import.menu = std::make_unique<GtkMenu>(m_bus, window->gtkMenuBusName, window->gtkMenuPath,
+                                                window->gtkWindowPath, window->gtkApplicationPath);
+        DBusMenu *menu = import.menu.get();
+        import.subscriptions.push_back(menu->menuUpdated.connect([this, key](int32_t id) {
+            onImported(key, id);
+        }));
+        import.subscriptions.push_back(menu->activationRequested.connect([this, menu](int32_t id) {
+            const DBusMenuItem *item = menu->item(id);
+            if (menu == m_menu && item && item->parent == 0)
+                activationRequested(id);
+        }));
+        const std::string service = window->gtkMenuBusName;
+        if (!m_serviceWatches.count(service)) {
+            m_serviceWatches.emplace(service, m_bus->watchName(service, [this, service](const std::string &owner) {
+                if (owner.empty())
+                    dropService(service);
+            }));
+        }
+        return &import;
+    }
+    std::string service;
+    std::string path;
+    menuAddressOf(window->id, &service, &path);
+    return importFor(service, path);
+}
+
 void ApplicationMenu::prefetch(uint64_t window)
 {
     const TaskWindow *client = m_windows.window(window);
     if (client && client->isTaskListWindow())
-        importFor(client->menuService, client->menuPath);
+        importForWindow(client);
 }
 
 void ApplicationMenu::onImported(const std::string &key, int32_t id)
@@ -203,9 +239,15 @@ void ApplicationMenu::pruneImports()
 {
     std::set<std::string> used;
     for (uint64_t window : m_windows.windows()) {
+        const TaskWindow *client = m_windows.window(window);
         std::string service;
         std::string path;
-        menuAddressOf(window, &service, &path);
+        if (client && !client->gtkMenuBusName.empty() && !client->gtkMenuPath.empty()) {
+            service = client->gtkMenuBusName;
+            path = "gtk:" + client->gtkMenuPath;
+        } else {
+            menuAddressOf(window, &service, &path);
+        }
         if (!service.empty() && !path.empty())
             used.insert(importKey(service, path));
     }
@@ -236,10 +278,16 @@ void ApplicationMenu::update()
         return;
     }
 
+    const TaskWindow *client = m_windows.window(m_windows.activeWindow());
     std::string service;
     std::string path;
-    menuAddressOf(m_windows.activeWindow(), &service, &path);
-    Import *import = importFor(service, path);
+    if (client && !client->gtkMenuBusName.empty() && !client->gtkMenuPath.empty()) {
+        service = client->gtkMenuBusName;
+        path = "gtk:" + client->gtkMenuPath;
+    } else {
+        menuAddressOf(m_windows.activeWindow(), &service, &path);
+    }
+    Import *import = importForWindow(client);
     if (!import) {
         commit(title, nullptr);
         return;

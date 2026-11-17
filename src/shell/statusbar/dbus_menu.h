@@ -71,7 +71,7 @@ public:
     static constexpr int kMaxIconSide = 512;
 
     DBusMenu(base::dbus::Connection *bus, std::string service, std::string path);
-    ~DBusMenu();
+    virtual ~DBusMenu();
 
     DBusMenu(const DBusMenu &) = delete;
     DBusMenu &operator=(const DBusMenu &) = delete;
@@ -80,22 +80,22 @@ public:
     const std::string &path() const { return m_path; }
 
     // The root is 0. Null for an id not (or no longer) in the menu.
-    const DBusMenuItem *item(int32_t id) const;
-    const DBusMenuItem &root() const { return m_items.at(0); }
+    virtual const DBusMenuItem *item(int32_t id) const;
+    const DBusMenuItem &root() const { return *item(0); }
 
     // Fetches the entries of `id` again.
-    void refresh(int32_t id);
+    virtual void refresh(int32_t id);
     // The submenu `id` opens: prepare() and opened() at once.
-    void aboutToShow(int32_t id);
+    virtual void aboutToShow(int32_t id);
     // The submenu `id` is about to open: AboutToShow; its entries are
     // refetched when needed, and menuUpdated follows either way.
-    void prepare(int32_t id);
+    virtual void prepare(int32_t id);
     // The submenu `id` is on screen: the "opened" event.
-    void opened(int32_t id);
+    virtual void opened(int32_t id);
     // The submenu `id` closed.
-    void closed(int32_t id);
+    virtual void closed(int32_t id);
     // The entry was chosen.
-    void activate(int32_t id);
+    virtual void activate(int32_t id);
 
     // The entries of `id` arrived, or a fetch failed; either way the menu
     // shows what it has.
@@ -104,6 +104,9 @@ public:
     base::Signal<int32_t> itemChanged;
     // The application asks for the entry to be shown, e.g. for its shortcut.
     base::Signal<int32_t> activationRequested;
+
+protected:
+    DBusMenu(base::dbus::Connection *bus, std::string service);
 
 private:
     void applyLayout(int32_t parentId, const base::dbus::Variant &layout);

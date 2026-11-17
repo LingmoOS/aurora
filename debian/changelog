@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.46+lingmo5u1) unstable; urgency=medium
+
+  * Add GTK 3 global menu Wayland protocol support.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 17 Nov 2026 12:00:00 +0800
+
 lingmo-aurora (5.0.45+lingmo5u1) unstable; urgency=medium
 
   * Hide the source folder cell while its expanded view is open.

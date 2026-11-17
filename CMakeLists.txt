@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 project(lingmo-aurora
-    VERSION 1.0.12
+    VERSION 1.0.13
     DESCRIPTION "Lingmo Aurora Wayland compositor and window manager"
     LANGUAGES C CXX
 )
@@ -137,6 +137,7 @@ lingmo_wayland_protocol(wlr-data-control-unstable-v1
 lingmo_wayland_protocol(primary-selection-unstable-v1
     ${WAYLAND_PROTOCOLS_DATADIR}/unstable/primary-selection/primary-selection-unstable-v1.xml)
 lingmo_wayland_protocol(appmenu ${CMAKE_CURRENT_SOURCE_DIR}/protocols/appmenu.xml)
+lingmo_wayland_protocol(gtk-shell ${CMAKE_CURRENT_SOURCE_DIR}/protocols/gtk-shell.xml)
 lingmo_wayland_protocol(ext-image-capture-source-v1
     ${WAYLAND_PROTOCOLS_DATADIR}/staging/ext-image-capture-source/ext-image-capture-source-v1.xml)
 lingmo_wayland_protocol(ext-image-copy-capture-v1
@@ -166,6 +167,7 @@ add_library(lingmo-protocols STATIC
     ${ext-foreign-toplevel-list-v1_SOURCES}
     ${xdg-activation-v1_SOURCES}
     ${appmenu_SOURCES}
+    ${gtk-shell_SOURCES}
     ${primary-selection-unstable-v1_SOURCES}
     ${presentation-time_SOURCES}
     ${viewporter_SOURCES}
@@ -934,6 +936,8 @@ add_library(lingmo-wayland-globals STATIC
     src/wayland/protocol_globals.h
     src/wayland/protocols/lingmo_computer_control.cpp
     src/wayland/protocols/lingmo_computer_control.h
+    src/wayland/protocols/gtk_shell.cpp
+    src/wayland/protocols/gtk_shell.h
 )
 target_include_directories(lingmo-wayland-globals PUBLIC src)
 target_link_libraries(lingmo-wayland-globals

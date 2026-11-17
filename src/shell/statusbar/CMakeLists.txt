@@ -15,6 +15,10 @@ add_library(lingmo-shell-statusbar STATIC
     clock_format.h
     dbus_menu.cpp
     dbus_menu.h
+    gtk_menu.cpp
+    gtk_menu.h
+    gtk_settings.cpp
+    gtk_settings.h
     mpris.cpp
     mpris.h
     power_actions.cpp

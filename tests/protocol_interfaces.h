@@ -10,6 +10,7 @@
 #include <wayland-client.h>
 
 #include <appmenu-client-protocol.h>
+#include <gtk-shell-client-protocol.h>
 #include <cursor-shape-v1-client-protocol.h>
 #include <lingmo-shell-v1-client-protocol.h>
 #include <lingmo-status-item-v1-client-protocol.h>
@@ -76,6 +77,7 @@ inline const std::map<std::string, const wl_interface *> &knownInterfaces()
                      &lingmo_window_hints_v1_interface,
                      &lingmo_status_item_manager_v1_interface,
                      &org_kde_kwin_appmenu_manager_interface,
+                     &gtk_shell1_interface,
                      &wp_fractional_scale_manager_v1_interface,
                      &zxdg_output_manager_v1_interface,
                      &wp_viewporter_interface,
