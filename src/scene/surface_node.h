@@ -119,7 +119,6 @@ public:
     }
 
     void render(render::Renderer &renderer) const override;
-    void releaseRenderResources() override;
 
 protected:
     void paint(render::Renderer &renderer, const base::Rect &absoluteGeometry) const override;

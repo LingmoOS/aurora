@@ -233,6 +233,7 @@ public:
     void opened() override;
     void closed() override;
     void retranslate() override;
+    const std::vector<PanelRow *> &rows() const { return m_rows; }
 
 protected:
     double bodyHeight() const override;

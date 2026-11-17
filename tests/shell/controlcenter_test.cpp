@@ -80,6 +80,13 @@ public:
     bool bluetoothAvailable() const override { return true; }
     bool bluetoothEnabled() const override { return bluetooth; }
     void setBluetoothEnabled(bool enabled) override { bluetooth = enabled; changed(); }
+    std::vector<shell::BluetoothDevice> bluetoothDevices() const override { return bluetoothList; }
+    void requestBluetoothScan() override { ++bluetoothScans; }
+    void stopBluetoothScan() override { ++bluetoothScanStops; }
+    void toggleBluetoothDevice(const shell::BluetoothDevice &device) override
+    {
+        bluetoothToggled.push_back(device.path);
+    }
     void setDarkMode(bool dark) override { darkRequested = dark ? 1 : 0; }
     bool doNotDisturb() const override { return dnd; }
     void setDoNotDisturb(bool enabled) override { dnd = enabled; changed(); }
@@ -120,6 +127,8 @@ public:
     bool microphone = false;
     int darkRequested = -1;
     int scans = 0;
+    int bluetoothScans = 0;
+    int bluetoothScanStops = 0;
     int brightnessValue = 63;
     int brightnessWrites = 0;
     bool sink = true;
@@ -129,6 +138,8 @@ public:
     std::string profile = "balanced";
     std::vector<std::string> profiles {"power-saver", "balanced"};
     std::vector<shell::WirelessNetwork> networks;
+    std::vector<shell::BluetoothDevice> bluetoothList;
+    std::vector<std::string> bluetoothToggled;
     std::vector<std::string> activated;
     std::vector<shell::DeviceUser> users;
     shell::MediaState mediaState;
@@ -459,6 +470,40 @@ TEST_F(ControlCenterTest, TheWifiPanelListsNetworksAndJoinsThem)
     test::runFor(std::chrono::milliseconds(20));
     EXPECT_FALSE(center->isOpen(Panel::Network));
     EXPECT_EQ((std::vector<std::string> {"-m", "wlan"}), services->settings.back());
+}
+
+TEST_F(ControlCenterTest, TheBluetoothPanelListsDevicesAndOwnsItsScanLifetime)
+{
+    shell::BluetoothDevice headphones;
+    headphones.path = "/org/bluez/hci0/dev_AA_BB";
+    headphones.name = "Headphones";
+    headphones.icon = "audio-headphones";
+    headphones.connected = true;
+    headphones.paired = true;
+    headphones.batteryPercentage = 72;
+    shell::BluetoothDevice keyboard;
+    keyboard.path = "/org/bluez/hci0/dev_CC_DD";
+    keyboard.name = "Keyboard";
+    keyboard.icon = "input-keyboard";
+    keyboard.paired = true;
+    keyboard.busy = true;
+    services->bluetoothList = {headphones, keyboard};
+
+    center->openPanel(Panel::Bluetooth, bar.get(), item(293));
+    frame();
+    auto *panel = static_cast<shell::BluetoothPanel *>(center->statusPanel(Panel::Bluetooth));
+    ASSERT_NE(nullptr, panel);
+    EXPECT_EQ(1, services->bluetoothScans);
+    ASSERT_EQ(2u, panel->rows().size());
+    EXPECT_TRUE(panel->rows()[0]->isActive());
+    EXPECT_TRUE(panel->rows()[0]->isEnabled());
+    EXPECT_FALSE(panel->rows()[1]->isEnabled());
+    clickView(Panel::Bluetooth, panel->rows()[0]);
+    EXPECT_EQ((std::vector<std::string> {headphones.path}), services->bluetoothToggled);
+
+    center->closePanels();
+    EXPECT_EQ(1, services->bluetoothScanStops);
+    EXPECT_FALSE(center->isOpen(Panel::Bluetooth));
 }
 
 TEST_F(ControlCenterTest, TheSoundAndBatteryPanelsPickOutputsAndModes)
