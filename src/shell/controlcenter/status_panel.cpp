@@ -625,6 +625,11 @@ void NetworkPanel::opened()
         services().requestScan();
 }
 
+void NetworkPanel::closed()
+{
+    setShownForScans(false);
+}
+
 void NetworkPanel::retranslate()
 {
     setTitles(tr("Wi-Fi"), tr("Wi-Fi Settings"));
@@ -707,6 +712,124 @@ void NetworkPanel::layoutBody(double top)
     // The list keeps its final height while the panel moves, so no scroll bar
     // shows on the way.
     const double height = std::min(listHeight(), std::max(0.0, bodyMaximumHeight()));
+    m_scroll->setGeometry({0, top, kWidth, height});
+}
+
+class BluetoothPanel::List final : public ui::View
+{
+public:
+    double heightForWidth(double) const override
+    {
+        double height = 0;
+        int count = 0;
+        for (const auto &child : children()) {
+            if (!child->isVisible())
+                continue;
+            height += child->heightForWidth(kWidth);
+            ++count;
+        }
+        return count > 0 ? height + (count - 1) * kListSpacing : 0;
+    }
+
+protected:
+    void layout() override
+    {
+        double y = 0;
+        for (const auto &child : children()) {
+            if (!child->isVisible())
+                continue;
+            const double height = child->heightForWidth(kWidth);
+            child->setGeometry({kBackgroundMargin, y, geometry().width - 2 * kBackgroundMargin, height});
+            y += height + kListSpacing;
+        }
+    }
+};
+
+BluetoothPanel::BluetoothPanel(ControlCenterServices &services)
+    : StatusPanelView(tr("Bluetooth"), tr("Bluetooth Settings"), "bluetooth", services)
+{
+    m_switch = header()->addChild<ui::Switch>();
+    m_switch->setPadding({0, 0, 0, 0});
+    m_switch->setLayoutHints({.preferredHeight = kHeaderHeight});
+    m_switch->onToggled = [this](bool checked) { this->services().setBluetoothEnabled(checked); };
+    setAccessory(m_switch);
+    m_scroll = body()->addChild<ui::ScrollView>();
+    m_scroll->setScrollDirections(false, true);
+    m_list = m_scroll->setContent<List>();
+    refresh();
+}
+
+BluetoothPanel::~BluetoothPanel() = default;
+
+void BluetoothPanel::opened()
+{
+    if (services().bluetoothEnabled())
+        services().requestBluetoothScan();
+}
+
+void BluetoothPanel::closed()
+{
+    services().stopBluetoothScan();
+}
+
+void BluetoothPanel::retranslate()
+{
+    setTitles(tr("Bluetooth"), tr("Bluetooth Settings"));
+    refresh();
+}
+
+void BluetoothPanel::refresh()
+{
+    ControlCenterServices &services = this->services();
+    m_switch->setEnabled(services.bluetoothAvailable());
+    m_switch->setChecked(services.bluetoothEnabled());
+    const std::vector<BluetoothDevice> devices = services.bluetoothDevices();
+    if (devices != m_devices) {
+        while (m_rows.size() > devices.size()) {
+            m_list->takeChild(m_rows.back());
+            m_rows.pop_back();
+        }
+        while (m_rows.size() < devices.size()) {
+            PanelRow *row = m_list->addChild<PanelRow>();
+            const size_t index = m_rows.size();
+            row->onClicked = [this, index] {
+                if (index < m_devices.size())
+                    this->services().toggleBluetoothDevice(m_devices[index]);
+            };
+            m_rows.push_back(row);
+        }
+        for (size_t i = 0; i < devices.size(); ++i) {
+            const BluetoothDevice &device = devices[i];
+            PanelRow *row = m_rows[i];
+            row->setGlyph(device.icon.empty() ? "bluetooth" : device.icon);
+            row->setText(device.name);
+            row->setDetail(device.connected ? tr("Connected") : device.paired ? tr("Paired") : tr("Not paired"));
+            row->setActive(device.connected);
+            row->setBold(device.connected);
+            row->setBusy(device.busy);
+            row->setRowEnabled(!device.busy);
+        }
+        m_devices = devices;
+        m_list->requestLayout();
+    }
+    setBodyVisible(services.bluetoothEnabled() && !m_devices.empty());
+    contentChanged();
+}
+
+double BluetoothPanel::listHeight() const
+{
+    return m_list->heightForWidth(kWidth);
+}
+
+double BluetoothPanel::bodyHeight() const
+{
+    return m_devices.empty() ? 0 : std::min(listHeight(), std::max(0.0, bodyMaximumHeight()));
+}
+
+void BluetoothPanel::layoutBody(double top)
+{
+    const double height = std::min(listHeight(), std::max(0.0, bodyMaximumHeight()));
+    m_scroll->setVisible(!m_devices.empty());
     m_scroll->setGeometry({0, top, kWidth, height});
 }
 

@@ -53,6 +53,8 @@ public:
 
     // Press-and-hold on a card hides the control centre for Settings.
     std::function<void()> onHideRequested;
+    std::function<void()> onWirelessDetailsRequested;
+    std::function<void()> onBluetoothDetailsRequested;
     // The layout's height may have changed.
     std::function<void()> onHeightChanged;
 

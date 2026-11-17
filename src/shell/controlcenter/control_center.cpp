@@ -80,7 +80,7 @@ ControlCenter::ControlCenter(Shell *shell, std::unique_ptr<ControlCenterServices
     // StatusPanel's adjustPosition on a work area change: the panel keeps
     // its place and takes the new height. Only the status panels follow it.
     m_subscriptions.push_back(m_shell->outputsChanged.connect([this] {
-        for (Panel panel : {Panel::Network, Panel::Volume, Panel::Battery})
+        for (Panel panel : {Panel::Network, Panel::Bluetooth, Panel::Volume, Panel::Battery})
             fitToWorkArea(panel);
     }));
     m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
@@ -111,10 +111,12 @@ size_t ControlCenter::index(Panel panel)
         return 0;
     case Panel::Network:
         return 1;
-    case Panel::Volume:
+    case Panel::Bluetooth:
         return 2;
-    case Panel::Battery:
+    case Panel::Volume:
         return 3;
+    case Panel::Battery:
+        return 4;
     case Panel::NotificationCenter:
         break;
     }
@@ -203,12 +205,29 @@ void ControlCenter::openPanel(Panel panel, ShellWindow *bar, const base::Rect &a
         auto view = std::make_unique<ControlCenterView>(*m_services);
         open.controlCenter = view.get();
         view->onHideRequested = [this] { close(Panel::ControlCenter); };
+        view->onWirelessDetailsRequested = [this] {
+            Open &control = m_open[index(Panel::ControlCenter)];
+            ShellWindow *bar = control.bar;
+            const base::Rect anchor = control.anchor;
+            close(Panel::ControlCenter);
+            openPanel(Panel::Network, bar, anchor);
+        };
+        view->onBluetoothDetailsRequested = [this] {
+            Open &control = m_open[index(Panel::ControlCenter)];
+            ShellWindow *bar = control.bar;
+            const base::Rect anchor = control.anchor;
+            close(Panel::ControlCenter);
+            openPanel(Panel::Bluetooth, bar, anchor);
+        };
         view->onHeightChanged = [this] { resizeControlCenter(); };
         content = std::move(view);
         break;
     }
     case Panel::Network:
         open.panel = new NetworkPanel(*m_services);
+        break;
+    case Panel::Bluetooth:
+        open.panel = new BluetoothPanel(*m_services);
         break;
     case Panel::Volume:
         open.panel = new VolumePanel(*m_services);
@@ -343,12 +362,15 @@ void ControlCenter::close(Panel panel)
     if (open.panel) {
         open.panel->onShownBottomChanged = nullptr;
         open.panel->onCloseRequested = nullptr;
+        open.panel->closed();
         if (auto *network = dynamic_cast<NetworkPanel *>(open.panel))
             network->setShownForScans(false);
     }
     if (open.controlCenter) {
         open.controlCenter->onHideRequested = nullptr;
         open.controlCenter->onHeightChanged = nullptr;
+        open.controlCenter->onWirelessDetailsRequested = nullptr;
+        open.controlCenter->onBluetoothDetailsRequested = nullptr;
     }
     std::shared_ptr<ui::Window> doomed(std::move(open.window));
     doomed->hide();
@@ -374,7 +396,7 @@ void ControlCenter::retranslate()
 
 void ControlCenter::closePanels()
 {
-    for (Panel panel : {Panel::ControlCenter, Panel::Network, Panel::Volume, Panel::Battery})
+    for (Panel panel : {Panel::ControlCenter, Panel::Network, Panel::Bluetooth, Panel::Volume, Panel::Battery})
         close(panel);
 }
 

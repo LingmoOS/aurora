@@ -44,6 +44,18 @@ struct WirelessNetwork {
     bool operator==(const WirelessNetwork &) const = default;
 };
 
+struct BluetoothDevice {
+    std::string path;
+    std::string name;
+    std::string icon;
+    bool connected = false;
+    bool paired = false;
+    bool busy = false;
+    int batteryPercentage = -1;
+
+    bool operator==(const BluetoothDevice &) const = default;
+};
+
 // An output of the sound panel.
 struct AudioOutput {
     uint32_t id = 0;
@@ -111,6 +123,10 @@ public:
     virtual bool bluetoothAvailable() const = 0;
     virtual bool bluetoothEnabled() const = 0;
     virtual void setBluetoothEnabled(bool enabled) = 0;
+    virtual std::vector<BluetoothDevice> bluetoothDevices() const { return {}; }
+    virtual void requestBluetoothScan() {}
+    virtual void stopBluetoothScan() {}
+    virtual void toggleBluetoothDevice(const BluetoothDevice &) {}
 
     // --- Switches ---
     virtual void setDarkMode(bool dark) = 0;

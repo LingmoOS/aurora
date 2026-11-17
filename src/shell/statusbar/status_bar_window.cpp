@@ -347,7 +347,7 @@ bool StatusBarWindow::lightContents() const
 bool StatusBarWindow::panelOpen() const
 {
     for (StatusBarPanels *panels : m_panels) {
-        for (Panel panel : {Panel::ControlCenter, Panel::Network, Panel::Volume, Panel::Battery,
+        for (Panel panel : {Panel::ControlCenter, Panel::Network, Panel::Bluetooth, Panel::Volume, Panel::Battery,
                             Panel::NotificationCenter}) {
             if (panels->hasPanel(panel) && panels->isOpen(panel))
                 return true;
@@ -611,6 +611,8 @@ BarItem *StatusBarWindow::itemFor(Panel panel) const
         return m_control;
     case Panel::Network:
         return m_network;
+    case Panel::Bluetooth:
+        return m_control;
     case Panel::Volume:
         return m_volume;
     case Panel::Battery:

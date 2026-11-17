@@ -24,6 +24,13 @@ void SurfaceNode::setTexture(std::shared_ptr<render::Texture> texture)
         notifyChanged();
 }
 
+void SurfaceNode::releaseRenderResources()
+{
+    m_texture.reset();
+    m_scanoutBuffer.reset();
+    Node::releaseRenderResources();
+}
+
 std::shared_ptr<render::Texture> SurfaceNode::takeTexture()
 {
     notifyChanged();

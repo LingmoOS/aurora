@@ -7,6 +7,8 @@
 #include <cmath>
 
 #include "shell/shell_data.h"
+#include "core/preferences.h"
+#include "base/settings.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
 #include <string_view>
@@ -41,10 +43,20 @@ ui::Color secondaryTextColor()
 
 render::GlassParams panelGlass()
 {
+    const bool reduced = base::Settings(preferencesFile("services")).boolValue(
+            "Appearance/ReduceTransparency", false);
     render::GlassParams glass = dark() ? popupGlass(0.13, 0.13, 0.14, 0.86)
                                        : popupGlass(0.94, 0.94, 0.95, 0.86);
     glass.blurSigma = glassFixed(20.0);
     glass.saturation = glassFixed(2.4);
+    if (reduced) {
+        // Keep the backdrop blur while removing refraction and increasing the
+        // tint, so reduced transparency remains legible without becoming flat.
+        glass.displacement = 0;
+        glass.chroma = 0;
+        glass.saturation = glassFixed(1.0);
+        glass.tintAlpha = glassFixed(0.90);
+    }
     return glass;
 }
 

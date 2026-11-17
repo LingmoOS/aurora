@@ -90,6 +90,7 @@ public:
             m_subscriptions.push_back(m_bluetooth->changed.connect(notify));
             m_subscriptions.push_back(m_bluetooth->enabledChanged.connect(notify));
             m_subscriptions.push_back(m_bluetooth->adaptersChanged.connect(notify));
+            m_subscriptions.push_back(m_bluetooth->devicesChanged.connect(notify));
         }
         m_subscriptions.push_back(m_audio->rowsChanged.connect(notify));
         m_subscriptions.push_back(m_audio->dataChanged.connect(notify));
@@ -259,6 +260,54 @@ public:
     {
         if (m_bluetooth)
             m_bluetooth->setEnabled(enabled);
+    }
+
+    std::vector<BluetoothDevice> bluetoothDevices() const override
+    {
+        std::vector<BluetoothDevice> result;
+        if (!m_bluetooth)
+            return result;
+        for (const auto &object : m_bluetooth->devices()) {
+            if (!object || object->name().empty())
+                continue;
+            BluetoothDevice device;
+            device.path = object->path();
+            device.name = object->name();
+            device.icon = object->icon().empty() ? "bluetooth" : object->icon();
+            device.connected = object->connected();
+            device.paired = object->paired();
+            device.busy = object->busy();
+            device.batteryPercentage = object->batteryPercentage();
+            result.push_back(std::move(device));
+        }
+        return result;
+    }
+
+    void requestBluetoothScan() override
+    {
+        if (m_bluetooth)
+            m_bluetooth->setDiscoveryRequested(true);
+    }
+
+    void stopBluetoothScan() override
+    {
+        if (m_bluetooth)
+            m_bluetooth->setDiscoveryRequested(false);
+    }
+
+    void toggleBluetoothDevice(const BluetoothDevice &device) override
+    {
+        if (!m_bluetooth)
+            return;
+        const auto object = m_bluetooth->object(device.path);
+        if (!object)
+            return;
+        if (object->connected())
+            object->disconnectFromDevice();
+        else if (object->paired())
+            object->connectToDevice();
+        else
+            object->pair();
     }
 
     // --- Switches ---

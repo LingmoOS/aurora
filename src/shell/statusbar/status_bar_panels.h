@@ -21,6 +21,7 @@ public:
     enum class Panel {
         ControlCenter,
         Network,
+        Bluetooth,
         Volume,
         Battery,
         NotificationCenter,

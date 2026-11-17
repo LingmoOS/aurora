@@ -122,6 +122,7 @@ public:
     // Reads the services again.
     virtual void refresh() = 0;
     virtual void opened() {}
+    virtual void closed() {}
     // Takes its text again after the session language changed.
     virtual void retranslate() = 0;
 
@@ -197,6 +198,7 @@ public:
 
     void refresh() override;
     void opened() override;
+    void closed() override;
     void retranslate() override;
     void setShownForScans(bool shown);
 
@@ -219,6 +221,32 @@ private:
     std::vector<PanelRow *> m_rows;
     std::vector<WirelessNetwork> m_networks;
     base::Timer m_scanTimer;
+};
+
+class BluetoothPanel : public StatusPanelView
+{
+public:
+    explicit BluetoothPanel(ControlCenterServices &services);
+    ~BluetoothPanel() override;
+
+    void refresh() override;
+    void opened() override;
+    void closed() override;
+    void retranslate() override;
+
+protected:
+    double bodyHeight() const override;
+    void layoutBody(double top) override;
+
+private:
+    class List;
+    double listHeight() const;
+
+    ui::Switch *m_switch;
+    ui::ScrollView *m_scroll;
+    List *m_list;
+    std::vector<PanelRow *> m_rows;
+    std::vector<BluetoothDevice> m_devices;
 };
 
 // The sound panel: the default sink's level and the outputs.

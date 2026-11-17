@@ -28,8 +28,8 @@ class ShellWindow;
 class StatusBar;
 class StatusPanelView;
 
-// The control centre and the status bar's Wi-Fi, Sound and
-// Battery panels, each a popup of the bar's window with the panels' glass,
+    // The control centre and the status bar's Wi-Fi, Bluetooth, Sound and
+    // Battery panels, each a popup of the bar's window with the panels' glass,
 // and the power dialog the bar's menu and org.lingmo.Statusbar ask for.
 // Also tells the bar what its volume and Wi-Fi icons show.
 class ControlCenter : public Component, public StatusBarPanels, public StatusBarIndicators
@@ -99,7 +99,7 @@ private:
     std::unique_ptr<ControlCenterServices> m_services;
     PowerActions *m_powerActions;
     std::unique_ptr<PowerDialog> m_powerDialog;
-    std::array<Open, 4> m_open;
+    std::array<Open, 5> m_open;
     Audio m_audio;
     Network m_network;
     std::vector<base::Subscription> m_subscriptions;
