@@ -45,7 +45,7 @@ Depends: lingmo-sdk,
          ${shlibs:Depends}
 Recommends: lingmo-filemanager,
             xwayland,
-            pipewire-bin
+            pipewire-audio
 Description: Lingmo Aurora Wayland compositor and desktop shell
  The Lingmo desktop's display server: DRM/KMS output, input, window
  management, server-side decorations, animations and the lock screen, with

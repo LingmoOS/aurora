@@ -1,3 +1,15 @@
+lingmo-aurora (5.0.51+lingmo5u1) unstable; urgency=medium
+
+  * Recommend PipeWire's Bluetooth audio plugin for headset connections.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 12:00:00 +0800
+
+lingmo-aurora (5.0.50+lingmo5u1) unstable; urgency=medium
+
+  * Render launcher folder backdrops without an oversized compositor overlay.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 12:00:00 +0800
+
 lingmo-aurora (5.0.49+lingmo5u1) unstable; urgency=medium
 
   * Test Bluetooth detail interactions and preserve live surface textures during resource release.
