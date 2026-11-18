@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.53+lingmo5u1) unstable; urgency=medium
+
+  * Align XWayland cursor rasterization with the compositor output scale.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 12:00:00 +0800
+
 lingmo-aurora (5.0.52+lingmo5u1) unstable; urgency=medium
 
   * Keep launcher folder cards translucent while the wallpaper cache loads.

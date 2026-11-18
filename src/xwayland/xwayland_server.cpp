@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 #include <fcntl.h>
 #include <filesystem>
 #include <linux/close_range.h>
@@ -370,6 +371,11 @@ bool XwaylandServer::spawn(const std::vector<std::string>& arguments,
             environment.push_back(variable);
     }
     environment.push_back("WAYLAND_SOCKET=" + std::to_string(waylandSocket));
+    // X11 cursor themes are rasterized before Xwayland applies its client
+    // scale. Keep the physical cursor size aligned with the compositor's
+    // logical 24px pointer so XWayland clients do not switch to a tiny cursor
+    // when the output is scaled.
+    environment.push_back("XCURSOR_SIZE=" + std::to_string(std::max(1, int(std::lround(24 * m_scale)))));
     std::vector<char*> argv {const_cast<char*>(program.c_str())};
     for (const std::string& argument : arguments)
         argv.push_back(const_cast<char*>(argument.c_str()));
