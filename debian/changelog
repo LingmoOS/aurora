@@ -1,3 +1,9 @@
+lingmo-aurora (5.0.56+lingmo5u1) unstable; urgency=medium
+
+  * Match the launcher folder blur shape radius to the visible card corners.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 13:20:00 +0800
+
 lingmo-aurora (5.0.55+lingmo5u1) unstable; urgency=medium
 
   * Render launcher folders as transparent cards with compositor backdrop

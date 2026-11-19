@@ -49,7 +49,7 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
         const int bottom = std::min(m_window->size().height(), int(std::ceil(panel.bottom())));
         const int width = std::max(1, right - left);
         const int height = std::max(1, bottom - top);
-        m_window->setBackgroundBlur(base::Rect(left, top, width, height), 32);
+        m_window->setBackgroundBlur(base::Rect(left, top, width, height), 18);
     };
     m_window->setContentView(std::move(view));
     // Transparent: until the wallpaper decodes, the dimmer darkens what is
