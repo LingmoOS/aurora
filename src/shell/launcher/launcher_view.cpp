@@ -467,8 +467,8 @@ LauncherView::LauncherView(Launcher &launcher, LauncherWallpaper &wallpaper, App
 {
     setName("launcher");
     m_pagesView = addChild<Pages>(this);
-    m_folderOverlay = addChild<FolderOverlay>(this);
-    m_folderOverlay->setVisible(false);
+    m_folderOverlayOwner = std::make_unique<FolderOverlay>(this);
+    m_folderOverlay = m_folderOverlayOwner.get();
     m_search = addChild<LauncherSearchField>();
     m_notFound = addChild<ui::Label>(tr("Not found"));
     m_notFound->setColor(kWhite);
@@ -1265,7 +1265,11 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
             if (m_folderOverlay) {
                 m_openFolderId = cell->id();
                 cell->setVisible(false);
-                m_folderOverlay->setVisible(true);
+                if (m_folderOverlayOwner && folderOverlayCreated) {
+                    folderOverlayCreated(std::unique_ptr<ui::View>(std::move(m_folderOverlayOwner)));
+                }
+                if (folderOverlayShown)
+                    folderOverlayShown(true);
                 m_folderProgress = 0;
                 m_folderTween.start(window(), m_folderProgress, 1, std::chrono::milliseconds(300),
                                     easing::outCubic,
@@ -1297,7 +1301,8 @@ void LauncherView::closeFolderOverlay()
                             m_folderOverlay->setProgress(value);
                             if (value <= 0)
                                  {
-                                     m_folderOverlay->setVisible(false);
+                                     if (folderOverlayShown)
+                                         folderOverlayShown(false);
                                      if (!m_openFolderId.empty()) {
                                          if (LauncherCell *folder = cell(m_openFolderId))
                                              folder->setVisible(true);

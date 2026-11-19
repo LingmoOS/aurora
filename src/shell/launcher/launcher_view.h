@@ -102,6 +102,8 @@ public:
     base::Signal<> dismissRequested;
     // The shell surface uses this to apply backdrop blur to the folder card.
     std::function<void(ui::RectF, bool)> folderBlurChanged;
+    std::function<void(std::unique_ptr<ui::View>)> folderOverlayCreated;
+    std::function<void(bool)> folderOverlayShown;
 
 protected:
     bool acceptsFocus() const override { return true; }
@@ -178,6 +180,7 @@ private:
     LauncherSearchField *m_search = nullptr;
     Indicator *m_indicator = nullptr;
     ui::Label *m_notFound = nullptr;
+    std::unique_ptr<FolderOverlay> m_folderOverlayOwner;
     FolderOverlay *m_folderOverlay = nullptr;
     LauncherTween m_folderTween;
     double m_folderProgress = 0;

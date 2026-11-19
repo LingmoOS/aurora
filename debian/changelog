@@ -1,3 +1,10 @@
+lingmo-aurora (5.0.57+lingmo5u1) unstable; urgency=medium
+
+  * Host launcher folders in a transparent popup surface so compositor
+    backdrop blur samples the underlying desktop correctly.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 14:00:00 +0800
+
 lingmo-aurora (5.0.56+lingmo5u1) unstable; urgency=medium
 
   * Match the launcher folder blur shape radius to the visible card corners.
