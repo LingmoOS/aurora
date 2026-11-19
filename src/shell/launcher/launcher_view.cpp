@@ -243,13 +243,20 @@ protected:
         painter.save();
         painter.clipRoundedRect(m_panel, radius);
         if (m_view->m_wallpaper.isPicture() && !m_view->m_wallpaper.image().isNull())
-            painter.drawImage(m_view->m_wallpaper.image(), m_panel);
-        else
-            painter.fillRect(m_panel, theme.secondBackground.withAlpha(0.72));
+            painter.drawImage(m_view->m_wallpaper.image(), localRect());
+        else {
+            const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
+            const ui::Color fallback = backdrop == ui::Color {0, 0, 0, 255}
+                    ? theme.secondBackground
+                    : backdrop;
+            painter.fillRect(m_panel, fallback.withAlpha(0.82));
+        }
+        const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
+        painter.fillRect(m_panel, backdrop.withAlpha(0.16));
         painter.fillRoundedRect(m_panel, radius,
                                 (theme.darkMode ? ui::Color {24, 26, 32, 255}
                                                 : ui::Color {248, 249, 252, 255})
-                                        .withAlpha(0.24));
+                                        .withAlpha(0.12));
         painter.restore();
         const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, {}, 1, border);

@@ -1,3 +1,10 @@
+lingmo-aurora (5.0.54+lingmo5u1) unstable; urgency=medium
+
+  * Fix launcher folder backdrop sampling so the blurred wallpaper is drawn
+    at launcher scale and clipped to the folder card.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 12:30:00 +0800
+
 lingmo-aurora (5.0.53+lingmo5u1) unstable; urgency=medium
 
   * Align XWayland cursor rasterization with the compositor output scale.
