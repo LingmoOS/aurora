@@ -170,6 +170,7 @@ public:
         requestLayout();
         requestPaint();
     }
+    ui::RectF panel() const { return m_panel; }
 protected:
     void layout() override
     {
@@ -237,27 +238,10 @@ protected:
             return;
         const double radius = std::min(18.0, std::min(m_panel.width, m_panel.height) * 0.04);
         const ui::Theme &theme = ui::Theme::current();
-        // The compositor cannot blur another view in this same surface. The
-        // launcher's wallpaper image is already downscaled and blurred, so use
-        // it as the card's backdrop and clip it to the rounded card shape.
-        painter.save();
-        painter.clipRoundedRect(m_panel, radius);
-        if (m_view->m_wallpaper.isPicture() && !m_view->m_wallpaper.image().isNull())
-            painter.drawImage(m_view->m_wallpaper.image(), localRect());
-        else {
-            const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
-            const ui::Color fallback = backdrop == ui::Color {0, 0, 0, 255}
-                    ? theme.secondBackground
-                    : backdrop;
-            painter.fillRect(m_panel, fallback.withAlpha(0.82));
-        }
-        const ui::Color backdrop = m_view->m_wallpaper.backdropColor();
-        painter.fillRect(m_panel, backdrop.withAlpha(0.16));
-        painter.fillRoundedRect(m_panel, radius,
-                                (theme.darkMode ? ui::Color {24, 26, 32, 255}
-                                                : ui::Color {248, 249, 252, 255})
-                                        .withAlpha(0.12));
-        painter.restore();
+        // The panel region is left transparent by the launcher surface, so
+        // the compositor can blur the desktop behind this card.
+        const ui::Color tint = theme.darkMode ? ui::Color {24, 26, 32, 255} : ui::Color {248, 249, 252, 255};
+        painter.fillRoundedRect(m_panel, radius, tint.withAlpha(0.12));
         const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, {}, 1, border);
     }
@@ -709,13 +693,32 @@ void LauncherView::paint(ui::Painter &painter)
                                                            : ui::Color{248, 249, 252, 235});
         return;
     }
-    if (!m_wallpaper.isPicture()) {
-        painter.fillRect(bounds, m_wallpaper.color());
+    const bool folderOpen = m_folderOverlay && m_folderOverlay->isVisible() && m_folderProgress > 0;
+    const ui::RectF panel = folderOpen ? m_folderOverlay->panel() : ui::RectF();
+    const auto drawBackground = [this, &painter, &bounds](const ui::RectF &clip) {
+        painter.save();
+        painter.clip(clip);
+        if (!m_wallpaper.isPicture())
+            painter.fillRect(bounds, m_wallpaper.color());
+        else {
+            // Until it has decoded, the dimmer darkens what is behind the window.
+            painter.drawImage(m_wallpaper.image(), bounds);
+            painter.fillRect(bounds, ui::Color {0, 0, 0, 102});
+        }
+        painter.restore();
+    };
+    if (!folderOpen) {
+        drawBackground(bounds);
         return;
     }
-    // Until it has decoded, the dimmer darkens what is behind the window.
-    painter.drawImage(m_wallpaper.image(), bounds);
-    painter.fillRect(bounds, ui::Color {0, 0, 0, 102});
+    // Leave the folder panel transparent so the compositor's local blur can
+    // sample the desktop below this launcher surface.
+    const double right = panel.right();
+    const double bottom = panel.bottom();
+    drawBackground({0, 0, bounds.width, std::max(0.0, panel.y)});
+    drawBackground({0, bottom, bounds.width, std::max(0.0, bounds.height - bottom)});
+    drawBackground({0, panel.y, std::max(0.0, panel.x), panel.height});
+    drawBackground({right, panel.y, std::max(0.0, bounds.width - right), panel.height});
 }
 
 void LauncherView::updateBackdrop()

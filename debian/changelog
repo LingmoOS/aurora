@@ -1,3 +1,10 @@
+lingmo-aurora (5.0.55+lingmo5u1) unstable; urgency=medium
+
+  * Render launcher folders as transparent cards with compositor backdrop
+    blur instead of a cached blurred wallpaper image.
+
+ -- Lingmo OS Team <team@lingmo.org>  Thu, 19 Nov 2026 13:00:00 +0800
+
 lingmo-aurora (5.0.54+lingmo5u1) unstable; urgency=medium
 
   * Fix launcher folder backdrop sampling so the blurred wallpaper is drawn

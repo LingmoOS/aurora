@@ -35,13 +35,21 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
     m_window = std::make_unique<ShellWindow>(shell, wm::WindowRole::Launcher);
     auto view = std::make_unique<LauncherView>(*m_launcher, *m_wallpaper, shell->badges());
     m_view = view.get();
-    m_view->folderBlurChanged = [this](ui::RectF, bool active) {
-        // The folder is rendered inside the launcher's surface. A compositor
-        // blur request here would sample the desktop behind the full-screen
-        // launcher and produce a second, oversized translucent rectangle.
-        // LauncherView uses its cached, already blurred wallpaper instead.
-        if (!active && !(m_dock && m_dock->settings().efficientMode()))
+    m_view->folderBlurChanged = [this](ui::RectF panel, bool active) {
+        const bool compact = m_dock && m_dock->settings().efficientMode();
+        if (compact)
+            return;
+        if (!active) {
             m_window->setBackgroundBlur(base::Rect(), 0);
+            return;
+        }
+        const int left = std::max(0, int(std::floor(panel.x)));
+        const int top = std::max(0, int(std::floor(panel.y)));
+        const int right = std::min(m_window->size().width(), int(std::ceil(panel.right())));
+        const int bottom = std::min(m_window->size().height(), int(std::ceil(panel.bottom())));
+        const int width = std::max(1, right - left);
+        const int height = std::max(1, bottom - top);
+        m_window->setBackgroundBlur(base::Rect(left, top, width, height), 32);
     };
     m_window->setContentView(std::move(view));
     // Transparent: until the wallpaper decodes, the dimmer darkens what is
