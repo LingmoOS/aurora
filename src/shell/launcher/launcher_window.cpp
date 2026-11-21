@@ -59,6 +59,11 @@ LauncherWindow::LauncherWindow(Shell *shell, std::unique_ptr<Launcher> launcher,
         m_folderWindow = ui::Window::createPopup(m_window->window(), placement, false);
         m_folderWindow->resize(m_window->window()->size());
         m_folderWindow->setBackgroundColor(ui::Color {0, 0, 0, 0});
+        ui::GlassMaterial folderGlass;
+        folderGlass.blurSigma = 22;
+        folderGlass.tintRed = folderGlass.tintGreen = folderGlass.tintBlue = 0.5;
+        folderGlass.tintAlpha = 0.05;
+        m_folderWindow->setBackgroundGlass(folderGlass);
         m_folderWindow->setContentView(std::move(overlay));
         m_folderWindow->show();
     };

@@ -270,6 +270,12 @@ lingmo-aurora (5.0.15+lingmo5u1) unstable; urgency=medium
 
  -- Lingmo OS Team <team@lingmo.org>  Fri, 13 Nov 2026 18:00:00 +0800
 
+lingmo-compositor (5.0.15+lingmo5u1) unstable; urgency=medium
+
+  * improve launcher folder popup glass fallback and constrain folder panel size
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 21 Nov 2026 14:00:00 +0800
+
 lingmo-compositor (5.0.14+lingmo5u1) unstable; urgency=medium
 
   * Fix launcher folder creation when dragging between adjacent entries.
