@@ -438,3 +438,9 @@ lingmo-compositor (5.0.0+lingmo5u1) unstable; urgency=medium
   * Version every Lingmo package 1.0.
 
  -- Lingmo OS Team <team@lingmo.org>  Tue, 20 Oct 2026 07:03:34 +0800
+lingmo-aurora (5.0.58+lingmo5u1) unstable; urgency=medium
+
+  * keep launcher folder popup surfaces transparent and use only local
+    backdrop blur so the folder card does not render as a black rectangle
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 21 Nov 2026 14:30:00 +0800
