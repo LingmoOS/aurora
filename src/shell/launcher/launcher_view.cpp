@@ -17,6 +17,7 @@
 #include "shell/launcher/launcher_search_field.h"
 #include "shell/launcher/launcher_wallpaper.h"
 #include "ui/application.h"
+#include "ui/bitmap.h"
 #include "ui/drag.h"
 #include "ui/icon.h"
 #include "ui/keys.h"
@@ -41,6 +42,27 @@ static constexpr std::chrono::milliseconds kSettleDuration {270};
 // turns the page rather than settling on the nearest one.
 static constexpr double kFlickThreshold = 10;
 static constexpr double kFlickVelocity = 400;
+
+static ui::Image imageFromBitmap(const ui::Bitmap &bitmap)
+{
+    if (bitmap.isNull())
+        return {};
+    ui::Image image(bitmap.width(), bitmap.height());
+    uint32_t *out = image.bits();
+    for (int y = 0; y < bitmap.height(); ++y) {
+        const auto *line = reinterpret_cast<const uint32_t *>(bitmap.constScanLine(y));
+        for (int x = 0; x < bitmap.width(); ++x) {
+            const uint32_t pixel = line[x];
+            const uint32_t alpha = pixel >> 24;
+            const auto unpremultiply = [alpha](uint32_t channel) {
+                return alpha == 0 ? 0u : std::min(255u, (channel * 255 + alpha / 2) / alpha);
+            };
+            *out++ = alpha << 24 | unpremultiply((pixel >> 16) & 0xff) << 16
+                    | unpremultiply((pixel >> 8) & 0xff) << 8 | unpremultiply(pixel & 0xff);
+        }
+    }
+    return image;
+}
 
 static int jsRound(double value)
 {
@@ -115,6 +137,11 @@ public:
     }
 
     bool acceptsPointer() const override { return true; }
+    void setBackdrop(ui::Image backdrop)
+    {
+        m_backdrop = std::move(backdrop);
+        requestPaint();
+    }
     void setItems(const std::vector<LauncherItem> &items)
     {
         for (ui::ThemeIcon *icon : m_icons)
@@ -238,12 +265,19 @@ protected:
             return;
         const double radius = std::min(18.0, std::min(m_panel.width, m_panel.height) * 0.04);
         const ui::Theme &theme = ui::Theme::current();
-        // The panel region is left transparent by the launcher surface, so
-        // the compositor can blur the desktop behind this card.
+        painter.save();
+        painter.clipRoundedRect(m_panel, radius);
+        if (!m_backdrop.isNull())
+            painter.drawImage(m_backdrop, localRect());
+        else if (m_view->m_wallpaper.isPicture() && !m_view->m_wallpaper.image().isNull()) {
+            painter.drawImage(m_view->m_wallpaper.image(), localRect());
+            painter.fillRect(m_panel, ui::Color {0, 0, 0, 102});
+        } else {
+            painter.fillRect(m_panel, m_view->m_wallpaper.color());
+        }
         const ui::Color tint = theme.darkMode ? ui::Color {24, 26, 32, 255} : ui::Color {248, 249, 252, 255};
-        // The popup surface is transparent so the compositor can blur it; a
-        // stronger tint keeps the card readable when blur is unavailable.
-        painter.fillRoundedRect(m_panel, radius, tint.withAlpha(0.58));
+        painter.fillRect(m_panel, tint.withAlpha(0.34));
+        painter.restore();
         const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, {}, 1, border);
     }
@@ -339,6 +373,7 @@ private:
     }
 
     LauncherView *m_view;
+    ui::Image m_backdrop;
     std::vector<ui::ThemeIcon *> m_icons;
     std::vector<ui::Label *> m_names;
     std::vector<std::string> m_ids;
@@ -469,13 +504,16 @@ LauncherView::LauncherView(Launcher &launcher, LauncherWallpaper &wallpaper, App
 {
     setName("launcher");
     m_pagesView = addChild<Pages>(this);
-    m_folderOverlayOwner = std::make_unique<FolderOverlay>(this);
-    m_folderOverlay = m_folderOverlayOwner.get();
     m_search = addChild<LauncherSearchField>();
     m_notFound = addChild<ui::Label>(tr("Not found"));
     m_notFound->setColor(kWhite);
     m_notFound->setVisible(false);
     m_indicator = addChild<Indicator>(this);
+    // Keep the folder in the launcher's own surface.  This lets the
+    // compositor blur the desktop below the card without introducing a
+    // full-screen transparent popup surface.
+    m_folderOverlay = addChild<FolderOverlay>(this);
+    m_folderOverlay->setVisible(false);
 
     m_wheelReset.setSingleShot(true);
     m_wheelReset.setInterval(std::chrono::milliseconds(250));
@@ -1267,11 +1305,10 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
             if (m_folderOverlay) {
                 m_openFolderId = cell->id();
                 cell->setVisible(false);
-                if (m_folderOverlayOwner && folderOverlayCreated) {
-                    folderOverlayCreated(std::unique_ptr<ui::View>(std::move(m_folderOverlayOwner)));
-                }
-                if (folderOverlayShown)
-                    folderOverlayShown(true);
+                ui::Bitmap backdrop = grab(LauncherWallpaper::kQuality);
+                LauncherWallpaper::blur(backdrop);
+                m_folderOverlay->setBackdrop(imageFromBitmap(backdrop));
+                m_folderOverlay->setVisible(true);
                 m_folderProgress = 0;
                 m_folderTween.start(window(), m_folderProgress, 1, std::chrono::milliseconds(300),
                                     easing::outCubic,
@@ -1303,8 +1340,9 @@ void LauncherView::closeFolderOverlay()
                             m_folderOverlay->setProgress(value);
                             if (value <= 0)
                                  {
-                                     if (folderOverlayShown)
-                                         folderOverlayShown(false);
+                                     if (folderBlurChanged)
+                                         folderBlurChanged({}, false);
+                                     m_folderOverlay->setVisible(false);
                                      if (!m_openFolderId.empty()) {
                                          if (LauncherCell *folder = cell(m_openFolderId))
                                              folder->setVisible(true);
