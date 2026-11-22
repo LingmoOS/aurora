@@ -598,10 +598,24 @@ LauncherView::LauncherView(Launcher &launcher, LauncherWallpaper &wallpaper, App
             m_reorderTimer.start();
             return;
         }
+        LauncherCell *source = cell(m_draggedId);
+        LauncherCell *target = cell(m_hoveredId);
+        if (!source || !target) {
+            m_reorderPending = false;
+            m_folderDropState = FolderDropState::Dragging;
+            return;
+        }
+        if (m_folderPreviewEligible && !source->isFolder() && !target->isFolder()) {
+            m_folderDropState = FolderDropState::FolderPreview;
+            target->setFolderPreview(true, source->iconName());
+            return;
+        }
+        if (!source->isFolder() && target->isFolder())
+            return;
+
         m_reorderPending = false;
-        const LauncherCell *hovered = cell(m_hoveredId);
-        if (hovered)
-            requestMove(hovered->page() * m_metrics.pageCount + hovered->index());
+        m_folderDropState = FolderDropState::Dragging;
+        requestMove(target->page() * m_metrics.pageCount + target->index());
     };
     // Only a drag reorder slides the icons; this keeps them sliding a moment
     // after a swap.
@@ -1496,6 +1510,7 @@ bool LauncherView::startCellDrag(LauncherCell *cell, ui::View *icon)
         return false;
     m_launcher.applications().beginReorder();
     m_draggedId = cell->id();
+    m_folderDropState = FolderDropState::Dragging;
     cell->setDragging(true);
     // Losing the activation to the drag must not hide the launcher.
     m_launcher.setDragging(true);
@@ -1507,10 +1522,13 @@ void LauncherView::endDrag()
     m_reorderTimer.stop();
     m_edgeTimer.stop();
     m_edge = 0;
-    if (LauncherCell *old = cell(m_hoveredId))
-        old->setDropPreview(false);
+    if (LauncherCell *old = cell(m_hoveredId)) {
+        old->setFolderPreview(false);
+        old->setDragHover(false);
+    }
     m_hoveredId.clear();
     m_reorderPending = false;
+    m_folderDropState = FolderDropState::Normal;
     if (m_draggedId.empty())
         return;
     const std::string id = std::exchange(m_draggedId, {});
@@ -1569,9 +1587,15 @@ void LauncherView::dragLeave()
 {
     m_reorderTimer.stop();
     m_reorderPending = false;
-    if (LauncherCell *old = cell(m_hoveredId))
-        old->setDropPreview(false);
+    if (LauncherCell *old = cell(m_hoveredId)) {
+        old->setFolderPreview(false);
+        old->setDragHover(false);
+    }
     m_hoveredId.clear();
+    if (!m_draggedId.empty())
+        m_folderDropState = m_folderDropState == FolderDropState::FolderPreview
+                ? FolderDropState::Cancelled
+                : FolderDropState::Dragging;
     m_edgeTimer.stop();
     m_edge = 0;
 }
@@ -1579,14 +1603,36 @@ void LauncherView::dragLeave()
 uint32_t LauncherView::drop(const ui::DragEvent &event)
 {
     updateDragTarget(event.position);
+    LauncherCell *source = cell(m_draggedId);
+    LauncherCell *target = cell(m_hoveredId);
+    const bool previewCommit = m_folderDropState == FolderDropState::FolderPreview && source && target
+            && !source->isFolder() && !target->isFolder();
+    const bool addToFolder = source && target && !source->isFolder() && target->isFolder();
     if (m_reorderPending && !m_draggedId.empty() && !m_hoveredId.empty()
-        && m_hoveredId != m_draggedId) {
+        && m_hoveredId != m_draggedId && (previewCommit || addToFolder)) {
         m_reorderTimer.stop();
+        if (previewCommit || addToFolder) {
+            target->setFolderPreview(false);
+            target->setDragHover(false);
+        }
+        const std::string sourceId = m_draggedId;
+        const std::string targetId = m_hoveredId;
         if (m_launcher.applications().makeFolder(m_draggedId, m_hoveredId)) {
-            if (LauncherCell *target = cell(m_hoveredId))
-                target->setDropPreview(false);
+            const auto &items = m_launcher.applications().allItems();
+            const auto created = std::find_if(items.begin(), items.end(), [&](const LauncherItem &item) {
+                if (!item.folder)
+                    return false;
+                return std::find(item.members.begin(), item.members.end(), sourceId) != item.members.end()
+                        && std::find(item.members.begin(), item.members.end(), targetId) != item.members.end();
+            });
+            if (created != items.end()) {
+                if (LauncherCell *folder = cell(created->id))
+                    folder->animateFolderCreated();
+            }
+            m_folderDropState = FolderDropState::FolderCreated;
             m_reorderPending = false;
             m_hoveredId.clear();
+            m_folderPreviewEligible = false;
             return ui::MoveAction;
         }
     }
@@ -1599,8 +1645,12 @@ uint32_t LauncherView::drop(const ui::DragEvent &event)
         if (const LauncherCell *hovered = cell(m_hoveredId))
             requestMove(hovered->page() * m_metrics.pageCount + hovered->index());
     }
-    if (LauncherCell *old = cell(m_hoveredId))
-        old->setDropPreview(false);
+    if (LauncherCell *old = cell(m_hoveredId)) {
+        old->setFolderPreview(false);
+        old->setDragHover(false);
+    }
+    if (m_folderDropState == FolderDropState::FolderPreview || m_folderDropState == FolderDropState::Hovering)
+        m_folderDropState = FolderDropState::Cancelled;
     m_reorderPending = false;
     m_hoveredId.clear();
     return ui::MoveAction;
@@ -1647,19 +1697,44 @@ void LauncherView::updateDragTarget(ui::PointF position)
                 hovered = rows[size_t(index)].id;
         }
     }
+    if (hovered == m_draggedId)
+        hovered.clear();
     if (hovered != m_hoveredId) {
-        if (LauncherCell *old = cell(m_hoveredId))
-            old->setDropPreview(false);
+        if (LauncherCell *old = cell(m_hoveredId)) {
+            old->setFolderPreview(false);
+            old->setDragHover(false);
+        }
         m_hoveredId = hovered;
+        m_folderPreviewEligible = false;
         if (!m_hoveredId.empty()) {
-            if (LauncherCell *target = cell(m_hoveredId))
-                target->setDropPreview(true, cell(m_draggedId) ? cell(m_draggedId)->iconName() : std::string());
+            if (LauncherCell *target = cell(m_hoveredId)) {
+                target->setDragHover(true);
+                const ui::RectF bounds = target->geometry();
+                const ui::PointF local {position.x - bounds.x, position.y - bounds.y};
+                m_folderPreviewEligible = target->iconRect().contains(local) && !target->isFolder();
+            }
+            m_folderDropState = FolderDropState::Hovering;
+        } else if (!m_draggedId.empty()) {
+            m_folderDropState = FolderDropState::Dragging;
         }
         m_reorderPending = !hovered.empty();
         if (m_reorderPending)
             m_reorderTimer.start();
         else
             m_reorderTimer.stop();
+    } else if (!m_hoveredId.empty()) {
+        if (LauncherCell *target = cell(m_hoveredId)) {
+            const ui::RectF bounds = target->geometry();
+            const ui::PointF local {position.x - bounds.x, position.y - bounds.y};
+            const bool eligible = target->iconRect().contains(local) && !target->isFolder();
+            if (eligible != m_folderPreviewEligible) {
+                m_folderPreviewEligible = eligible;
+                m_reorderTimer.stop();
+                target->setFolderPreview(false);
+                if (eligible && m_reorderPending)
+                    m_reorderTimer.start();
+            }
+        }
     }
 }
 

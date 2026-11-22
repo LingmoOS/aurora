@@ -116,6 +116,8 @@ protected:
     uint32_t drop(const ui::DragEvent &event) override;
 
 private:
+    enum class FolderDropState { Normal, Dragging, Hovering, FolderPreview, FolderCreated, Cancelled };
+
     friend class FolderOverlay;
     friend class LauncherCell;
     class Pages;
@@ -209,6 +211,8 @@ private:
     // A drag out of a cell, and the reorder it may ask for.
     std::string m_draggedId;
     std::string m_hoveredId;
+    FolderDropState m_folderDropState = FolderDropState::Normal;
+    bool m_folderPreviewEligible = false;
     bool m_reorderPending = false;
     base::Timer m_reorderTimer;
     base::Timer m_reorderAnimation;
