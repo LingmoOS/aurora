@@ -1,3 +1,11 @@
+lingmo-aurora (5.1.2+lingmo5u1) unstable; urgency=medium
+
+  * Improve launcher folders with category-based localized names, clearer
+    titles, internal reorder feedback, drag-out support and automatic
+    dissolution when one application remains; migrate the old default name.
+
+ -- Lingmo OS Team <team@lingmo.org>  Mon, 23 Nov 2026 12:00:00 +0800
+
 lingmo-aurora (5.1.1+lingmo5u1) unstable; urgency=medium
 
   * Render launcher folders inside the launcher surface and apply local

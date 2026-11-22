@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <set>
 #include <utility>
 
@@ -128,7 +129,8 @@ public:
         m_title = addChild<ui::Label>();
         m_title->setTextAlignment(ui::Label::TextAlignment::Center);
         m_title->setVerticallyCentered(true);
-        m_title->setWeight(500);
+        m_title->setWeight(600);
+        m_title->setFontSize(24);
         m_titleField = addChild<ui::TextField>();
         m_titleField->setHorizontallyCentered(true);
         m_titleField->setVisible(false);
@@ -171,6 +173,7 @@ public:
         m_count = items.size();
         m_page = 0;
         m_reordering = false;
+        m_dropIndex = -1;
         m_swiping = false;
         requestLayout();
     }
@@ -240,6 +243,7 @@ protected:
         const double rowHeight = metrics.cellHeight;
         const double iconSize = metrics.iconSize;
         const int pageCapacity = std::max(1, m_columns * m_rows);
+        m_slots.resize(m_count);
         for (size_t i = 0; i < m_icons.size(); ++i) {
             m_icons[i]->setSize(iconSize);
             const bool onPage = int(i) / pageCapacity == m_page;
@@ -254,9 +258,18 @@ protected:
             const double cellX = x + outerPadding + col * columnWidth;
             const double iconX = cellX + (columnWidth - iconSize) / 2;
             const double iconY = gridTop + row * rowHeight;
-            m_icons[i]->setGeometry({iconX, iconY, iconSize, iconSize});
+            m_slots[i] = {iconX, iconY, iconSize, iconSize};
+            const bool dragged = m_reordering && int(i) == m_pressIndex;
+            const ui::RectF iconRect = dragged
+                    ? ui::RectF {m_dragPosition.x - iconSize / 2, m_dragPosition.y - iconSize / 2,
+                                 iconSize, iconSize}
+                    : m_slots[i];
+            m_icons[i]->setGeometry(iconRect);
+            m_icons[i]->setOpacity(dragged ? 0.82 : 1.0);
             m_names[i]->setFontSize(metrics.labelPixelSize);
-            m_names[i]->setGeometry({cellX, iconY + iconSize + 4, columnWidth, labelHeight});
+            const double labelX = dragged ? m_dragPosition.x - columnWidth / 2 : cellX;
+            const double labelY = dragged ? iconRect.bottom() + 4 : iconY + iconSize + 4;
+            m_names[i]->setGeometry({labelX, labelY, columnWidth, labelHeight});
         }
     }
     void paint(ui::Painter &painter) override
@@ -280,6 +293,12 @@ protected:
         painter.restore();
         const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, {}, 1, border);
+        if (m_reordering && m_dropIndex >= 0 && m_dropIndex < int(m_slots.size())) {
+            const ui::RectF slot = m_slots[size_t(m_dropIndex)];
+            painter.drawRoundedRect({slot.x - 8, slot.y - 8, slot.width + 16, slot.height + 16},
+                                    {16, 0, ui::Corners::Circular}, {}, 2,
+                                    ui::Color {80, 160, 255, 180});
+        }
     }
     void pointerMove(const ui::PointerEvent &event) override
     {
@@ -299,7 +318,9 @@ protected:
         if (!m_reordering)
             return;
         m_dragPosition = event.position;
+        m_dropIndex = nearestSlot(event.position);
         requestLayout();
+        requestPaint();
     }
     void pointerRelease(const ui::PointerEvent &event) override
     {
@@ -315,7 +336,7 @@ protected:
             requestLayout();
             return;
         }
-        if (m_title->isVisible() && m_title->geometry().contains(event.position)) {
+        if (!m_reordering && m_title->isVisible() && m_title->geometry().contains(event.position)) {
             if (LauncherCell *folder = m_view->cell(m_folderId)) {
                 m_view->closeFolderOverlay();
                 folder->beginRename();
@@ -323,19 +344,30 @@ protected:
             return;
         }
         if (m_reordering) {
-            int target = -1;
-            for (size_t i = 0; i < m_count && i < m_icons.size(); ++i) {
-                if (m_icons[i]->isVisible() && m_icons[i]->geometry().contains(event.position)) {
-                    target = int(i);
-                    break;
-                }
+            auto &model = m_view->m_launcher.applications();
+            const std::string draggedId = m_ids[size_t(m_pressIndex)];
+            bool changed = false;
+            if (outsidePanel(event.position)) {
+                changed = model.removeFromFolder(m_folderId, draggedId);
+            } else {
+                const int target = nearestSlot(event.position);
+                if (target >= 0 && target != m_pressIndex)
+                    changed = model.moveInFolder(m_folderId, draggedId, target);
             }
-            if (target >= 0 && target != m_pressIndex)
-                m_view->m_launcher.applications().moveInFolder(m_folderId, m_ids[size_t(m_pressIndex)], target);
-            m_view->m_launcher.applications().endReorder(true);
+            model.endReorder(true);
             m_reordering = false;
             m_pressIndex = -1;
-            requestLayout();
+            m_dropIndex = -1;
+            if (changed) {
+                const std::vector<LauncherItem> items = model.folderItems(m_folderId);
+                if (model.findById(m_folderId) < 0)
+                    m_view->closeFolderOverlay();
+                else
+                    setItems(items);
+            } else {
+                requestLayout();
+            }
+            requestPaint();
             return;
         }
         for (size_t i = 0; i < m_count && i < m_ids.size(); ++i) {
@@ -351,6 +383,7 @@ protected:
     {
         m_pressPosition = event.position;
         m_pressIndex = -1;
+        m_dropIndex = -1;
         m_swiping = false;
         for (size_t i = 0; i < m_count && i < m_icons.size(); ++i) {
             if (m_icons[i]->isVisible() && m_icons[i]->geometry().contains(event.position)) {
@@ -360,6 +393,37 @@ protected:
         }
     }
 private:
+    int nearestSlot(ui::PointF position) const
+    {
+        const double gridTop = m_panel.y + m_panel.height * 0.17;
+        if (m_pressIndex < 0 || outsidePanel(position) || position.y < gridTop)
+            return -1;
+        const ui::RectF source = m_slots[size_t(m_pressIndex)];
+        if (source.contains(position))
+            return m_pressIndex;
+        int nearest = -1;
+        double bestDistance = std::numeric_limits<double>::max();
+        for (size_t i = 0; i < m_count && i < m_slots.size(); ++i) {
+            if (int(i) == m_pressIndex || !m_icons[i]->isVisible())
+                continue;
+            const ui::RectF slot = m_slots[i];
+            const double dx = position.x - (slot.x + slot.width / 2);
+            const double dy = position.y - (slot.y + slot.height / 2);
+            const double distance = dx * dx + dy * dy;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                nearest = int(i);
+            }
+        }
+        return nearest;
+    }
+
+    bool outsidePanel(ui::PointF position) const
+    {
+        return position.x < m_panel.x || position.y < m_panel.y || position.x >= m_panel.right()
+                || position.y >= m_panel.bottom();
+    }
+
     void finishRename(bool save)
     {
         const std::string name = m_titleField->text();
@@ -377,6 +441,7 @@ private:
     std::vector<ui::ThemeIcon *> m_icons;
     std::vector<ui::Label *> m_names;
     std::vector<std::string> m_ids;
+    std::vector<ui::RectF> m_slots;
     ui::Label *m_title = nullptr;
     ui::TextField *m_titleField = nullptr;
     std::string m_folderId;
@@ -385,6 +450,7 @@ private:
     ui::PointF m_pressPosition;
     ui::PointF m_dragPosition;
     int m_pressIndex = -1;
+    int m_dropIndex = -1;
     bool m_reordering = false;
     int m_columns = 1;
     int m_rows = 1;
