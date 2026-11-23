@@ -11,6 +11,7 @@
 #include "shell/common/task_manager.h"
 #include "ui/button.h"
 #include "ui/animation.h"
+#include "ui/bitmap_painter.h"
 #include "ui/image_view.h"
 #include "ui/icon.h"
 #include "ui/label.h"
@@ -38,16 +39,20 @@ public:
     Card()
     {
         setLayered(true);
-        m_image = addChild<ui::ImageView>();
+        m_face = addChild<ui::View>();
+        m_image = m_face->addChild<ui::ImageView>();
         m_image->setFillMode(ui::ImageView::FillMode::PreserveAspectCrop);
         m_image->setRendering(ui::ImageView::Rendering::MaskedLayer);
         m_image->setCornerRadius(8);
-        m_title = addChild<ui::Label>();
+        m_title = m_face->addChild<ui::Label>();
         m_title->setVerticallyCentered(true);
         m_title->setElide(ui::Label::Elide::Right);
         m_title->setColor(ui::Color {255, 255, 255, 255});
-        m_icon = addChild<ui::ThemeIcon>("application-x-executable", 26);
+        m_icon = m_face->addChild<ui::ThemeIcon>("application-x-executable", 26);
         m_icon->setColor(ui::Color {255, 255, 255, 255});
+        m_raster = addChild<ui::ImageView>();
+        m_raster->setFillMode(ui::ImageView::FillMode::Stretch);
+        m_raster->setVisible(false);
         setTracksHover(true);
     }
 
@@ -63,36 +68,18 @@ public:
         m_image->setPixels(bitmap.width(), bitmap.height(),
                            reinterpret_cast<const uint32_t *>(bitmap.constBits()),
                            bitmap.stride(), true);
-        m_image->setOpacity(0);
-        m_image->setTransform({{-12, 0}, .84});
-        if (window()) {
-            if (!m_thumbnailAnimation)
-                m_thumbnailAnimation = std::make_unique<ui::Animation>(window());
-            m_thumbnailAnimation->stop();
-            m_thumbnailAnimation->setDuration(std::chrono::milliseconds(220));
-            m_thumbnailAnimation->setEasing(ui::Animation::Easing::OutCubic);
-            m_thumbnailAnimation->onUpdate = [this](double progress) {
-                m_image->setOpacity(progress);
-                m_image->setTransform({{-12 * (1 - progress), 0},
-                                       .84 + .16 * progress});
-            };
-            m_thumbnailAnimation->onFinished = [this] {
-                m_image->setOpacity(1);
-                m_image->setTransform({{}, 1});
-            };
-            m_thumbnailAnimation->start();
-        } else {
-            m_image->setOpacity(1);
-            m_image->setTransform({{}, 1});
-        }
+        m_thumbnailPending = true;
+        invalidateFace();
         requestPaint();
     }
 
     void clearThumbnail()
     {
         m_image->setSource({});
-        m_image->setOpacity(1);
-        m_image->setTransform({{}, 1});
+        m_thumbnailPending = false;
+        if (m_thumbnailAnimation)
+            m_thumbnailAnimation->stop();
+        invalidateFace();
     }
 
     void animateIn()
@@ -132,17 +119,58 @@ public:
         requestPaint();
     }
 
-    void setTitle(std::string title) { m_title->setText(std::move(title)); }
+    void setTitle(std::string title)
+    {
+        if (title == m_title->text())
+            return;
+        m_title->setText(std::move(title));
+        invalidateFace();
+    }
 
     void setApplicationIcon(std::string icon)
     {
-        m_icon->setIconName(icon.empty() ? "application-x-executable" : std::move(icon));
+        icon = icon.empty() ? "application-x-executable" : std::move(icon);
+        if (icon == m_icon->iconName())
+            return;
+        m_icon->setIconName(std::move(icon));
+        invalidateFace();
     }
 
     void setStackCount(size_t count)
     {
         m_stackCount = std::min<size_t>(count, 3);
         requestPaint();
+    }
+
+    void childrenLaidOut() override
+    {
+        if (!m_faceDirty || !window() || geometry().width <= 0 || geometry().height <= 0)
+            return;
+        m_faceDirty = false;
+        const ui::Bitmap source = m_face->grab(window()->scale());
+        if (source.isNull())
+            return;
+        ui::Bitmap tilted(source.size(), ui::Bitmap::Format::Argb32Premultiplied);
+        if (tilted.isNull())
+            return;
+        ui::BitmapPainter painter(tilted);
+        const double scale = window()->scale();
+        const double width = source.width();
+        const double height = source.height();
+        const double inset = 4 * scale;
+        base::AffineTransform perspective(.985, 0, .035, .985, 6 * scale, 1 * scale);
+        perspective.translate(width / 2, height / 2);
+        perspective.rotate(-2.5);
+        perspective.translate(-width / 2, -height / 2);
+        painter.setTransform(perspective);
+        painter.drawBitmap({inset, inset, width - 2 * inset, height - 2 * inset}, source, true);
+        m_raster->setPixels(tilted.width(), tilted.height(),
+                            reinterpret_cast<const uint32_t *>(tilted.constBits()),
+                            tilted.stride(), true, scale);
+        m_raster->setVisible(true);
+        m_face->setVisible(false);
+        if (std::exchange(m_thumbnailPending, false))
+            animateThumbnail();
     }
 
 protected:
@@ -205,9 +233,11 @@ protected:
 
     void layout() override
     {
+        m_face->setGeometry(localRect());
         m_image->setGeometry({8, 8, geometry().width - 16, geometry().height - 34});
         m_title->setGeometry({44, geometry().height - 27, geometry().width - 52, 20});
         m_icon->setGeometry({10, geometry().height - 32, 26, 26});
+        m_raster->setGeometry(localRect());
     }
 
     void paint(ui::Painter &painter) override
@@ -233,6 +263,41 @@ protected:
     }
 
 private:
+    void animateThumbnail()
+    {
+        m_raster->setOpacity(0);
+        m_raster->setTransform({{-12, 0}, .84});
+        if (!window()) {
+            m_raster->setOpacity(1);
+            m_raster->setTransform({{}, 1});
+            return;
+        }
+        if (!m_thumbnailAnimation)
+            m_thumbnailAnimation = std::make_unique<ui::Animation>(window());
+        m_thumbnailAnimation->stop();
+        m_thumbnailAnimation->setDuration(std::chrono::milliseconds(220));
+        m_thumbnailAnimation->setEasing(ui::Animation::Easing::OutCubic);
+        m_thumbnailAnimation->onUpdate = [this](double progress) {
+            m_raster->setOpacity(progress);
+            m_raster->setTransform({{-12 * (1 - progress), 0}, .84 + .16 * progress});
+        };
+        m_thumbnailAnimation->onFinished = [this] {
+            m_raster->setOpacity(1);
+            m_raster->setTransform({{}, 1});
+        };
+        m_thumbnailAnimation->start();
+    }
+
+    void invalidateFace()
+    {
+        m_faceDirty = true;
+        if (m_face) {
+            m_face->setVisible(true);
+            m_raster->setVisible(false);
+            m_face->requestLayout();
+        }
+    }
+
     void applyTransform()
     {
         const double entryScale = .94 + .06 * m_entryProgress;
@@ -243,9 +308,13 @@ private:
     }
 
     bool m_selected = false;
+    bool m_faceDirty = true;
+    bool m_thumbnailPending = false;
+    ui::View *m_face = nullptr;
     ui::ImageView *m_image = nullptr;
     ui::Label *m_title = nullptr;
     ui::ThemeIcon *m_icon = nullptr;
+    ui::ImageView *m_raster = nullptr;
     size_t m_stackCount = 1;
     std::unique_ptr<ui::Animation> m_entryAnimation;
     std::unique_ptr<ui::Animation> m_thumbnailAnimation;
