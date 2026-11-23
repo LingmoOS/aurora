@@ -8,26 +8,29 @@
 
 #include "shell/shell_window.h"
 #include "shell/shell_data.h"
+#include "shell/common/task_manager.h"
 #include "ui/button.h"
 #include "ui/animation.h"
 #include "ui/image_view.h"
+#include "ui/icon.h"
 #include "ui/label.h"
 #include "ui/painter.h"
 #include "ui/scroll_view.h"
 #include "ui/theme.h"
 #include "ui/view.h"
 #include "wm/stage/stage_manager.h"
+#include "wm/window.h"
 #include "wm/window_manager.h"
 
 namespace Lingmo::Shell {
 
 namespace {
 
-constexpr int kWidth = 176;
-constexpr int kCardHeight = 72;
-constexpr int kGap = 10;
-constexpr int kTop = 88;
-constexpr int kMargin = 10;
+constexpr int kWidth = 220;
+constexpr int kCardHeight = 112;
+constexpr int kGap = 12;
+constexpr int kMargin = 12;
+constexpr int kEdgeInset = 10;
 
 class Card final : public ui::View
 {
@@ -43,6 +46,8 @@ public:
         m_title->setVerticallyCentered(true);
         m_title->setElide(ui::Label::Elide::Right);
         m_title->setColor(ui::Color {255, 255, 255, 255});
+        m_icon = addChild<ui::ThemeIcon>("application-x-executable", 26);
+        m_icon->setColor(ui::Color {255, 255, 255, 255});
         setTracksHover(true);
     }
 
@@ -75,6 +80,17 @@ public:
     }
 
     void setTitle(std::string title) { m_title->setText(std::move(title)); }
+
+    void setApplicationIcon(std::string icon)
+    {
+        m_icon->setIconName(icon.empty() ? "application-x-executable" : std::move(icon));
+    }
+
+    void setStackCount(size_t count)
+    {
+        m_stackCount = std::min<size_t>(count, 3);
+        requestPaint();
+    }
 
 protected:
     void pointerPress(const ui::PointerEvent &event) override
@@ -111,8 +127,9 @@ protected:
 
     void layout() override
     {
-        m_image->setGeometry({6, 6, geometry().width - 12, geometry().height - 28});
-        m_title->setGeometry({8, geometry().height - 23, geometry().width - 16, 19});
+        m_image->setGeometry({8, 8, geometry().width - 16, geometry().height - 34});
+        m_title->setGeometry({44, geometry().height - 27, geometry().width - 52, 20});
+        m_icon->setGeometry({10, geometry().height - 32, 26, 26});
     }
 
     void paint(ui::Painter &painter) override
@@ -120,6 +137,17 @@ protected:
         const auto &theme = ui::Theme::current();
         const ui::Color fill = m_selected ? theme.highlight.withAlpha(0.24)
                                          : theme.secondBackground.withAlpha(0.88);
+        for (size_t i = m_stackCount; i > 1; --i) {
+            const double offset = double(i - 1) * 4;
+            const ui::RectF back {offset, offset, geometry().width - offset,
+                                  geometry().height - offset};
+            painter.drawShadow(back, theme.mediumRadius, 8,
+                               ui::Color {0, 0, 0, 90}, {0, 2});
+            painter.fillRoundedRect(back, theme.mediumRadius,
+                                    theme.secondBackground.withAlpha(0.68));
+        }
+        painter.drawShadow(localRect(), theme.mediumRadius, 12,
+                           ui::Color {0, 0, 0, 100}, {0, 3});
         painter.fillRoundedRect(localRect(), theme.mediumRadius, fill);
         if (m_selected)
             painter.drawRoundedRect(localRect(), {theme.mediumRadius, 0, ui::Corners::Continuous},
@@ -130,6 +158,8 @@ private:
     bool m_selected = false;
     ui::ImageView *m_image = nullptr;
     ui::Label *m_title = nullptr;
+    ui::ThemeIcon *m_icon = nullptr;
+    size_t m_stackCount = 1;
     std::optional<ui::PointF> m_press;
     bool m_dragged = false;
 };
@@ -151,28 +181,50 @@ public:
     void sync(const wm::StageManager::Snapshot &snapshot)
     {
         m_snapshot = snapshot;
-        while (m_cards.size() < m_snapshot.groups.size()) {
+        m_visibleGroups.clear();
+        for (const auto &group : m_snapshot.groups) {
+            const auto active = m_snapshot.active.find(group.output);
+            if (active == m_snapshot.active.end() || active->second != group.id)
+                m_visibleGroups.push_back(group);
+        }
+        while (m_cards.size() < m_visibleGroups.size()) {
             auto *card = m_content->addChild<Card>();
             m_cards.push_back(card);
         }
         for (size_t i = 0; i < m_cards.size(); ++i) {
-            const bool visible = i < m_snapshot.groups.size();
+            const bool visible = i < m_visibleGroups.size();
             m_cards[i]->setVisible(visible);
             if (!visible)
                 continue;
-            const auto &group = m_snapshot.groups[i];
-            const auto active = m_snapshot.active.find(group.output);
-            const bool selected = active != m_snapshot.active.end() && active->second == group.id;
-            m_cards[i]->setTitle("Stage " + std::to_string(i + 1));
-            m_cards[i]->setSelected(selected);
+            const auto &group = m_visibleGroups[i];
+            std::string title = "Stage " + std::to_string(i + 1);
+            std::string icon = "application-x-executable";
+            if (!group.windows.empty()) {
+                if (wm::Window *window = m_owner->m_shell->windowManager()->windowById(group.windows.front())) {
+                    if (!window->title().empty())
+                        title = window->title();
+                    if (!window->applicationId().empty())
+                        icon = window->applicationId();
+                    if (const auto entry = m_owner->m_shell->tasks().entryForWindow(window->id())) {
+                        if (!entry->name.empty())
+                            title = entry->name;
+                        if (!entry->icon.empty())
+                            icon = entry->icon;
+                    }
+                }
+            }
+            m_cards[i]->setTitle(std::move(title));
+            m_cards[i]->setApplicationIcon(std::move(icon));
+            m_cards[i]->setStackCount(group.windows.size());
+            m_cards[i]->setSelected(false);
             m_cards[i]->onClicked = [this, id = group.id] {
                 m_owner->m_shell->windowManager()->stageManager()->switchTo(id);
             };
             m_cards[i]->onDragOut = [this, id = group.id, groupIndex = i] {
-                if (groupIndex < m_snapshot.groups.size()
-                    && !m_snapshot.groups[groupIndex].windows.empty()) {
+                if (groupIndex < m_visibleGroups.size()
+                    && !m_visibleGroups[groupIndex].windows.empty()) {
                     m_owner->m_shell->windowManager()->stageManager()->separateWindow(
-                            m_snapshot.groups[groupIndex].windows.front());
+                            m_visibleGroups[groupIndex].windows.front());
                 }
             };
         }
@@ -182,14 +234,16 @@ public:
 
     void setThumbnail(wm::StageManager::Id group, const ui::Bitmap &bitmap)
     {
-        const auto it = std::find_if(m_snapshot.groups.begin(), m_snapshot.groups.end(),
+        const auto it = std::find_if(m_visibleGroups.begin(), m_visibleGroups.end(),
                                      [group](const auto &candidate) { return candidate.id == group; });
-        if (it == m_snapshot.groups.end())
+        if (it == m_visibleGroups.end())
             return;
-        const size_t index = size_t(it - m_snapshot.groups.begin());
+        const size_t index = size_t(it - m_visibleGroups.begin());
         if (index < m_cards.size())
             m_cards[index]->setThumbnail(bitmap);
     }
+
+    size_t visibleGroupCount() const { return m_visibleGroups.size(); }
 
 protected:
     void layout() override
@@ -198,7 +252,7 @@ protected:
         const double visibleHeight = geometry().height - 2 * kMargin;
         m_scroll->setGeometry({kMargin, kMargin, width - 2 * kMargin, visibleHeight});
         m_content->setGeometry({0, 0, width - 2 * kMargin,
-                                double(m_cards.size()) * (kCardHeight + kGap)});
+                                double(m_visibleGroups.size()) * (kCardHeight + kGap)});
         for (size_t i = 0; i < m_cards.size(); ++i) {
             if (!m_cards[i]->isVisible())
                 continue;
@@ -217,6 +271,7 @@ protected:
 private:
     StageWindow *m_owner;
     wm::StageManager::Snapshot m_snapshot;
+    std::vector<wm::StageManager::Group> m_visibleGroups;
     ui::ScrollView *m_scroll = nullptr;
     ui::View *m_content = nullptr;
     std::vector<Card *> m_cards;
@@ -330,22 +385,25 @@ void StageWindow::place()
     const Shell::Output *output = m_shell->output({});
     if (!output)
         return;
+    const base::Rect workArea = m_shell->workArea(*output);
+    if (workArea.isEmpty())
+        return;
     const int height = std::clamp(kCardHeight + 2 * kMargin,
                                   kCardHeight + 2 * kMargin,
-                                  output->bounds.height() - kTop - kMargin);
+                                  workArea.height() - 2 * kEdgeInset);
     m_window->setOutput(output->name);
-    const int stripHeight = std::min(output->bounds.height() - kTop - kMargin,
-                                     std::max(height, int(m_snapshot.groups.size())
+    const int stripHeight = std::min(workArea.height() - 2 * kEdgeInset,
+                                     std::max(height, int(m_view->visibleGroupCount())
                                                               * (kCardHeight + kGap)
                                                               + 2 * kMargin));
-    m_window->setGeometry({output->bounds.left() + kMargin, output->bounds.top() + kTop,
+    m_window->setGeometry({workArea.left() + kEdgeInset, workArea.top() + kEdgeInset,
                            kWidth, stripHeight});
 }
 
 void StageWindow::updateVisibility()
 {
     const bool shouldShow = m_userVisible && m_snapshot.enabled && !m_snapshot.blocked
-            && !m_snapshot.groups.empty();
+            && m_view && m_view->visibleGroupCount() > 0;
     if (m_visibilityAnimation)
         m_visibilityAnimation->stop();
 

@@ -41,9 +41,15 @@ Current implementation checks:
   Command convention; it is disabled while the session is blocked.
 - The Stage strip visibility transition uses the existing SDK frame animation
   and can reverse direction from its current opacity when state changes again.
-- Aurora's Stage strip has scrollable group cards and requests bounded still
-  previews through the existing compositor ScreenGrabber. It does not refresh
-  hidden group previews continuously.
+- Aurora's Stage strip follows the left-side reference layout: the active group
+  is omitted from the recent list, background groups show bounded still
+  previews with stacked-card depth, an application icon and a title, and the
+  strip follows the current work area. It requests previews through the
+  existing compositor ScreenGrabber and does not refresh hidden group previews
+  continuously.
+- Launcher Dock toggles now have a short activation-settling guard so pointer
+  movement away from the Dock icon cannot dismiss the newly opened launcher;
+  explicit background clicks, Escape and application launch still dismiss it.
 - The full `accelerator_test` suite reports 43/49 passing. Six failures are in
   shortcut replacement/conflict assertions, client key delivery, or service
   tests that cannot register because this run has no session bus. The

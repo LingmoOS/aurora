@@ -16,6 +16,7 @@
 namespace Lingmo::ui {
 class Button;
 class Animation;
+class ThemeIcon;
 }
 
 namespace Lingmo::Shell {
