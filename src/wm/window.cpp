@@ -444,6 +444,18 @@ void Window::setDeskHidden(bool hidden)
     onEffectiveVisibilityChanged(wasVisible);
 }
 
+void Window::setStageHidden(bool hidden)
+{
+    if (hidden == m_stageHidden)
+        return;
+    const bool wasVisible = isVisible();
+    m_stageHidden = hidden;
+    forEachObserver(this, m_observers, [this](WindowObserver *observer) {
+        observer->onWindowStageHiddenChanged(this);
+    });
+    onEffectiveVisibilityChanged(wasVisible);
+}
+
 void Window::onEffectiveVisibilityChanged(bool wasVisible)
 {
     const bool visible = isVisible();

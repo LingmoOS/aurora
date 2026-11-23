@@ -298,7 +298,7 @@ public:
     // False while minimized, hidden or on a desk that is not active. An
     // invisible window is not rendered and is not hit tested; its surface and
     // state stay alive. Upstream: aura::Window::IsVisible.
-    bool isVisible() const { return m_visible && !m_deskHidden; }
+    bool isVisible() const { return m_visible && !m_deskHidden && !m_stageHidden; }
 
     // The window's own visibility, whatever its desk: a window on an inactive
     // desk can still be activated, which brings its desk up.
@@ -312,6 +312,9 @@ public:
     bool isDeskHidden() const { return m_deskHidden; }
 
     void setDeskHidden(bool hidden);
+
+    bool isStageHidden() const { return m_stageHidden; }
+    void setStageHidden(bool hidden);
 
     // Hidden by the shell: off screen at once, with no animation and no
     // thumbnail, and orthogonal to the state type. A minimized window that is
@@ -518,6 +521,7 @@ private:
     bool m_visible = true;
     bool m_hidden = false;
     bool m_deskHidden = false;
+    bool m_stageHidden = false;
     bool m_active = false;
     bool m_resizing = false;
     bool m_dragged = false;
