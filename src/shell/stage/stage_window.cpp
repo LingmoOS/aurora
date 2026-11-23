@@ -195,21 +195,27 @@ protected:
 
     void pointerPress(const ui::PointerEvent &event) override
     {
+        if (m_dragAnimation)
+            m_dragAnimation->stop();
         m_press = event.position;
+        m_pressWindow = mapToWindow(event.position);
         m_dragged = false;
+        m_dragOffset = {};
+        setOpacity(1);
     }
 
     void pointerMove(const ui::PointerEvent &event) override
     {
         if (m_press && !m_dragged) {
-            const double dx = event.position.x - m_press->x;
-            const double dy = event.position.y - m_press->y;
+            const ui::PointF position = mapToWindow(event.position);
+            const double dx = position.x - m_pressWindow.x;
+            const double dy = position.y - m_pressWindow.y;
             if (std::hypot(dx, dy) >= 12)
                 m_dragged = true;
         }
         if (m_dragged) {
-            m_dragOffset = {event.position.x - m_press->x,
-                            event.position.y - m_press->y};
+            const ui::PointF position = mapToWindow(event.position);
+            m_dragOffset = {position.x - m_pressWindow.x, position.y - m_pressWindow.y};
             applyTransform();
             setOpacity(0.78);
         }
@@ -218,15 +224,16 @@ protected:
     void pointerRelease(const ui::PointerEvent &event) override
     {
         const bool dragged = m_dragged;
+        const bool draggedOut = dragged && event.position.x < 0;
         m_press.reset();
         m_dragged = false;
-        m_dragOffset = {};
-        applyTransform();
-        setOpacity(1);
         if (dragged) {
-            if (event.position.x < 0 && onDragOut)
+            if (draggedOut && onDragOut)
                 onDragOut();
+            animateDragReset();
         } else if (event.button == ui::MouseButton::Left && onClicked) {
+            m_dragOffset = {};
+            applyTransform();
             onClicked();
         }
     }
@@ -263,6 +270,33 @@ protected:
     }
 
 private:
+    void animateDragReset()
+    {
+        const ui::PointF from = m_dragOffset;
+        if (!window() || (from.x == 0 && from.y == 0)) {
+            m_dragOffset = {};
+            applyTransform();
+            setOpacity(1);
+            return;
+        }
+        if (!m_dragAnimation)
+            m_dragAnimation = std::make_unique<ui::Animation>(window());
+        m_dragAnimation->stop();
+        m_dragAnimation->setDuration(std::chrono::milliseconds(190));
+        m_dragAnimation->setEasing(ui::Animation::Easing::OutCubic);
+        m_dragAnimation->onUpdate = [this, from](double progress) {
+            m_dragOffset = from * (1 - progress);
+            applyTransform();
+            setOpacity(.78 + .22 * progress);
+        };
+        m_dragAnimation->onFinished = [this] {
+            m_dragOffset = {};
+            applyTransform();
+            setOpacity(1);
+        };
+        m_dragAnimation->start();
+    }
+
     void animateThumbnail()
     {
         m_raster->setOpacity(0);
@@ -319,9 +353,11 @@ private:
     std::unique_ptr<ui::Animation> m_entryAnimation;
     std::unique_ptr<ui::Animation> m_thumbnailAnimation;
     std::unique_ptr<ui::Animation> m_hoverAnimation;
+    std::unique_ptr<ui::Animation> m_dragAnimation;
     double m_entryProgress = 1;
     double m_hoverProgress = 0;
     std::optional<ui::PointF> m_press;
+    ui::PointF m_pressWindow;
     ui::PointF m_dragOffset;
     bool m_dragged = false;
 };
