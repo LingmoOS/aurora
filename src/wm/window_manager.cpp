@@ -1590,7 +1590,7 @@ Window *WindowManager::frameAt(const base::PointF &location, FrameArea *area) co
 
     for (auto it = m_stackingOrder.rbegin(); it != m_stackingOrder.rend(); ++it) {
         Window *window = *it;
-        if (!window->isVisible())
+        if (!window->isVisible() || window->isStageTransitioning())
             continue;
 
         // Moved aside, or sliding: the frame's pixels are elsewhere than its bounds.
@@ -1637,7 +1637,7 @@ Window *WindowManager::resizeHandleAt(const base::PointF &location, bool touch, 
 
     for (auto it = m_stackingOrder.rbegin(); it != m_stackingOrder.rend(); ++it) {
         Window *window = *it;
-        if (!window->isVisible())
+        if (!window->isVisible() || window->isStageTransitioning())
             continue;
 
         // Checked before the window's own area: the handles reach a pixel in.

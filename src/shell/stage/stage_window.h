@@ -51,6 +51,7 @@ private:
     bool m_userVisible = true;
     std::unique_ptr<ScreenGrabber> m_grabber;
     std::unique_ptr<ui::Animation> m_visibilityAnimation;
+    double m_visibilityProgress = 0;
     std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
     std::map<wm::StageManager::Id, uint64_t> m_captured;
     bool m_capturePending = false;

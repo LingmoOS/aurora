@@ -4,12 +4,14 @@
 #pragma once
 
 #include <cstdint>
+#include <chrono>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "base/geometry.h"
 #include "base/signal.h"
+#include "base/timer.h"
 #include "wm/activation.h"
 #include "wm/desks/desks_controller.h"
 #include "wm/window_observer.h"
@@ -103,6 +105,9 @@ private:
     void prune();
     void reconcile(Window *preferred = nullptr, bool focus = false);
     void publish();
+    void beginTransition(Id target, Window *preferred, bool focus);
+    void tickTransition();
+    void finishTransition();
     Window *candidate(const Group &group) const;
     std::map<std::string, Id> &active();
 
@@ -118,6 +123,23 @@ private:
     std::map<uint32_t, std::map<std::string, Id>> m_active;
     std::map<Id, Home> m_homes;
     std::vector<Output> m_outputs;
+
+    struct Motion {
+        Window *window = nullptr;
+        base::Point fromOffset;
+        base::Point toOffset;
+        double fromScale = 1;
+        double toScale = 1;
+        float fromOpacity = 1;
+        float toOpacity = 1;
+        bool outgoing = false;
+    };
+    base::Timer m_transitionTimer;
+    std::chrono::steady_clock::time_point m_transitionStarted;
+    std::vector<Motion> m_transition;
+    Window *m_transitionPreferred = nullptr;
+    bool m_transitionFocus = true;
+    bool m_transitionActive = false;
 };
 
 } // namespace Lingmo::WM

@@ -63,12 +63,65 @@ public:
         m_image->setPixels(bitmap.width(), bitmap.height(),
                            reinterpret_cast<const uint32_t *>(bitmap.constBits()),
                            bitmap.stride(), true);
+        m_image->setOpacity(0);
+        m_image->setTransform({{-12, 0}, .84});
+        if (window()) {
+            if (!m_thumbnailAnimation)
+                m_thumbnailAnimation = std::make_unique<ui::Animation>(window());
+            m_thumbnailAnimation->stop();
+            m_thumbnailAnimation->setDuration(std::chrono::milliseconds(220));
+            m_thumbnailAnimation->setEasing(ui::Animation::Easing::OutCubic);
+            m_thumbnailAnimation->onUpdate = [this](double progress) {
+                m_image->setOpacity(progress);
+                m_image->setTransform({{-12 * (1 - progress), 0},
+                                       .84 + .16 * progress});
+            };
+            m_thumbnailAnimation->onFinished = [this] {
+                m_image->setOpacity(1);
+                m_image->setTransform({{}, 1});
+            };
+            m_thumbnailAnimation->start();
+        } else {
+            m_image->setOpacity(1);
+            m_image->setTransform({{}, 1});
+        }
         requestPaint();
     }
 
     void clearThumbnail()
     {
         m_image->setSource({});
+        m_image->setOpacity(1);
+        m_image->setTransform({{}, 1});
+    }
+
+    void animateIn()
+    {
+        m_entryProgress = 0;
+        applyTransform();
+        setOpacity(0);
+        if (!window()) {
+            m_entryProgress = 1;
+            applyTransform();
+            setOpacity(1);
+            return;
+        }
+        if (!m_entryAnimation)
+            m_entryAnimation = std::make_unique<ui::Animation>(window());
+        m_entryAnimation->stop();
+        m_entryAnimation->setDuration(std::chrono::milliseconds(240));
+        m_entryAnimation->setEasing(ui::Animation::Easing::OutCubic);
+        m_entryAnimation->onUpdate = [this](double progress) {
+            m_entryProgress = progress;
+            setOpacity(progress);
+            applyTransform();
+        };
+        m_entryAnimation->onFinished = [this] {
+            m_entryProgress = 1;
+            setOpacity(1);
+            applyTransform();
+        };
+        m_entryAnimation->start();
     }
 
     void setSelected(bool selected)
@@ -93,6 +146,25 @@ public:
     }
 
 protected:
+    void hoverChanged() override
+    {
+        if (!m_hoverAnimation) {
+            if (!window())
+                return;
+            m_hoverAnimation = std::make_unique<ui::Animation>(window());
+            m_hoverAnimation->setDuration(std::chrono::milliseconds(140));
+            m_hoverAnimation->setEasing(ui::Animation::Easing::OutCubic);
+        }
+        m_hoverAnimation->stop();
+        const double from = m_hoverProgress;
+        const double to = isHovered() ? 1.0 : 0.0;
+        m_hoverAnimation->onUpdate = [this, from, to](double progress) {
+            m_hoverProgress = from + (to - from) * progress;
+            applyTransform();
+        };
+        m_hoverAnimation->start();
+    }
+
     void pointerPress(const ui::PointerEvent &event) override
     {
         m_press = event.position;
@@ -107,8 +179,12 @@ protected:
             if (std::hypot(dx, dy) >= 12)
                 m_dragged = true;
         }
-        if (m_dragged)
+        if (m_dragged) {
+            m_dragOffset = {event.position.x - m_press->x,
+                            event.position.y - m_press->y};
+            applyTransform();
             setOpacity(0.78);
+        }
     }
 
     void pointerRelease(const ui::PointerEvent &event) override
@@ -116,6 +192,8 @@ protected:
         const bool dragged = m_dragged;
         m_press.reset();
         m_dragged = false;
+        m_dragOffset = {};
+        applyTransform();
         setOpacity(1);
         if (dragged) {
             if (event.position.x < 0 && onDragOut)
@@ -155,12 +233,27 @@ protected:
     }
 
 private:
+    void applyTransform()
+    {
+        const double entryScale = .94 + .06 * m_entryProgress;
+        const double scale = entryScale * (1.0 + .035 * m_hoverProgress);
+        const double entryOffset = -18 * (1 - m_entryProgress);
+        setTransform({{-geometry().width * (scale - 1) / 2 + entryOffset + m_dragOffset.x,
+                       -geometry().height * (scale - 1) / 2 + m_dragOffset.y}, scale});
+    }
+
     bool m_selected = false;
     ui::ImageView *m_image = nullptr;
     ui::Label *m_title = nullptr;
     ui::ThemeIcon *m_icon = nullptr;
     size_t m_stackCount = 1;
+    std::unique_ptr<ui::Animation> m_entryAnimation;
+    std::unique_ptr<ui::Animation> m_thumbnailAnimation;
+    std::unique_ptr<ui::Animation> m_hoverAnimation;
+    double m_entryProgress = 1;
+    double m_hoverProgress = 0;
     std::optional<ui::PointF> m_press;
+    ui::PointF m_dragOffset;
     bool m_dragged = false;
 };
 
@@ -193,9 +286,12 @@ public:
         }
         for (size_t i = 0; i < m_cards.size(); ++i) {
             const bool visible = i < m_visibleGroups.size();
+            const bool wasVisible = m_cards[i]->isVisible();
             m_cards[i]->setVisible(visible);
             if (!visible)
                 continue;
+            if (!wasVisible)
+                m_cards[i]->animateIn();
             const auto &group = m_visibleGroups[i];
             std::string title = "Stage " + std::to_string(i + 1);
             std::string icon = "application-x-executable";
@@ -407,11 +503,13 @@ void StageWindow::updateVisibility()
     if (m_visibilityAnimation)
         m_visibilityAnimation->stop();
 
-    double from = m_view->opacity();
+    double from = m_visibilityProgress;
     const double to = shouldShow ? 1.0 : 0.0;
     if (shouldShow && !m_window->isShown()) {
         from = 0;
+        m_visibilityProgress = 0;
         m_view->setOpacity(0);
+        m_view->setTransform({{-kWidth * .82, 0}, 1});
         m_window->show();
         m_view->setEnabled(true);
     } else if (shouldShow) {
@@ -420,10 +518,11 @@ void StageWindow::updateVisibility()
         m_view->setEnabled(false);
         if (!m_window->isShown()) {
             m_view->setOpacity(0);
+            m_view->setTransform({{-kWidth * .82, 0}, 1});
             return;
         }
     }
-    from = m_view->opacity();
+    from = m_visibilityProgress;
     if (!shouldShow && from == 0) {
         m_window->hide();
         return;
@@ -436,10 +535,14 @@ void StageWindow::updateVisibility()
     m_visibilityAnimation->setDuration(std::chrono::milliseconds(150));
     m_visibilityAnimation->setEasing(ui::Animation::Easing::OutCubic);
     m_visibilityAnimation->onUpdate = [this, from, to](double progress) {
-        m_view->setOpacity(from + (to - from) * progress);
+        m_visibilityProgress = from + (to - from) * progress;
+        m_view->setOpacity(m_visibilityProgress);
+        m_view->setTransform({{(m_visibilityProgress - 1) * kWidth * .82, 0}, 1});
     };
     m_visibilityAnimation->onFinished = [this, shouldShow] {
-        m_view->setOpacity(shouldShow ? 1.0 : 0.0);
+        m_visibilityProgress = shouldShow ? 1.0 : 0.0;
+        m_view->setOpacity(m_visibilityProgress);
+        m_view->setTransform({{(m_visibilityProgress - 1) * kWidth * .82, 0}, 1});
         if (!shouldShow && m_window->isShown())
             m_window->hide();
     };

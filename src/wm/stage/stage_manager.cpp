@@ -4,9 +4,11 @@
 #include "wm/stage/stage_manager.h"
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include "base/auto_reset.h"
+#include "core/main_loop.h"
 #include "display/display_manager.h"
 #include "wm/desks/desk.h"
 #include "wm/mru_window_tracker.h"
@@ -20,14 +22,20 @@
 
 namespace Lingmo::WM {
 
-StageManager::StageManager(WindowManager *manager) : m_manager(manager)
+StageManager::StageManager(WindowManager *manager)
+    : m_manager(manager)
+    , m_transitionTimer(core::mainLoop())
 {
+    m_transitionTimer.setInterval(std::chrono::milliseconds(16));
+    m_transitionTimer.onTimeout = [this] { tickTransition(); };
     m_manager->desks()->addObserver(this);
     m_manager->activation()->addObserver(this);
 }
 
 StageManager::~StageManager()
 {
+    finishTransition();
+    m_transitionTimer.stop();
     m_manager->desks()->removeObserver(this);
     m_manager->activation()->removeObserver(this);
     for (Window *window : m_manager->windows())
@@ -158,10 +166,130 @@ void StageManager::publish()
     changed(snapshot());
 }
 
+void StageManager::beginTransition(Id target, Window *preferred, bool focus)
+{
+    finishTransition();
+    m_transitionPreferred = preferred;
+    m_transitionFocus = focus;
+    const Group *destination = find(target);
+    if (!destination)
+        return;
+
+    m_transition.clear();
+    m_transitionActive = true;
+    m_manager->activation()->beginVisibilityUpdate();
+    for (Window *window : m_manager->windows()) {
+        const Group *group = find(groupFor(window));
+        if (!group || group->desk != destination->desk || group->output != destination->output)
+            continue;
+        const bool incoming = group->id == target
+                && (window->isStageHidden() || window == preferred);
+        const bool outgoing = group->id != target && !window->isStageHidden();
+        if (!incoming && !outgoing)
+            continue;
+
+        const base::Rect bounds = window->bounds();
+        const base::Rect workArea = m_manager->workAreaFor(window);
+        const int leftOffset = workArea.left() - bounds.right() - 32;
+        const int entering = -std::min(220, std::max(80, bounds.width() / 3));
+        Motion motion;
+        motion.window = window;
+        motion.outgoing = outgoing;
+        motion.fromOffset = outgoing ? base::Point() : base::Point(entering, 0);
+        motion.toOffset = outgoing ? base::Point(leftOffset, 0) : base::Point();
+        motion.fromScale = outgoing ? 1.0 : .92;
+        motion.toScale = outgoing ? .90 : 1.0;
+        motion.fromOpacity = outgoing ? window->opacity() : 0;
+        motion.toOpacity = outgoing ? 0 : window->opacity();
+        m_transition.push_back(motion);
+
+        window->setStageTransitioning(true);
+        if (incoming) {
+            window->setStageHidden(false);
+        } else if (outgoing) {
+            window->setStageHidden(true);
+        }
+        const base::PointF anchor(bounds.width() / 2.0, bounds.height() / 2.0);
+        window->setPresentationOffset(motion.fromOffset);
+        window->setPresentationScale(motion.fromScale, anchor, false);
+        window->setOpacity(motion.fromOpacity);
+    }
+    m_manager->activation()->endVisibilityUpdate(focus, preferred);
+    if (m_transition.empty()) {
+        m_transitionActive = false;
+        reconcile(preferred, focus);
+        return;
+    }
+    m_transitionStarted = std::chrono::steady_clock::now();
+    m_transitionTimer.start();
+    tickTransition();
+}
+
+void StageManager::tickTransition()
+{
+    if (!m_transitionActive)
+        return;
+    constexpr double duration = 280.0;
+    const double elapsed = std::chrono::duration<double, std::milli>(
+                                   std::chrono::steady_clock::now() - m_transitionStarted)
+                                   .count();
+    const double linear = std::clamp(elapsed / duration, 0.0, 1.0);
+    const double progress = 1 - std::pow(1 - linear, 3);
+    for (const Motion &motion : m_transition) {
+        Window *window = motion.window;
+        if (!m_manager->hasWindow(window))
+            continue;
+        const auto interpolate = [progress](int from, int to) {
+            return int(std::lround(from + (to - from) * progress));
+        };
+        const base::Point offset(interpolate(motion.fromOffset.x(), motion.toOffset.x()),
+                                 interpolate(motion.fromOffset.y(), motion.toOffset.y()));
+        const double scale = motion.fromScale + (motion.toScale - motion.fromScale) * progress;
+        const float opacity = float(motion.fromOpacity
+                                    + (motion.toOpacity - motion.fromOpacity) * progress);
+        window->setPresentationOffset(offset);
+        window->setPresentationScale(scale,
+                                     {window->bounds().width() / 2.0, window->bounds().height() / 2.0},
+                                     false);
+        window->setOpacity(opacity);
+    }
+    if (linear >= 1)
+        finishTransition();
+}
+
+void StageManager::finishTransition()
+{
+    if (!m_transitionActive)
+        return;
+    m_transitionTimer.stop();
+    const auto motions = std::move(m_transition);
+    Window *preferred = m_transitionPreferred;
+    const bool focus = m_transitionFocus;
+    m_transitionPreferred = nullptr;
+    m_transitionActive = false;
+    for (const Motion &motion : motions) {
+        Window *window = motion.window;
+        if (!m_manager->hasWindow(window))
+            continue;
+        window->setPresentationOffset({});
+        window->setPresentationScale(1,
+                                     {window->bounds().width() / 2.0, window->bounds().height() / 2.0},
+                                     false);
+        window->setOpacity(motion.outgoing ? motion.fromOpacity : motion.toOpacity);
+    }
+    reconcile(preferred, focus);
+    for (const Motion &motion : motions) {
+        if (m_manager->hasWindow(motion.window))
+            motion.window->setStageTransitioning(false);
+    }
+}
+
 void StageManager::setEnabled(bool enabled)
 {
     if (m_enabled == enabled || m_updating || (!m_manager->allowsActivation() && enabled))
         return;
+    if (m_transitionActive)
+        finishTransition();
     m_enabled = enabled;
     if (enabled) {
         m_outputs = outputs();
@@ -245,7 +373,7 @@ void StageManager::prune()
 
 void StageManager::reconcile(Window *preferred, bool focus)
 {
-    if (m_updating)
+    if (m_updating || m_transitionActive)
         return;
     const base::AutoReset updating(m_updating, true);
     prune();
@@ -265,17 +393,22 @@ bool StageManager::switchTo(Id id, bool focus)
     if (!m_enabled || m_updating || m_blocked || !m_manager->allowsActivation()
         || m_outputChanging || m_manager->overview()->isActive())
         return false;
+    if (m_transitionActive)
+        finishTransition();
     Group *group = find(id);
     if (!group || group->desk != m_manager->desks()->activeDesk()->id())
         return false;
     if (m_manager->eventHandler()->draggedWindow())
         return false;
-    m_manager->showDesktop()->exitImmediately();
+    // Return from Show Desktop with its existing frame-driven animation. The
+    // transition marks its own windows so the two presentation transforms do
+    // not race during the overlap.
+    m_manager->showDesktop()->exit();
     m_manager->dismissPopupGrabs();
     group->lastUsed = ++m_clock;
     active()[group->output] = id;
     Window *target = candidate(*group);
-    reconcile(target, focus);
+    beginTransition(id, target, focus);
     publish();
     return true;
 }
@@ -291,9 +424,14 @@ bool StageManager::moveWindow(uint64_t id, Id target)
     const Id previous = groupFor(window);
     if (previous == target)
         return true;
+    const std::string currentOutput = outputFor(window);
     const std::string output = destination->output;
     if (Group *old = find(previous))
         std::erase(old->windows, window->id());
+    // Removing the last family from its previous group must be visible in the
+    // same transaction as the join; otherwise observers briefly receive an
+    // empty group and may render a phantom thumbnail.
+    prune();
     Group *group = find(target);
     group->windows.push_back(window->id());
     group->lastActive = window->id();
@@ -303,7 +441,6 @@ bool StageManager::moveWindow(uint64_t id, Id target)
     m_active[group->desk][output] = target;
     // A cross-output drop translates the family only once. Same-output joins
     // do not request any geometry from the client.
-    const std::string currentOutput = outputFor(window);
     if (currentOutput != output) {
         const auto from = std::find_if(m_outputs.begin(), m_outputs.end(), [&](const Output &o) { return o.id == currentOutput; });
         const auto to = std::find_if(m_outputs.begin(), m_outputs.end(), [&](const Output &o) { return o.id == output; });
@@ -313,7 +450,10 @@ bool StageManager::moveWindow(uint64_t id, Id target)
             window->requestBounds(window->bounds().translated(delta));
         }
     }
-    reconcile(window, window->targetVisibility() && !window->state()->isMinimized());
+    // The destination transition treats the joined window as an incoming
+    // member and hides its client surface until the presentation settles.
+    beginTransition(target, window,
+                    window->targetVisibility() && !window->state()->isMinimized());
     publish();
     return true;
 }
@@ -334,7 +474,7 @@ bool StageManager::separateWindow(uint64_t id)
     // Leave the remaining task in front; the detached window goes to the strip.
     m_active[m_manager->desks()->deskOf(window)->id()][output] = oldId;
     Window *target = candidate(*find(oldId));
-    reconcile(target, true);
+    beginTransition(oldId, target, true);
     publish();
     return true;
 }
@@ -360,6 +500,8 @@ void StageManager::onWindowAdded(Window *window)
 {
     if (!m_enabled)
         return;
+    if (m_transitionActive)
+        finishTransition();
     window->addObserver(this);
     adopt(window);
     reconcile();
@@ -368,6 +510,8 @@ void StageManager::onWindowAdded(Window *window)
 
 void StageManager::onWindowRemoving(Window *window)
 {
+    if (m_transitionActive)
+        finishTransition();
     window->removeObserver(this);
     const Id removedGroup = groupFor(window);
     if (Group *group = find(removedGroup))
@@ -384,7 +528,7 @@ void StageManager::onWindowRemoving(Window *window)
 
 void StageManager::prepareActivation(Window *window)
 {
-    if (!m_enabled || m_updating || m_blocked)
+    if (!m_enabled || m_updating || m_blocked || m_transitionActive)
         return;
     adopt(window);
     if (Group *group = find(groupFor(window))) {
