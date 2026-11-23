@@ -1,3 +1,10 @@
+lingmo-aurora (5.1.6+lingmo5u1) unstable; urgency=medium
+
+  * Refine the Stage Manager strip layout and capture hidden-window thumbnails
+    for background groups without changing their visibility or input state.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 24 Nov 2026 05:34:51 +0800
+
 lingmo-aurora (5.1.5+lingmo5u1) unstable; urgency=medium
 
   * Add independent Stage Manager groups with WM-owned visibility, focus
