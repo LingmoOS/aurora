@@ -53,7 +53,12 @@ private:
     std::unique_ptr<ui::Animation> m_visibilityAnimation;
     double m_visibilityProgress = 0;
     std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
+    struct Thumbnail {
+        uint64_t revision = 0;
+        ui::Bitmap bitmap;
+    };
     std::map<wm::StageManager::Id, uint64_t> m_captured;
+    std::map<wm::StageManager::Id, Thumbnail> m_thumbnails;
     bool m_capturePending = false;
 };
 

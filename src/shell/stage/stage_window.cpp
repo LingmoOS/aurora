@@ -7,7 +7,6 @@
 #include <chrono>
 
 #include "shell/shell_window.h"
-#include "shell/shell_data.h"
 #include "shell/common/task_manager.h"
 #include "ui/button.h"
 #include "ui/animation.h"
@@ -27,10 +26,10 @@ namespace Lingmo::Shell {
 
 namespace {
 
-constexpr int kWidth = 220;
+constexpr int kWidth = 190;
 constexpr int kCardHeight = 112;
 constexpr int kGap = 12;
-constexpr int kMargin = 12;
+constexpr int kMargin = 8;
 constexpr int kEdgeInset = 10;
 
 class Card final : public ui::View
@@ -49,7 +48,8 @@ public:
         m_title->setElide(ui::Label::Elide::Right);
         m_title->setColor(ui::Color {255, 255, 255, 255});
         m_icon = m_face->addChild<ui::ThemeIcon>("application-x-executable", 26);
-        m_icon->setColor(ui::Color {255, 255, 255, 255});
+        m_placeholder = m_face->addChild<ui::ThemeIcon>("application-x-executable", 44);
+        m_placeholder->setOpacity(.76);
         m_raster = addChild<ui::ImageView>();
         m_raster->setFillMode(ui::ImageView::FillMode::Stretch);
         m_raster->setVisible(false);
@@ -61,13 +61,34 @@ public:
 
     bool acceptsPointer() const override { return true; }
 
-    void setThumbnail(const ui::Bitmap &bitmap)
+    void setGroup(wm::StageManager::Id group)
     {
-        if (bitmap.isNull())
+        if (m_group == group)
             return;
+        m_group = group;
+        m_thumbnailGroup = 0;
+        m_thumbnailRevision = 0;
+        m_thumbnailPending = false;
+        if (m_thumbnailAnimation)
+            m_thumbnailAnimation->stop();
+        m_raster->setOpacity(1);
+        m_raster->setTransform({{}, 1});
+        m_image->setSource({});
+        m_placeholder->setVisible(true);
+        invalidateFace();
+    }
+
+    void setThumbnail(wm::StageManager::Id group, uint64_t revision, const ui::Bitmap &bitmap)
+    {
+        if (bitmap.isNull()
+            || (m_thumbnailGroup == group && m_thumbnailRevision == revision))
+            return;
+        m_thumbnailGroup = group;
+        m_thumbnailRevision = revision;
         m_image->setPixels(bitmap.width(), bitmap.height(),
                            reinterpret_cast<const uint32_t *>(bitmap.constBits()),
                            bitmap.stride(), true);
+        m_placeholder->setVisible(false);
         m_thumbnailPending = true;
         invalidateFace();
         requestPaint();
@@ -76,6 +97,9 @@ public:
     void clearThumbnail()
     {
         m_image->setSource({});
+        m_thumbnailGroup = 0;
+        m_thumbnailRevision = 0;
+        m_placeholder->setVisible(true);
         m_thumbnailPending = false;
         if (m_thumbnailAnimation)
             m_thumbnailAnimation->stop();
@@ -130,9 +154,10 @@ public:
     void setApplicationIcon(std::string icon)
     {
         icon = icon.empty() ? "application-x-executable" : std::move(icon);
-        if (icon == m_icon->iconName())
+        if (icon == m_icon->iconName() && icon == m_placeholder->iconName())
             return;
         m_icon->setIconName(std::move(icon));
+        m_placeholder->setIconName(m_icon->iconName());
         invalidateFace();
     }
 
@@ -244,6 +269,8 @@ protected:
         m_image->setGeometry({8, 8, geometry().width - 16, geometry().height - 34});
         m_title->setGeometry({44, geometry().height - 27, geometry().width - 52, 20});
         m_icon->setGeometry({10, geometry().height - 32, 26, 26});
+        m_placeholder->setGeometry({(geometry().width - 44) / 2,
+                                    8 + (geometry().height - 34 - 44) / 2, 44, 44});
         m_raster->setGeometry(localRect());
     }
 
@@ -251,7 +278,7 @@ protected:
     {
         const auto &theme = ui::Theme::current();
         const ui::Color fill = m_selected ? theme.highlight.withAlpha(0.24)
-                                         : theme.secondBackground.withAlpha(0.88);
+                                         : theme.secondBackground.withAlpha(0.70);
         for (size_t i = m_stackCount; i > 1; --i) {
             const double offset = double(i - 1) * 4;
             const ui::RectF back {offset, offset, geometry().width - offset,
@@ -344,10 +371,14 @@ private:
     bool m_selected = false;
     bool m_faceDirty = true;
     bool m_thumbnailPending = false;
+    wm::StageManager::Id m_group = 0;
+    wm::StageManager::Id m_thumbnailGroup = 0;
+    uint64_t m_thumbnailRevision = 0;
     ui::View *m_face = nullptr;
     ui::ImageView *m_image = nullptr;
     ui::Label *m_title = nullptr;
     ui::ThemeIcon *m_icon = nullptr;
+    ui::ThemeIcon *m_placeholder = nullptr;
     ui::ImageView *m_raster = nullptr;
     size_t m_stackCount = 1;
     std::unique_ptr<ui::Animation> m_entryAnimation;
@@ -398,6 +429,7 @@ public:
             if (!wasVisible)
                 m_cards[i]->animateIn();
             const auto &group = m_visibleGroups[i];
+            m_cards[i]->setGroup(group.id);
             std::string title = "Stage " + std::to_string(i + 1);
             std::string icon = "application-x-executable";
             if (!group.windows.empty()) {
@@ -433,7 +465,7 @@ public:
         requestPaint();
     }
 
-    void setThumbnail(wm::StageManager::Id group, const ui::Bitmap &bitmap)
+    void setThumbnail(wm::StageManager::Id group, uint64_t revision, const ui::Bitmap &bitmap)
     {
         const auto it = std::find_if(m_visibleGroups.begin(), m_visibleGroups.end(),
                                      [group](const auto &candidate) { return candidate.id == group; });
@@ -441,7 +473,7 @@ public:
             return;
         const size_t index = size_t(it - m_visibleGroups.begin());
         if (index < m_cards.size())
-            m_cards[index]->setThumbnail(bitmap);
+            m_cards[index]->setThumbnail(group, revision, bitmap);
     }
 
     size_t visibleGroupCount() const { return m_visibleGroups.size(); }
@@ -460,13 +492,6 @@ protected:
             const double y = i * (kCardHeight + kGap);
             m_cards[i]->setGeometry({0, y, width - 4 * kMargin, kCardHeight});
         }
-    }
-
-    void paint(ui::Painter &painter) override
-    {
-        const auto &theme = ui::Theme::current();
-        painter.fillRoundedRect(localRect(), theme.hugeRadius,
-                                theme.background.withAlpha(0.82));
     }
 
 private:
@@ -489,11 +514,6 @@ StageWindow::StageWindow(Shell *shell, std::unique_ptr<ScreenGrabber> grabber)
     m_view = view.get();
     m_window->setContentView(std::move(view));
     m_window->setSize({kWidth, kCardHeight + 2 * kMargin});
-    m_window->setBackgroundBlur({0, 0, kWidth, kCardHeight + 2 * kMargin}, 18,
-                                popupGlass(ui::Theme::current().darkMode ? .10 : .92,
-                                           ui::Theme::current().darkMode ? .10 : .92,
-                                           ui::Theme::current().darkMode ? .12 : .94, .78));
-
     auto *manager = m_shell->windowManager()->stageManager();
     m_subscriptions.push_back(manager->changed.connect([this](wm::StageManager::Snapshot snapshot) {
         sync(snapshot);
@@ -531,8 +551,16 @@ void StageWindow::toggle()
 void StageWindow::sync(const wm::StageManager::Snapshot &snapshot)
 {
     m_snapshot = snapshot;
-    if (m_view)
+    if (m_view) {
         m_view->sync(snapshot);
+        for (const auto &group : snapshot.groups) {
+            const auto thumbnail = m_thumbnails.find(group.id);
+            if (thumbnail != m_thumbnails.end()) {
+                m_view->setThumbnail(group.id, thumbnail->second.revision,
+                                     thumbnail->second.bitmap);
+            }
+        }
+    }
     place();
     updateVisibility();
     refreshThumbnails();
@@ -542,16 +570,20 @@ void StageWindow::refreshThumbnails()
 {
     if (!m_grabber || m_capturePending || !m_view)
         return;
-    const auto group = std::find_if(m_snapshot.groups.begin(), m_snapshot.groups.end(),
-                                    [this](const auto &item) {
-                                        return !item.windows.empty()
-                                        && (!m_captured.contains(item.id)
-                                            || m_captured[item.id] != item.contentRevision);
-                                    });
+    auto group = m_snapshot.groups.end();
+    wm::Window *window = nullptr;
+    for (auto it = m_snapshot.groups.begin(); it != m_snapshot.groups.end(); ++it) {
+        if (it->windows.empty()
+            || (m_captured.contains(it->id) && m_captured[it->id] == it->contentRevision))
+            continue;
+        wm::Window *candidate = m_shell->windowManager()->windowById(it->windows.front());
+        if (candidate) {
+            group = it;
+            window = candidate;
+            break;
+        }
+    }
     if (group == m_snapshot.groups.end())
-        return;
-    wm::Window *window = m_shell->windowManager()->windowById(group->windows.front());
-    if (!window)
         return;
     const auto id = group->id;
     const uint64_t revision = group->contentRevision;
@@ -565,20 +597,22 @@ void StageWindow::refreshThumbnails()
                                       m_snapshot.groups.begin(), m_snapshot.groups.end(),
                                       [id](const auto &item) { return item.id == id; });
                               if (current != m_snapshot.groups.end()
-                                  && current->contentRevision == revision
-                                  && !images.empty() && !images.front().isNull()) {
-                                  if (images.front().width() > 320
-                                      || images.front().height() > 180) {
-                                      const base::Size size = ui::scaledSize(
-                                              images.front().size(), {320, 180},
-                                              ui::Bitmap::Scaling::Fit);
-                                      images.front() = images.front().scaled(size, true);
-                                  }
+                                  && current->contentRevision == revision) {
                                   m_captured[id] = revision;
-                                  m_view->setThumbnail(id, images.front());
+                                  if (!images.empty() && !images.front().isNull()) {
+                                      if (images.front().width() > 320
+                                          || images.front().height() > 180) {
+                                          const base::Size size = ui::scaledSize(
+                                                  images.front().size(), {320, 180},
+                                                  ui::Bitmap::Scaling::Fit);
+                                          images.front() = images.front().scaled(size, true);
+                                      }
+                                      m_thumbnails[id] = {revision, images.front()};
+                                      m_view->setThumbnail(id, revision, images.front());
+                                  }
                               }
                               refreshThumbnails();
-                          });
+                          }, true);
 }
 
 void StageWindow::place()
