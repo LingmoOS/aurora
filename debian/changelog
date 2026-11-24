@@ -1,3 +1,10 @@
+lingmo-aurora (5.1.8+lingmo5u1) unstable; urgency=medium
+
+  * Match Stage Manager cards to the reference composition with full-card
+    previews, overlaid application icons and alternating card tilt.
+
+ -- Lingmo OS Team <team@lingmo.org>  Tue, 24 Nov 2026 06:30:00 +0800
+
 lingmo-aurora (5.1.7+lingmo5u1) unstable; urgency=medium
 
   * Order Stage Manager cards by recent use and animate cards when a strip
