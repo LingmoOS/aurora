@@ -539,7 +539,7 @@ StageWindow::StageWindow(Shell *shell, std::unique_ptr<ScreenGrabber> grabber)
     }));
     m_subscriptions.push_back(m_shell->outputsChanged.connect([this] { place(); }));
     m_snapshot = manager->snapshot();
-    manager->setEnabled(true);
+    manager->setEnabled(manager->preferenceEnabled());
     sync(m_snapshot);
     refreshThumbnails();
     place();
