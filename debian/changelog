@@ -1,3 +1,9 @@
+lingmo-aurora (5.1.11+lingmo5u1) unstable; urgency=medium
+
+  * Commit folder renames from background clicks without dismissing the launcher.
+
+ -- Lingmo OS Team <team@lingmo.org>  Wed, 25 Nov 2026 14:00:00 +0800
+
 lingmo-aurora (5.1.10+lingmo5u1) unstable; urgency=medium
 
   * Keep the launcher visible while non-interactive notification overlays are shown.
