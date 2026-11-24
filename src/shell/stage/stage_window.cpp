@@ -61,10 +61,10 @@ public:
 
     bool acceptsPointer() const override { return true; }
 
-    void setGroup(wm::StageManager::Id group)
+    bool setGroup(wm::StageManager::Id group)
     {
         if (m_group == group)
-            return;
+            return false;
         m_group = group;
         m_thumbnailGroup = 0;
         m_thumbnailRevision = 0;
@@ -76,6 +76,7 @@ public:
         m_image->setSource({});
         m_placeholder->setVisible(true);
         invalidateFace();
+        return true;
     }
 
     void setThumbnail(wm::StageManager::Id group, uint64_t revision, const ui::Bitmap &bitmap)
@@ -416,6 +417,12 @@ public:
             if (active == m_snapshot.active.end() || active->second != group.id)
                 m_visibleGroups.push_back(group);
         }
+        std::stable_sort(m_visibleGroups.begin(), m_visibleGroups.end(),
+                         [](const auto &left, const auto &right) {
+                             if (left.lastUsed != right.lastUsed)
+                                 return left.lastUsed > right.lastUsed;
+                             return left.id < right.id;
+                         });
         while (m_cards.size() < m_visibleGroups.size()) {
             auto *card = m_content->addChild<Card>();
             m_cards.push_back(card);
@@ -426,10 +433,10 @@ public:
             m_cards[i]->setVisible(visible);
             if (!visible)
                 continue;
-            if (!wasVisible)
-                m_cards[i]->animateIn();
             const auto &group = m_visibleGroups[i];
-            m_cards[i]->setGroup(group.id);
+            const bool changedGroup = m_cards[i]->setGroup(group.id);
+            if (!wasVisible || changedGroup)
+                m_cards[i]->animateIn();
             std::string title = "Stage " + std::to_string(i + 1);
             std::string icon = "application-x-executable";
             if (!group.windows.empty()) {
