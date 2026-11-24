@@ -1,3 +1,9 @@
+lingmo-aurora (5.1.12+lingmo5u1) unstable; urgency=medium
+
+  * Make Stage Manager disabled by default until enabled in Settings.
+
+ -- Lingmo OS Team <team@lingmo.org>  Wed, 25 Nov 2026 15:00:00 +0800
+
 lingmo-aurora (5.1.11+lingmo5u1) unstable; urgency=medium
 
   * Commit folder renames from background clicks without dismissing the launcher.

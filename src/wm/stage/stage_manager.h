@@ -53,7 +53,7 @@ public:
     bool enabled() const { return m_enabled; }
     bool preferenceEnabled() const
     {
-        return m_settings.boolValue("StageManager/Enabled", true);
+        return m_settings.boolValue("StageManager/Enabled", false);
     }
     bool changingVisibility() const { return m_updating; }
     void setEnabled(bool enabled);
