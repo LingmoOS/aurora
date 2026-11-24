@@ -389,6 +389,25 @@ TEST_F(LauncherWindowTest, LosingTheActivationHides)
     launcher().setDragging(false);
 }
 
+TEST_F(LauncherWindowTest, NotificationOverlayDoesNotDismiss)
+{
+    open();
+    launcher().show();
+    frame();
+
+    auto notification = std::make_unique<shell::ShellWindow>(shell.get(), wm::WindowRole::Notification);
+    notification->setFocusPolicy(wm::FocusPolicy::NoFocus);
+    notification->setSize({240, 100});
+    notification->show();
+    ASSERT_TRUE(test::runUntil([&] { return notification->wmWindow() && notification->wmWindow()->isVisible(); }));
+
+    manager.activation()->deactivate(launcherWindow->window()->wmWindow());
+    test::runFor(std::chrono::milliseconds(20));
+    EXPECT_TRUE(launcher().isShown());
+
+    notification->hide();
+}
+
 TEST_F(LauncherWindowTest, DockToggleSurvivesTheOpeningFocusTransition)
 {
     open();

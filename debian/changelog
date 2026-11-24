@@ -1,3 +1,9 @@
+lingmo-aurora (5.1.10+lingmo5u1) unstable; urgency=medium
+
+  * Keep the launcher visible while non-interactive notification overlays are shown.
+
+ -- Lingmo OS Team <team@lingmo.org>  Wed, 25 Nov 2026 12:00:00 +0800
+
 lingmo-aurora (5.1.9+lingmo5u1) unstable; urgency=medium
 
   * Add a persistent Stage Manager switch to Settings and apply changes
