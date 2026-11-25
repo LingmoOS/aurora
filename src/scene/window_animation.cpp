@@ -953,7 +953,12 @@ bool WindowAnimation::textureIsCurrent(render::Renderer &renderer, const base::R
     // A texture drawn without its blurs, or with them, is only kept for a draw
     // that wants the same.
     const bool blurSuppressed =
-            renderer.suppressBackgroundBlur || presentedScaled() || m_presentedAt;
+            renderer.suppressBackgroundBlur || presentedScaled() || m_presentedAt
+            // A Launcher surface leaves a transparent hole for the folder panel;
+            // drawBackgroundBlur inside the offscreen pass would read from the
+            // empty texture instead of the compositor output and write black there.
+            // Suppress it so the transparent panel composites naturally.
+            || m_style == Style::Launcher;
     // The blurs in the texture read the output behind the window, which may
     // have changed wherever this frame draws it again, and nowhere else. One
     // drawn without them reads nothing behind it: the overview's full repaints
@@ -1185,7 +1190,8 @@ void WindowAnimation::render(render::Renderer &renderer) const
         render::PresentationSubmission *submission = renderer.presentationSubmission;
         // The overview draws a window's blurs where it shows it.
         const bool blurSuppressed =
-                renderer.suppressBackgroundBlur || presentedScaled() || m_presentedAt;
+                renderer.suppressBackgroundBlur || presentedScaled() || m_presentedAt
+                || m_style == Style::Launcher;
         swapStashedTexture(blurSuppressed);
         const bool contentChanged =
                 m_textureDamage.hasDamage(*this, coverage, renderer.rasterScale());
