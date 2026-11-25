@@ -1309,11 +1309,11 @@ void WindowAnimation::render(render::Renderer &renderer) const
             drawExteriorMorph(renderer, value, blend);
         } else {
             if (m_minimizeStyle == MinimizeStyle::Genie && isDockTransition()) {
-                // Shadow/exterior uses the existing affine-scaled rect path so it
-                // fades out as the window narrows toward the dock slot width.
-                if (exterior > 0)
-                    draw(renderer, m_texture.get(), m_coverage, m_textureBounds, value, exterior);
-                // Window body drawn as a tessellated Genie mesh.
+                // The Genie mesh tessellates the window body directly; drawing
+                // the whole texture on top via the affine-scale path would
+                // produce a ghost image (the compressed body drawn at `exterior`
+                // opacity behind the mesh). Skip the exterior rect draw: the
+                // shadow fades with the body as the mesh collapses.
                 drawGenie(renderer, m_texture.get(), m_coverage, m_textureBounds, value);
                 // Outline is part of the snapshot and deforms with the mesh;
                 // skip the separate SSD outline draw for the Genie path.
