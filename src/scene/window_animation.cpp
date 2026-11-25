@@ -314,6 +314,23 @@ void WindowAnimation::start(Type type, const base::Rect &from, const base::Rect 
         m_dockWindow = to;
         m_dockSlot = from;
     }
+    // Compute where the Genie deformation "is" for this new animation.
+    // For a fresh animation: Minimize starts at t=0 (window), Restore at t=1 (dock).
+    // For an interrupted animation: estimate from the rectangular bounds so the
+    // mesh continues from its actual visual position rather than jumping.
+    if (type == Type::Minimize || type == Type::Restore) {
+        const double winW  = m_dockWindow.width();
+        const double dockW = m_dockSlot.width();
+        if (interrupted && winW > dockW) {
+            // previous.bounds.width() sits between dockW and winW; convert to t.
+            const double w = previous.bounds.width();
+            const double ratio = std::clamp((w - dockW) / (winW - dockW), 0.0, 1.0);
+            // ratio=1 → at window (t=0), ratio=0 → at dock (t=1)
+            m_genieStartT = 1.0 - ratio;
+        } else {
+            m_genieStartT = (type == Type::Minimize) ? 0.0 : 1.0;
+        }
+    }
     m_boundsContentReady = true;
     m_running = true;
     m_firstFrame = false;
@@ -636,7 +653,11 @@ void WindowAnimation::drawGenie(render::Renderer &renderer, render::Texture *tex
     // t=0: window fully visible, t=1: window fully at dock.
     // For Restore the sample's progress runs 0→1 as the window expands, so
     // reverse to match the dock→window direction.
-    const double t = (m_type == Type::Restore) ? 1.0 - value.progress : value.progress;
+    // For interrupted animations m_genieStartT records the mesh position at
+    // which the previous animation was cut off; interpolate from there to the
+    // natural endpoint so the reversal is continuous rather than jumping.
+    const double tFinal = (m_type == Type::Restore) ? 0.0 : 1.0;
+    const double t = m_genieStartT + (tFinal - m_genieStartT) * value.progress;
 
     // m_dockWindow is always the window rect; m_dockSlot always the dock icon.
     // Both are set correctly for Minimize and Restore in start().

@@ -387,6 +387,11 @@ private:
     base::RectF m_dockWindow;
     base::RectF m_dockSlot;
     MinimizeStyle m_minimizeStyle = MinimizeStyle::Normal;
+    // The Genie deformation parameter (0=window, 1=dock) at which the current
+    // animation started. For a fresh animation this is 0 (Minimize) or 1
+    // (Restore). For an interrupted animation it records where the mesh
+    // actually was so the reversal continues from that position.
+    double m_genieStartT = 0;
 
     struct TargetAdjustment {
         base::PointF position;
