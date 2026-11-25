@@ -28,7 +28,8 @@ namespace {
 
 constexpr int kWidth = 190;
 constexpr int kCardHeight = 112;
-constexpr int kGap = 12;
+constexpr int kLabelHeight = 20;   // app name label below the card
+constexpr int kGap = 16;           // gap between card+label rows
 constexpr int kMargin = 8;
 constexpr int kEdgeInset = 10;
 
@@ -153,6 +154,9 @@ public:
         invalidateFace();
     }
 
+    // Expose the stored title text so the View can feed it to the label below.
+    const std::string &titleText() const { return m_title->text(); }
+
     void setApplicationIcon(std::string icon)
     {
         icon = icon.empty() ? "application-x-executable" : std::move(icon);
@@ -171,10 +175,12 @@ public:
 
     void setStackPosition(size_t index)
     {
-        const double tilt = index % 2 == 0 ? -3.2 : 2.4;
-        if (tilt == m_tilt)
+        // macOS Stage Manager cards are upright; no alternating tilt.
+        (void)index;
+        constexpr double kTilt = 0.0;
+        if (kTilt == m_tilt)
             return;
-        m_tilt = tilt;
+        m_tilt = kTilt;
         invalidateFace();
     }
 
@@ -260,7 +266,7 @@ protected:
     void pointerRelease(const ui::PointerEvent &event) override
     {
         const bool dragged = m_dragged;
-        const bool draggedOut = dragged && event.position.x < 0;
+        const bool draggedOut = dragged && event.position.x > geometry().width;
         m_press.reset();
         m_dragged = false;
         if (dragged) {
@@ -398,7 +404,7 @@ private:
     std::unique_ptr<ui::Animation> m_dragAnimation;
     double m_entryProgress = 1;
     double m_hoverProgress = 0;
-    double m_tilt = -3.2;
+    double m_tilt = 0.0;
     std::optional<ui::PointF> m_press;
     ui::PointF m_pressWindow;
     ui::PointF m_dragOffset;
@@ -437,11 +443,20 @@ public:
         while (m_cards.size() < m_visibleGroups.size()) {
             auto *card = m_content->addChild<Card>();
             m_cards.push_back(card);
+            // App name label: sits below each card in the content view,
+            // outside the card itself so it doesn't disturb the thumbnail.
+            auto *label = m_content->addChild<ui::Label>();
+            label->setElide(ui::Label::Elide::Right);
+            label->setVerticallyCentered(true);
+            label->setColor(ui::Color {230, 230, 230, 255});
+            label->setFontSize(12);
+            m_labels.push_back(label);
         }
         for (size_t i = 0; i < m_cards.size(); ++i) {
             const bool visible = i < m_visibleGroups.size();
             const bool wasVisible = m_cards[i]->isVisible();
             m_cards[i]->setVisible(visible);
+            m_labels[i]->setVisible(visible);
             if (!visible)
                 continue;
             const auto &group = m_visibleGroups[i];
@@ -466,6 +481,7 @@ public:
                 }
             }
             m_cards[i]->setTitle(std::move(title));
+            m_labels[i]->setText(m_cards[i]->titleText());
             m_cards[i]->setApplicationIcon(std::move(icon));
             m_cards[i]->setStackCount(group.windows.size());
             m_cards[i]->setSelected(false);
@@ -503,13 +519,16 @@ protected:
         const double width = geometry().width;
         const double visibleHeight = geometry().height - 2 * kMargin;
         m_scroll->setGeometry({kMargin, kMargin, width - 2 * kMargin, visibleHeight});
+        const double rowHeight = kCardHeight + kLabelHeight + kGap;
         m_content->setGeometry({0, 0, width - 2 * kMargin,
-                                double(m_visibleGroups.size()) * (kCardHeight + kGap)});
+                                double(m_visibleGroups.size()) * rowHeight});
         for (size_t i = 0; i < m_cards.size(); ++i) {
             if (!m_cards[i]->isVisible())
                 continue;
-            const double y = i * (kCardHeight + kGap);
-            m_cards[i]->setGeometry({0, y, width - 4 * kMargin, kCardHeight});
+            const double y = double(i) * rowHeight;
+            const double cardWidth = width - 4 * kMargin;
+            m_cards[i]->setGeometry({0, y, cardWidth, kCardHeight});
+            m_labels[i]->setGeometry({0, y + kCardHeight + 2, cardWidth, kLabelHeight});
         }
     }
 
@@ -520,6 +539,7 @@ private:
     ui::ScrollView *m_scroll = nullptr;
     ui::View *m_content = nullptr;
     std::vector<Card *> m_cards;
+    std::vector<ui::Label *> m_labels;
 };
 
 StageWindow::StageWindow(Shell *shell, std::unique_ptr<ScreenGrabber> grabber)
@@ -642,13 +662,14 @@ void StageWindow::place()
     const base::Rect workArea = m_shell->workArea(*output);
     if (workArea.isEmpty())
         return;
-    const int height = std::clamp(kCardHeight + 2 * kMargin,
-                                  kCardHeight + 2 * kMargin,
+    const int height = std::clamp(kCardHeight + kLabelHeight + 2 * kMargin,
+                                  kCardHeight + kLabelHeight + 2 * kMargin,
                                   workArea.height() - 2 * kEdgeInset);
     m_window->setOutput(output->name);
+    const int rowHeight = kCardHeight + kLabelHeight + kGap;
     const int stripHeight = std::min(workArea.height() - 2 * kEdgeInset,
                                      std::max(height, int(m_view->visibleGroupCount())
-                                                              * (kCardHeight + kGap)
+                                                              * rowHeight
                                                               + 2 * kMargin));
     m_window->setGeometry({workArea.left() + kEdgeInset, workArea.top() + kEdgeInset,
                            kWidth, stripHeight});
