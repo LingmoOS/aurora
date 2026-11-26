@@ -1,3 +1,17 @@
+lingmo-aurora (5.2.5+lingmo5u1) unstable; urgency=medium
+
+  * launcher: port LauncherFolderView from examples/cutefish-compositor,
+    replacing the monolithic FolderOverlay inner class with a proper
+    self-contained component (launcher_folder_view.h/.cpp).
+    - Full paged scroll via swipe, mouse wheel and indicator tap.
+    - 280ms open / 220ms close scale+fade animation from the folder cell.
+    - Inline folder rename via NameField (Escape/Enter/focusOut committed).
+    - detach() keeps cells alive while a drag exits the folder panel.
+    - LauncherPageIndicator extracted as launcher_page_indicator.h/.cpp
+      (supports setDotSize, onPick callback, animated dot brightness).
+
+ -- Lingmo OS Team <team@lingmo.org>  Wed, 26 Nov 2026 20:00:00 +0800
+
 lingmo-aurora (5.2.4+lingmo5u1) unstable; urgency=medium
 
   * Complete Liquid Glass coverage for compositor shell surfaces:
