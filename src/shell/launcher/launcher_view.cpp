@@ -280,17 +280,19 @@ protected:
         const ui::Theme &theme = ui::Theme::current();
         painter.save();
         painter.clipRoundedRect(m_panel, radius);
-        if (!m_backdrop.isNull())
-            painter.drawImage(m_backdrop, localRect());
-        else if (m_view->m_wallpaper.isPicture() && !m_view->m_wallpaper.image().isNull()) {
-            painter.drawImage(m_view->m_wallpaper.image(), localRect());
-            painter.fillRect(m_panel, ui::Color {0, 0, 0, 102});
-        } else {
-            painter.fillRect(m_panel, m_view->m_wallpaper.color());
-        }
+        // Use a solid themed base so the folder always looks correct regardless
+        // of whether the compositor can supply a blurred backdrop.  The old path
+        // grabbed the launcher surface and produced a pure-black background when
+        // the dock was in efficient mode.
+        const ui::Color base = theme.darkMode
+            ? ui::Color{28, 28, 32, 255}
+            : ui::Color{242, 242, 247, 255};
+        painter.fillRect(m_panel, base);
         const ui::Color tint = theme.darkMode ? ui::Color {24, 26, 32, 255} : ui::Color {248, 249, 252, 255};
         painter.fillRect(m_panel, tint.withAlpha(0.34));
         painter.restore();
+        // Liquid Glass: shadow lifts the folder card off the launcher surface.
+        painter.drawShadow(m_panel, radius, 20, ui::Color{0, 0, 0, 80}, {0, 3.0});
         const ui::Color border = m_ink.r < 128 ? ui::Color {0, 0, 0, 58} : ui::Color {255, 255, 255, 72};
         painter.drawRoundedRect(m_panel, {radius, 0, ui::Corners::Circular}, {}, 1, border);
         if (m_reordering && m_dropIndex >= 0 && m_dropIndex < int(m_slots.size())) {
