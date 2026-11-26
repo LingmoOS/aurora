@@ -1,3 +1,21 @@
+lingmo-aurora (5.2.6+lingmo5u1) unstable; urgency=medium
+
+  * Re-enable efficient mode and restyle the taskbar after the ChromeOS shelf:
+    44px icons, a 64px bar and a 28px glass corner radius on the strip.
+  * Round only the taskbar's top corners and keep the bottom corners square
+    against the screen edge, as the ChromeOS shelf does; the glass mask and
+    input region take separate top and bottom radii.
+  * Align the taskbar icons from the left edge and vertically centred, as the
+    ChromeOS shelf lays them out.
+  * Draw the launcher as the shelf's start button, a plate with a ring inside,
+    in efficient mode only; the floating dock keeps the launchpad artwork.
+  * Light the taskbar's top edge with the glass rim, as the ChromeOS shelf
+    does; the floating dock keeps its edge to the window outline layer.
+  * Drop the opaque theme fill over the dock's panel so the surface glass
+    shows in efficient mode as it does for the floating dock.
+
+ -- Lingmo OS Team <team@lingmo.org>  Fri, 27 Nov 2026 03:20:00 +0800
+
 lingmo-aurora (5.2.5+lingmo5u1) unstable; urgency=medium
 
   * launcher: port LauncherFolderView from examples/cutefish-compositor,
