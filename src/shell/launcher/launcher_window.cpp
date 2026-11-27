@@ -11,6 +11,7 @@
 #include "shell/dock/dock.h"
 #include "shell/launcher/launcher.h"
 #include "shell/launcher/launcher_view.h"
+#include "shell/launcher/launcher_folder_view.h"
 #include "shell/launcher/launcher_search_field.h"
 #include "shell/launcher/launcher_wallpaper.h"
 #include "shell/shell_data.h"
