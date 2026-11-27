@@ -105,6 +105,28 @@ base::Rect fitToWindow(const base::Rect &slot, const base::Rect &window)
     return aligned.intersected(slot);
 }
 
+// The efficient taskbar's plate: rounded where it leaves the desktop, square
+// where it meets the screen edge.
+ui::Path taskbarPath(const base::Rect &rect, double radius)
+{
+    const double x = rect.x();
+    const double y = rect.y();
+    const double w = rect.width();
+    const double h = rect.height();
+    const double r = std::clamp(radius, 0.0, std::min(w, h) / 2.0);
+
+    ui::Path path;
+    path.moveTo({x, y + h});
+    path.lineTo({x, y + r});
+    path.quadTo({x, y}, {x + r, y});
+    path.lineTo({x + w - r, y});
+    path.quadTo({x + w, y}, {x + w, y + r});
+    path.lineTo({x + w, y + h});
+    path.lineTo({x, y + h});
+    path.close();
+    return path;
+}
+
 // A rounded rect as a region, row by row, as a filled polygon covers pixels.
 base::Region roundedRegion(const base::Rect &rect, double radius)
 {
@@ -168,27 +190,43 @@ protected:
         // The taskbar owns the single rounded glass plate behind both areas.
         if (m_dock->dock().settings().efficientMode()) {
             const base::Rect panel = m_dock->panelRect();
+
             if (!panel.isEmpty()) {
                 ui::Color background = ui::Theme::current().background;
                 background.a = 230;
-                painter.fillRoundedRect({double(panel.x()), double(panel.y()),
-                                         double(panel.width()), double(panel.height())},
-                                        m_dock->cornerRadius(), background);
+
+                // Draw the entire translucent background in one pass. The top
+                // corners are rounded; the bottom edge stays square because it
+                // meets the screen edge.
+                painter.fillPath(taskbarPath(panel, m_dock->cornerRadius()), background);
             }
+
             return;
         }
+
         // Floating dock: divider lines only.
         const ui::Color line = ui::color(toolkit::CompositorColor::DockDivider);
         const base::Rect panel = m_dock->panelRect();
+
         const auto draw = [&](const base::RectF &rect, double opacity) {
             if (rect.isEmpty() || opacity <= 0)
                 return;
+
             ui::Color color = line;
             color.a = uint8_t(std::lround(255 * opacity));
-            painter.drawRoundedRect({panel.x() + rect.x(), panel.y() + rect.y(), rect.width(),
-                                     rect.height()},
-                                    {0, 0, ui::Corners::Circular}, color);
+
+            painter.drawRoundedRect(
+                {
+                    panel.x() + rect.x(),
+                    panel.y() + rect.y(),
+                    rect.width(),
+                    rect.height()
+                },
+                {0, 0, ui::Corners::Circular},
+                color
+            );
         };
+
         draw(m_dock->divider(), 0.18);
         draw(m_dock->trailingDivider(), m_dock->m_trailingOpacity);
     }
@@ -1132,7 +1170,11 @@ void DockWindow::layoutItems()
             : base::RectF();
     m_panel->setGeometry({0, 0, double(m_windowRect.width()), double(m_windowRect.height())});
     m_panel->setClipsChildren(efficient);
-    m_panel->setChildClipRadius(efficient ? cornerRadius() : 0);
+    // View::paintContent applies the clip radius to this view's own paint too,
+    // which would round the plate's square bottom corners. The plate path
+    // already draws the rounded top corners, so only clip children to the
+    // rectangle here.
+    m_panel->setChildClipRadius(0);
     m_panel->requestPaint();
     updatePanelRect(panelRect, !lifted);
     // Landed windows follow their sliding thumbnails.
@@ -1241,6 +1283,13 @@ void DockWindow::updateGlass()
     const double radius = std::min(cornerRadius(),
                                    double(std::min(m_panelRect.width(), m_panelRect.height())) / 2);
     m_glassDark = ui::Theme::current().darkMode;
+    if (m_dock->settings().efficientMode()) {
+        // The glass and its rim follow the plate: rounded on top, square where
+        // the taskbar meets the screen edge.
+        m_window->setBackgroundBlur(m_panelRect, int(std::lround(radius)), glass(),
+                                    taskbarPath(m_panelRect, radius));
+        return;
+    }
     m_window->setBackgroundBlur(m_panelRect, int(std::lround(radius)), glass());
 }
 
