@@ -225,6 +225,11 @@ bool LauncherWindow::keepsShownWhileInactive() const
 {
     if (m_gestureActive || m_launcher->isDragging() || m_view->isMenuOpen())
         return true;
+    // A folder overlay being open means the user has interacted with the
+    // launcher; a click elsewhere (e.g. a file manager icon on the dock)
+    // that briefly defocuses the launcher must not dismiss it.
+    if (m_view->folderView() && m_view->folderView()->isOpen())
+        return true;
     // Capture tools take the keyboard to picture the launcher, and notification
     // banners are non-interactive overlays. Neither should dismiss the launcher
     // when it briefly loses activation while the overlay is mapped.
