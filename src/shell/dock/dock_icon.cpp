@@ -25,56 +25,6 @@ static constexpr std::chrono::milliseconds kPressAndHold {800};
 // How far a press moves before it starts a drag.
 static constexpr double kStartDragDistance = 10;
 
-// The ring in the centre of the taskbar's launcher, its inner circle cut out
-// around it.
-ui::Path launcherRing(double square, double radius, double thickness)
-{
-    const ui::RectF rect {0, 0, square, square};
-    ui::Path ring;
-    ring.setFillRule(ui::Path::FillRule::EvenOdd);
-    // The circle's centre at the square's, so its path does not depend on
-    // where the icon sits.
-    const auto circle = [square](ui::Path &path, double r, double inset) {
-        const double centre = square / 2;
-        const double side = 2 * r - 2 * inset;
-        if (side <= 0)
-            return;
-        path.addEllipse({centre - r + inset, centre - r + inset, side, side});
-    };
-    const double r = std::max(0.5, std::min(radius, square / 2 - thickness));
-    circle(ring, r, -thickness / 2);
-    ui::Path hole;
-    circle(hole, r, thickness / 2);
-    ring.addPath(hole);
-    return ring;
-}
-
-// The taskbar's launcher, drawn instead of the launchpad artwork: a rounded
-// square plate with a ring inside it, the ChromeOS shelf's start button. The
-// floating dock keeps its artwork.
-class DockIcon::LauncherFace final : public ui::View
-{
-public:
-    void paint(ui::Painter &painter) override
-    {
-        // A pure hollow circle — the ChromeOS shelf start button style.
-        // No background plate; just a ring drawn in the theme's ink colour.
-        const ui::RectF &slot = localRect();
-        const double square = std::round(std::min(slot.width, slot.height));
-        if (square <= 0)
-            return;
-        const bool dark = ui::Theme::current().darkMode;
-        const ui::Color ink = dark ? ui::Color::rgb(0xFFFFFF) : ui::Color::rgb(0x000000);
-        const double thickness = std::max(1.5, square / 11.0);
-        const ui::Path ring = launcherRing(square, square * 0.38, thickness);
-        painter.save();
-        painter.translate({slot.x + (slot.width - square) / 2,
-                           slot.y + (slot.height - square) / 2});
-        painter.fillPath(ring, ink);
-        painter.restore();
-    }
-};
-
 // The launcher's artwork, an SVG drawn at the icon's device size as
 // FishUI's IconItem renders a file.
 class DockIcon::SvgFace final : public ui::View
@@ -201,31 +151,14 @@ void DockIcon::setIcon(std::string name, bool file)
     updateFace();
 }
 
-void DockIcon::setLauncherFace(bool enabled)
-{
-    if (enabled == m_launcherEnabled)
-        return;
-    m_launcherEnabled = enabled;
-    // Made on the first call, then only shown or hidden, as the pressed look
-    // is; the artwork stays for the next mode.
-    if (enabled && !m_launcherFace) {
-        m_launcherFace = addChild<LauncherFace>();
-        setIconRect(m_iconRect);
-    }
-    if (m_launcherFace)
-        m_launcherFace->setVisible(enabled);
-    updateFace();
-}
-
 void DockIcon::updateFace()
 {
-    const bool launcher = m_launcherFace && m_launcherFace->isVisible();
     if (m_iconIsFile) {
         if (m_themeFace)
             m_themeFace->setVisible(false);
         if (!m_svgFace)
             m_svgFace = addChild<SvgFace>();
-        m_svgFace->setVisible(!launcher && m_thumbnail.isNull() && !m_dragHidden);
+        m_svgFace->setVisible(m_thumbnail.isNull() && !m_dragHidden);
         m_svgFace->setFile(m_iconName);
     } else {
         if (m_svgFace)
@@ -379,8 +312,7 @@ void DockIcon::setIconRect(const ui::RectF &rect)
         return result;
     }();
     for (ui::View *face : {static_cast<ui::View *>(m_themeFace), static_cast<ui::View *>(m_svgFace),
-                           static_cast<ui::View *>(m_themeMask), static_cast<ui::View *>(m_svgMask),
-                           static_cast<ui::View *>(m_launcherFace)}) {
+                           static_cast<ui::View *>(m_themeMask), static_cast<ui::View *>(m_svgMask)}) {
         if (!face)
             continue;
         face->setGeometry(rect);

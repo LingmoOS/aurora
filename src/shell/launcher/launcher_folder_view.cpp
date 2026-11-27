@@ -407,8 +407,6 @@ double LauncherFolderView::nameHeight() const
 
 double LauncherFolderView::titleHeight() const
 {
-    // The name field's own height, and the gap above the panel. A text field
-    // has no text baseline to measure from, unlike a label.
     return nameHeight() + nameGap();
 }
 

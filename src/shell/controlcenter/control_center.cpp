@@ -278,8 +278,6 @@ void ControlCenter::openPanel(Panel panel, ShellWindow *bar, const base::Rect &a
     open.geometry = panelGeometry(panel, bar, anchor);
     if (open.panel)
         open.panel->setMaximumHeight(open.geometry.height());
-    // The bar's edge decides which way the panel grows; a bar off any screen
-    // falls back to growing downwards, as a top bar's does.
     const base::Point origin = bar->geometry().topLeft();
     const Shell::Output *output = m_shell->output(bar->outputName());
     const bool bottomBar = output && bar->geometry().y() > output->bounds.y() + output->bounds.height() / 2;
@@ -375,9 +373,7 @@ void ControlCenter::resizeControlCenter()
         return;
     open.geometry = panelGeometry(Panel::ControlCenter, open.bar, open.anchor);
     open.window->resize({double(open.geometry.width()), double(height)});
-    const auto origin = open.bar->geometry().topLeft();
-    // The same edge the panel was opened along: a bottom bar's control centre
-    // grows upwards and must not flip to growing downwards as it resizes.
+    const auto origin = open.bar ? open.bar->geometry().topLeft() : base::Point();
     const Shell::Output *output = open.bar ? m_shell->output(open.bar->outputName()) : nullptr;
     const bool bottomBar =
             output && open.bar->geometry().y() > output->bounds.y() + output->bounds.height() / 2;
