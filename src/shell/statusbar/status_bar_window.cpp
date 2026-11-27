@@ -560,7 +560,7 @@ void StatusBarWindow::updateClock()
     const int64_t seconds = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
     const base::Locale locale(m_statusBar->timeLocale());
     m_clock->setText(locale.toString(base::DateTime::fromSecondsSinceEpoch(seconds), m_efficientMode ? (m_statusBar->twentyFourTime() ? "HH:mm" : "h:mm AP") : m_statusBar->timeFormat()));
-    m_clock->setDate(m_efficientMode ? locale.toString(base::DateTime::fromSecondsSinceEpoch(seconds), "yyyy/MM/dd") : std::string());
+    m_clock->setDate(m_efficientMode ? locale.toString(base::DateTime::fromSecondsSinceEpoch(seconds), "MMM d") : std::string());
     armClock();
 }
 

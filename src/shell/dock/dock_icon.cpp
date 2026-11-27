@@ -57,20 +57,20 @@ class DockIcon::LauncherFace final : public ui::View
 public:
     void paint(ui::Painter &painter) override
     {
-        // The plate spans the icon's slot; the ring sits in its middle.
+        // A pure hollow circle — the ChromeOS shelf start button style.
+        // No background plate; just a ring drawn in the theme's ink colour.
         const ui::RectF &slot = localRect();
         const double square = std::round(std::min(slot.width, slot.height));
         if (square <= 0)
             return;
-        const ui::RectF plate {slot.x + (slot.width - square) / 2, slot.y + (slot.height - square) / 2,
-                               square, square};
         const bool dark = ui::Theme::current().darkMode;
-        painter.fillRoundedRect(plate, square * 0.28,
-                                dark ? ui::Color {255, 255, 255, 46} : ui::Color {0, 0, 0, 38});
-        const ui::Path ring = launcherRing(square, square * 0.3, std::max(1.0, square / 16));
+        const ui::Color ink = dark ? ui::Color::rgb(0xFFFFFF) : ui::Color::rgb(0x000000);
+        const double thickness = std::max(1.5, square / 11.0);
+        const ui::Path ring = launcherRing(square, square * 0.38, thickness);
         painter.save();
-        painter.translate({plate.x, plate.y});
-        painter.fillPath(ring, dark ? ui::Color::rgb(0xFFFFFF) : ui::Color::rgb(0x000000));
+        painter.translate({slot.x + (slot.width - square) / 2,
+                           slot.y + (slot.height - square) / 2});
+        painter.fillPath(ring, ink);
         painter.restore();
     }
 };
