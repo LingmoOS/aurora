@@ -477,10 +477,10 @@ void LauncherView::paint(ui::Painter &painter)
 {
     const ui::RectF bounds = localRect();
     if (m_compact) {
-        const ui::Theme &theme = ui::Theme::current();
-        painter.fillRoundedRect(bounds, 24, theme.darkMode ? ui::Color{24, 25, 30, 230}
-                                                           : ui::Color{248, 249, 252, 235});
-        return;
+        // In efficient mode the launcher covers the full screen, same as
+        // normal mode.  Draw the wallpaper (or dim it) exactly as normal mode
+        // does — no rounded rect overlay that obscures the glass or causes
+        // flicker when paging.
     }
     const bool folderOpen = m_folderView && m_folderView->isOpen();
     const ui::RectF panel = folderOpen ? m_folderView->panelRect() : ui::RectF();
