@@ -1049,11 +1049,8 @@ void LauncherView::backgroundReleased(ui::PointF position)
 
 void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::PointF windowPosition)
 {
-    const auto found = std::find_if(m_launcher.applications().rows().begin(),
-                                    m_launcher.applications().rows().end(),
-                                    [cell](const LauncherItem &item) { return item.id == cell->id(); });
-    if (button == ui::MouseButton::Left && found != m_launcher.applications().rows().end()) {
-        if (found->folder) {
+    if (button == ui::MouseButton::Left) {
+        if (cell->isFolder()) {
             if (m_folderView) {
                 m_openFolderId = cell->id();
                 cell->setVisible(false);
@@ -1064,9 +1061,9 @@ void LauncherView::cellClicked(LauncherCell *cell, ui::MouseButton button, ui::P
         } else {
             m_launcher.applications().launch(cell->id());
         }
-    }
-    else if (button == ui::MouseButton::Right)
+    } else if (button == ui::MouseButton::Right) {
         openMenu(cell, windowPosition);
+    }
 }
 
 void LauncherView::renameFolderInline(const std::string &folderId, std::string name)
@@ -1104,11 +1101,6 @@ void LauncherView::closeFolderOverlay()
     if (!m_folderView || !m_folderView->isOpen())
         return;
     m_folderView->dismiss();
-    if (!m_openFolderId.empty()) {
-        if (LauncherCell *folder = cell(m_openFolderId))
-            folder->setVisible(true);
-        m_openFolderId.clear();
-    }
 }
 
 void LauncherView::openFolderOverlay(const std::string &folderId, ui::RectF from)

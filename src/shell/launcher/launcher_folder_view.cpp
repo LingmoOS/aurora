@@ -189,6 +189,11 @@ void LauncherFolderView::dismiss()
     commitName();
     m_closing = true;
     setEnabled(false);
+    if (m_view->m_openFolderId == m_folder) {
+        if (LauncherCell *folder = m_view->cell(m_folder))
+            folder->setVisible(true);
+        m_view->m_openFolderId.clear();
+    }
     if (focused)
         m_view->setFocus();
     const int serial = ++m_closeSerial;

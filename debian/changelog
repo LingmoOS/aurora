@@ -1,3 +1,13 @@
+lingmo-aurora (5.2.7+lingmo5u1) unstable; urgency=medium
+
+  * Restore the launcher folder cell whenever its overlay is dismissed.
+  * Launch application cells by their desktop ID, including folder members
+    absent from the top-level rows, and cover both behaviours with regression
+    tests.
+  * Synchronize the Aurora project and command-line version at 1.2.3.
+
+ -- Lingmo OS Team <team@lingmo.org>  Sat, 28 Nov 2026 02:00:00 +0800
+
 lingmo-aurora (5.2.6+lingmo5u1) unstable; urgency=medium
 
   * Start in Normal desktop mode while Efficient mode is refined, preserving
