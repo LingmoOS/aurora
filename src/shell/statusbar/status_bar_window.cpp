@@ -401,6 +401,24 @@ void StatusBarWindow::updateGlass()
     const StatusBarSettings &settings = m_statusBar->statusSettings();
     const double sigma = settings.blurSigma();
     const double opacity = settings.opacity();
+    // In efficient mode the Dock surface already provides the taskbar's glass.
+    // Apply a solid fallback here so the right-area strip is not transparent.
+    if (m_efficientMode) {
+        const base::Rect geometry = m_window->geometry();
+        const base::Rect rect(0, 0, geometry.width(), geometry.height());
+        render::GlassParams glass;
+        glass.enabled = false;
+        glass.plainSigma = sigma > 0 ? float(sigma) : 20.0f;
+        glass.opacity = opacity > 0 ? float(opacity) : 0.86f;
+        if (!m_barBlurApplied || rect != m_barBlurRect || m_barBlurGlass != glass) {
+            m_barBlurApplied = true;
+            m_barBlurRect = rect;
+            m_barBlurGlass = glass;
+            m_blurPlate = {};
+            m_window->setBackgroundBlur(rect, 0, glass);
+        }
+        return;
+    }
     // A clear bar keeps the plate's own blur for its popups, as it always had.
     if (sigma <= 0.0 || opacity <= 0.0) {
         if (m_barBlurApplied) {
