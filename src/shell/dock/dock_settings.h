@@ -46,8 +46,7 @@ public:
     void setEfficientMode(bool enabled);
     base::Signal<> efficientModeChanged;
     static constexpr int taskbarHeight = 52;
-    // The taskbar uses square corners while its appearance is being refined.
-    static constexpr int taskbarRadius = 0;
+    static constexpr int taskbarRadius = taskbarHeight / 2;
     enum TaskbarAlignment { AlignLeft = 0, AlignCenter = 1 };
     enum TaskbarSearch { SearchHidden = 0, SearchShown = 1 };
     TaskbarAlignment taskbarAlignment() const { return m_taskbarAlignment; }

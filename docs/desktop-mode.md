@@ -11,12 +11,15 @@ selection; Efficient mode remains available to activate at runtime.
 
 Efficient mode applies a bottom taskbar on the primary logical output:
 
-- A left-aligned Dock application area, full-width across its allocation,
-  fixed 32px base icons and 52px bar height. Icons shrink when space is limited.
+- One full-width taskbar surface owns the unified glass background and rounded
+  52px capsule. The launcher stays at the left; application icons are centred
+  on the taskbar, with fixed 32px base icons that shrink when space is limited.
 - The existing tray, custom status items, volume/network/battery, control
   center, notification button and two-line clock/date occupy the right area.
-- The top bar is moved, not duplicated; tray registrations and existing app
-  windows remain intact. Both areas use the theme's opaque background.
+- The status controls are hosted by the taskbar surface while retaining their
+  existing D-Bus, tray and popup behavior. The top bar does not remain as a
+  second visible surface; tray registrations and existing app windows remain
+  intact.
 - Hover enlargement, launch/attention bounce, the separate minimized-window
   area and user-selected auto-hide are disabled while Efficient is active.
 - The app-menu registrar releases its D-Bus name so applications restore their
@@ -24,14 +27,17 @@ Efficient mode applies a bottom taskbar on the primary logical output:
   Old asynchronous PID lookups cannot repopulate registrations after a switch.
 - Open popups are closed on mode switch; the control center opens above a
   bottom taskbar. Notification Center remains inside the usable work area.
-- The top exclusive zone is replaced by a bottom zone; output changes update
-  both areas. Normal Dock preferences remain stored and are restored on exit.
+- The top exclusive zone is replaced by a bottom zone; output changes resize
+  the taskbar and its status area. Normal Dock preferences remain stored and
+  are restored on exit.
 
-The two taskbar regions are separate compositor-owned surfaces, coordinated by
-one DockSettings mode signal and the right area's width changes. This retains
-tray/menu/capture/input ownership while presenting one bottom taskbar. It is an
-icon-based taskbar, not a copy of all Windows taskbar features. Existing Dock
-context menus, pinning and application-window grouping remain in use.
+The taskbar background, application icons and status controls share one
+compositor-owned surface. The status-bar backend continues to own D-Bus
+requests, tray registrations and popup behavior, with popup anchors in the
+taskbar's coordinates. Normal mode retains the existing separate top bar and
+floating Dock. This is an icon-based taskbar, not a copy of all Windows
+taskbar features. Existing Dock context menus, pinning and application-window
+grouping remain in use.
 
 Tests: Dock settings and D-Bus persistence, registrar release/reacquisition,
 repeated layout switching, work-area restoration, output resize, and bottom
@@ -40,12 +46,9 @@ control-center popup placement; Settings has a standalone private-bus test at
 multiple displays, fullscreen windows, tray overflow, live notifications and
 third-party applications that do not implement a local menu fallback.
 
-Validation for this change: the full compositor links successfully. The full
-Dock backend, status-bar backend and status-bar view suites pass, along with
-the new bottom-control-center case and the standalone Settings D-Bus suite.
-Taskbar and Settings snapshots were rendered headlessly. The broader existing
-shell-components/control-center suites are not fully green: existing tests
-still assume the old Dock headroom offset/tooltip fade and expanded control
-center height/camera tile. Those failures were observed during verification;
-this change does not claim the complete desktop suite passes. No running
-session was replaced and no real multi-monitor/fullscreen acceptance was done.
+Validation for this change: the `lingmo-aurora` target builds, and
+`dock_layout_test`, `statusbar_test`, `statusbar_view_test`, and the dedicated
+bottom-control-center popup test pass. `dock_test` reports one default-pins
+expectation failure (12/13 pass); the full `controlcenter_test` reports three
+other failures, while its bottom-taskbar popup case passes. No local SDK build
+or real Lingmo session / multi-monitor acceptance was performed.

@@ -165,13 +165,16 @@ protected:
 
     void paint(ui::Painter &painter) override
     {
-        // The taskbar uses the theme background while its appearance is refined.
+        // The taskbar owns the single rounded glass plate behind both areas.
         if (m_dock->dock().settings().efficientMode()) {
             const base::Rect panel = m_dock->panelRect();
-            if (!panel.isEmpty())
-                painter.fillRect({double(panel.x()), double(panel.y()),
-                                  double(panel.width()), double(panel.height())},
-                                 ui::Theme::current().background);
+            if (!panel.isEmpty()) {
+                ui::Color background = ui::Theme::current().background;
+                background.a = 230;
+                painter.fillRoundedRect({double(panel.x()), double(panel.y()),
+                                         double(panel.width()), double(panel.height())},
+                                        m_dock->cornerRadius(), background);
+            }
             return;
         }
         // Floating dock: divider lines only.
@@ -407,6 +410,8 @@ DockWindow::DockWindow(Shell *shell, std::unique_ptr<Dock> dock)
 DockWindow::~DockWindow()
 {
     *m_alive = false;
+    if (m_taskbarStatusAreaRemoved)
+        m_taskbarStatusAreaRemoved();
     m_subscriptions.clear();
     m_retired.clear();
     m_dock->primaryGeometry = nullptr;
@@ -427,6 +432,31 @@ void DockWindow::setTaskbarRightWidth(int width)
     if (width == m_taskbarRightWidth) return;
     m_taskbarRightWidth = width;
     if (m_dock->settings().efficientMode()) resize(false);
+}
+
+ui::View *DockWindow::setTaskbarStatusArea(std::unique_ptr<ui::View> area,
+                                           std::function<void()> onRemoved)
+{
+    if (m_taskbarStatusArea) {
+        if (m_taskbarStatusAreaRemoved)
+            m_taskbarStatusAreaRemoved();
+        m_panel->takeChild(m_taskbarStatusArea);
+    }
+    m_taskbarStatusArea = area.get();
+    m_taskbarStatusAreaRemoved = std::move(onRemoved);
+    if (area)
+        m_panel->addChild(std::move(area));
+    return m_taskbarStatusArea;
+}
+
+std::unique_ptr<ui::View> DockWindow::takeTaskbarStatusArea()
+{
+    if (!m_taskbarStatusArea)
+        return nullptr;
+    std::unique_ptr<ui::View> area = m_panel->takeChild(m_taskbarStatusArea);
+    m_taskbarStatusArea = nullptr;
+    m_taskbarStatusAreaRemoved = {};
+    return area;
 }
 
 double DockWindow::pixelRatio() const
@@ -461,7 +491,7 @@ base::Rect DockWindow::baseWindowRect(int thickness) const
     const base::Rect screen = output->bounds;
     if (m_dock->settings().efficientMode())
         return base::Rect(screen.x(), screen.bottom() - DockSettings::taskbarHeight,
-                          std::max(1, screen.width() - m_taskbarRightWidth), DockSettings::taskbarHeight);
+                          screen.width(), DockSettings::taskbarHeight);
     const base::Rect available = m_shell->workArea(*output);
     const DockSettings &settings = m_dock->settings();
     const int margins = edgeGap();
@@ -665,7 +695,7 @@ void DockWindow::updateMetrics(bool animate)
     const bool bottom = settings.direction() == DockSettings::Bottom;
     const int itemCount = applications.count() + 1 + m_dock->minimizedWindows().count();
     const int maxLength = m_dock->settings().efficientMode() && output
-            ? std::max(1, output->bounds.width() - m_taskbarRightWidth) : output ? (bottom ? output->bounds.width()
+            ? std::max(1, output->bounds.width() - 2 * m_taskbarRightWidth) : output ? (bottom ? output->bounds.width()
                                            : m_shell->workArea(*output).height())
                                          - settings.edgeMargins()
                                  : 0;
@@ -801,12 +831,12 @@ void DockWindow::layoutItems()
     // whole row.
     const double launcherPitch = m_metrics.iconSize + m_metrics.iconGap;
     const double settledLength = m_applications->targetLength() + m_applications->targetTrailingExtent();
-    const double centredStart = std::floor((m_surfaceLength - launcherPitch - settledLength) / 2);
+    const double centredStart = std::floor((m_surfaceLength - settledLength) / 2);
     const auto along = [&](double position, double rest) {
         if (!efficient)
             return place(layoutOrigin + position, settled + rest) - layoutOrigin;
-        // `position` counts from the launcher's slot; the launcher stays at
-        // the left edge, and every later icon is moved to its centred place.
+        // The launcher stays at the left edge; the app group is centred on
+        // the full taskbar.
         return position < m_metrics.iconSize ? position + m_drawn.lengthPadding
                                              : position - launcherPitch + centredStart;
     };
@@ -1101,6 +1131,8 @@ void DockWindow::layoutItems()
                        + trailingSeparatorShift)
             : base::RectF();
     m_panel->setGeometry({0, 0, double(m_windowRect.width()), double(m_windowRect.height())});
+    m_panel->setClipsChildren(efficient);
+    m_panel->setChildClipRadius(efficient ? cornerRadius() : 0);
     m_panel->requestPaint();
     updatePanelRect(panelRect, !lifted);
     // Landed windows follow their sliding thumbnails.
