@@ -307,6 +307,8 @@ LauncherView::LauncherView(Launcher &launcher, LauncherWallpaper &wallpaper, App
     m_subscriptions.push_back(m_badges.changed.connect([this] {
         for (const auto &[id, cell] : m_cells)
             cell->setCount(m_badges.count(id));
+        if (m_folderView)
+            m_folderView->sync();
     }));
     m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
 }
@@ -358,6 +360,15 @@ void LauncherView::setShown(bool shown)
     // so anything deferred would play on the next show.
     if (m_menu)
         m_menu->close();
+    // Close the folder immediately when the launcher hides.
+    if (m_folderView && m_folderView->isOpen()) {
+        m_folderView->close();
+        if (!m_openFolderId.empty()) {
+            if (LauncherCell *folder = cell(m_openFolderId))
+                folder->setVisible(true);
+            m_openFolderId.clear();
+        }
+    }
     stopSwipe();
     m_slide.finish();
     m_searchTimer.stop();
@@ -620,6 +631,10 @@ void LauncherView::syncCells()
     else
         updateSelection();
     m_notFound->setVisible(isSearching() && rows.empty());
+    // Keep the open folder in sync when the model changes (item added,
+    // removed, renamed or badge count updated).
+    if (m_folderView)
+        m_folderView->sync();
     requestPaint();
 }
 

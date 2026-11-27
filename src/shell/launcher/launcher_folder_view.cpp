@@ -209,6 +209,9 @@ void LauncherFolderView::setProgress(double progress)
 {
     m_progress = progress;
     setOpacity(progress);
+    // Notify the window so it can update the background blur region.
+    if (m_view->folderBlurChanged)
+        m_view->folderBlurChanged(panelRect(), progress > 0);
     const ui::RectF panel = panelRect();
     if (panel.width <= 0)
         return;
