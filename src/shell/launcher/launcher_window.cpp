@@ -91,21 +91,27 @@ void LauncherWindow::updateGeometry()
     const bool compact = m_dock && m_dock->settings().efficientMode();
     m_window->setOutput(output->name);
     if (compact) {
-        // Full-screen launcher, centered, same as normal mode — the compact
-        // flag only controls margins and disabling magnification.
-        // The wallpaper is already decoded and dimmed by LauncherView::paint();
-        // the compositor glass adds the blur.
-        m_window->setGeometry(output->bounds);
-        m_window->setBackgroundBlur(base::Rect(), 0);
+        // Bottom-left panel above the taskbar, like a ChromeOS shelf launcher.
+        const int width = std::min(760, std::max(520, output->bounds.width() * 3 / 5));
+        const int height = std::min(720, std::max(520, output->bounds.height() * 4 / 5));
+        m_window->setGeometry(base::Rect(output->bounds.x(),
+                                         output->bounds.bottom() - DockSettings::taskbarHeight - height,
+                                         width, height));
+        const bool dark = ui::Theme::current().darkMode;
+        m_window->setBackgroundBlur(base::Rect(0, 0, width, height), 24,
+                                    popupGlass(dark ? .13 : .94, dark ? .13 : .94,
+                                               dark ? .14 : .95, .86));
     } else {
         // The normal launcher covers the output, including the top bar.
         m_window->setGeometry(output->bounds);
         m_window->setBackgroundBlur(base::Rect(), 0);
     }
     m_view->setCompact(compact);
-    // The wallpaper is decoded at the device pixel size.
-    m_wallpaper->setSurfaceSize(base::Size(int(std::lround(output->bounds.width() * output->scale)),
-                                           int(std::lround(output->bounds.height() * output->scale))));
+    // The wallpaper is decoded at the device pixel size; use the window size
+    // so compact mode doesn't decode a full-output bitmap.
+    const base::Rect winRect = m_window->geometry();
+    m_wallpaper->setSurfaceSize(base::Size(int(std::lround(winRect.width() * output->scale)),
+                                           int(std::lround(winRect.height() * output->scale))));
 
     // Room for the dock on its edge, and a constant 8 at the top.
     LauncherMetrics::Margins margins;

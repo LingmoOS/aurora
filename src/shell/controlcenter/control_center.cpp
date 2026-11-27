@@ -230,6 +230,25 @@ void ControlCenter::openPanel(Panel panel, ShellWindow *bar, const base::Rect &a
             openPanel(Panel::Bluetooth, bar, anchor);
         };
         view->onHeightChanged = [this] { resizeControlCenter(); };
+        // In efficient mode (bottom bar), show the power button.
+        if (bar) {
+            const Shell::Output *output = m_shell->output(bar->outputName());
+            const bool bottomBar = output && bar->geometry().y() > output->bounds.y() + output->bounds.height() / 2;
+            view->setEfficientMode(bottomBar);
+        }
+        if (m_powerActions) {
+            view->onPowerRequested = [this](int action) {
+                close(Panel::ControlCenter);
+                switch (action) {
+                case 0: m_powerActions->suspend();   break;
+                case 1: m_powerActions->request(PowerActions::Reboot);   break;
+                case 2: m_powerActions->request(PowerActions::Shutdown);  break;
+                case 3: m_powerActions->lockScreen(); break;
+                case 4: m_powerActions->request(PowerActions::Logout);   break;
+                default: break;
+                }
+            };
+        }
         content = std::move(view);
         break;
     }

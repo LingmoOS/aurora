@@ -195,8 +195,21 @@ protected:
 
     void paint(ui::Painter &painter) override
     {
-        // Both modes show the panel's glass from the surface blur; it is the
-        // dock's only background.
+        // In efficient mode paint a semi-opaque solid fill beneath the
+        // surface blur so the taskbar reads as frosted glass rather than
+        // pure transparency.
+        if (m_dock->dock().settings().efficientMode()) {
+            const base::Rect panel = m_dock->panelRect();
+            if (!panel.isEmpty()) {
+                const bool dark = ui::Theme::current().darkMode;
+                const ui::Color bg = dark ? ui::Color{30, 30, 32, 230}
+                                          : ui::Color{248, 249, 252, 230};
+                painter.fillRect({double(panel.x()), double(panel.y()),
+                                  double(panel.width()), double(panel.height())}, bg);
+            }
+            return;
+        }
+        // Floating dock: divider lines only.
         const ui::Color line = ui::color(toolkit::CompositorColor::DockDivider);
         const base::Rect panel = m_dock->panelRect();
         const auto draw = [&](const base::RectF &rect, double opacity) {
@@ -208,10 +221,8 @@ protected:
                                      rect.height()},
                                     {0, 0, ui::Corners::Circular}, color);
         };
-        if (!m_dock->dock().settings().efficientMode()) {
-            draw(m_dock->divider(), 0.18);
-            draw(m_dock->trailingDivider(), m_dock->m_trailingOpacity);
-        }
+        draw(m_dock->divider(), 0.18);
+        draw(m_dock->trailingDivider(), m_dock->m_trailingOpacity);
     }
 
     // The whole window takes drags: the application area, and the icons
